@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {Link} from "@tanstack/react-router";
 
-const Header = () => {
+function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const toggleMobileMenu = () => {
@@ -17,12 +17,12 @@ const Header = () => {
                     </span>
                 </a>
                 <div className="flex md:order-2 space-x-3">
-                    <button
+                    <Link
                         type="button"
                         className="text-dark bg-yellow hover:bg-light focus:ring-4 focus:outline-none focus:ring-gray-dark font-medium rounded-lg text-sm px-4 py-2 text-center"
-                    >
+                     to='/book'>
                         Book Now
-                    </button>
+                    </Link>
                     <button
                         onClick={toggleMobileMenu}
                         type="button"
@@ -65,28 +65,25 @@ const Header = () => {
                             </Link>
                         </li>
                         <li>
-                            <a
-                                href="#"
+                            <Link
                                 className="block py-2 px-3 text-light rounded-sm hover:bg-gray-dark md:hover:bg-transparent md:hover:text-yellow md:p-0"
-                            >
+                             to='/about'>
                                 About
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a
-                                href="#"
+                            <Link
                                 className="block py-2 px-3 text-light rounded-sm hover:bg-gray-dark md:hover:bg-transparent md:hover:text-yellow md:p-0"
-                            >
+                             to='/services'>
                                 Services
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a
-                                href="#"
+                            <Link
                                 className="block py-2 px-3 text-light rounded-sm hover:bg-gray-dark md:hover:bg-transparent md:hover:text-yellow md:p-0"
-                            >
+                             to='/contact'>
                                 Contact
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>

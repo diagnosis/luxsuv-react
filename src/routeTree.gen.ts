@@ -8,12 +8,45 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 
+// Create Virtual Routes
+
+const ServicesLazyImport = createFileRoute('/services')()
+const ContactLazyImport = createFileRoute('/contact')()
+const BookLazyImport = createFileRoute('/book')()
+const AboutLazyImport = createFileRoute('/about')()
+
 // Create/Update Routes
+
+const ServicesLazyRoute = ServicesLazyImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/services.lazy').then((d) => d.Route))
+
+const ContactLazyRoute = ContactLazyImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/contact.lazy').then((d) => d.Route))
+
+const BookLazyRoute = BookLazyImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/book.lazy').then((d) => d.Route))
+
+const AboutLazyRoute = AboutLazyImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/about.lazy').then((d) => d.Route))
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -32,6 +65,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +100,52 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutLazyRoute
+  '/book': typeof BookLazyRoute
+  '/contact': typeof ContactLazyRoute
+  '/services': typeof ServicesLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutLazyRoute
+  '/book': typeof BookLazyRoute
+  '/contact': typeof ContactLazyRoute
+  '/services': typeof ServicesLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/about': typeof AboutLazyRoute
+  '/book': typeof BookLazyRoute
+  '/contact': typeof ContactLazyRoute
+  '/services': typeof ServicesLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/about' | '/book' | '/contact' | '/services'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/about' | '/book' | '/contact' | '/services'
+  id: '__root__' | '/' | '/about' | '/book' | '/contact' | '/services'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutLazyRoute: typeof AboutLazyRoute
+  BookLazyRoute: typeof BookLazyRoute
+  ContactLazyRoute: typeof ContactLazyRoute
+  ServicesLazyRoute: typeof ServicesLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutLazyRoute: AboutLazyRoute,
+  BookLazyRoute: BookLazyRoute,
+  ContactLazyRoute: ContactLazyRoute,
+  ServicesLazyRoute: ServicesLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +158,27 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.jsx",
       "children": [
-        "/"
+        "/",
+        "/about",
+        "/book",
+        "/contact",
+        "/services"
       ]
     },
     "/": {
       "filePath": "index.jsx"
+    },
+    "/about": {
+      "filePath": "about.lazy.jsx"
+    },
+    "/book": {
+      "filePath": "book.lazy.jsx"
+    },
+    "/contact": {
+      "filePath": "contact.lazy.jsx"
+    },
+    "/services": {
+      "filePath": "services.lazy.jsx"
     }
   }
 }
