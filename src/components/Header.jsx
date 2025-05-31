@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import {Link} from "@tanstack/react-router";
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -20,7 +21,7 @@ const Header = () => {
                         type="button"
                         className="text-dark bg-yellow hover:bg-light focus:ring-4 focus:outline-none focus:ring-gray-dark font-medium rounded-lg text-sm px-4 py-2 text-center"
                     >
-                        Get started
+                        Book Now
                     </button>
                     <button
                         onClick={toggleMobileMenu}
@@ -55,13 +56,13 @@ const Header = () => {
                 >
                     <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border border-yellow rounded-lg bg-gradient-to-r from-dark to-gray-dark md:space-x-8 md:flex-row md:mt-0 md:border-0 md:bg-transparent">
                         <li>
-                            <a
+                            <Link
                                 href="#"
                                 className="block py-2 px-3 text-light bg-yellow rounded-sm md:bg-transparent md:text-yellow md:hover:text-light md:p-0"
                                 aria-current="page"
-                            >
+                             to={'/'}>
                                 Home
-                            </a>
+                            </Link>
                         </li>
                         <li>
                             <a
