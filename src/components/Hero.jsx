@@ -20,8 +20,8 @@ const Hero = () => {
 
     return (
         <div
-            className="w-full h-full bg-amber-100"
-            style={{ paddingTop: `${headerHeight}px` }}
+            className="w-full min-h-[calc(100vh-80px)] bg-amber-100"
+            style={{ marginTop: `${headerHeight}px` }}
         >
             <h1>Hero Section</h1>
         </div>
