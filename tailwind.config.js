@@ -7,9 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        chartreuse: '#d8c800',
-        'blue-iris': '#4120a9',
-        'custom-black': '#0a0a0a',
+        'primary-black': '#000000',
+        'dark-red': '#3D0000',
+        'medium-red': '#950101',
+        'bright-red': '#FF0000',
       },
     },
   },
