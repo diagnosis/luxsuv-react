@@ -54,16 +54,12 @@ const Header = () => {
 
                 {/* Mobile Menu */}
                 <div
-                    className={`absolute top-full left-0 w-full bg-gradient-to-r from-dark to-gray-dark transform transition-all duration-300 ease-in-out ${
+                    className={`absolute top-full left-0 w-full bg-gradient-to-r from-dark to-gray-dark transform transition-all duration-500 ease-in-out ${
                         isMobileMenuOpen ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
                     } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:opacity-100 md:visible md:translate-y-0`}
                     id="navbar-sticky"
                 >
                     <div className="max-h-[calc(100vh-5rem)] overflow-y-auto p-6 md:p-0 md:flex md:space-x-8 md:overflow-visible">
-                        {/* Mobile Header */}
-                        <div className="flex justify-center items-center mb-6 md:hidden">
-                            <span className="text-2xl font-bold text-yellow">LUX SUV</span>
-                        </div>
 
                         {/* Navigation Links */}
                         <div className="mb-6 md:mb-0">
