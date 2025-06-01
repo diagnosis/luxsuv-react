@@ -58,16 +58,16 @@ const Header = () => {
                     </button>
                 </div>
 
-                {/* Top Menu (Mobile) and Desktop Navigation */}
+                {/* Mobile Menu */}
                 <div
-                    className={`fixed top-0 left-0 w-full bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-all duration-400 ease-in-out ${
+                    className={`fixed top-0 left-0 w-full bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-all duration-300 ease-in-out border-b border-yellow ${
                         isMobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto md:overflow-visible md:opacity-100`}
+                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:opacity-100 md:border-none`}
                     id="navbar-sticky"
                 >
-                    <div className="flex flex-col h-screen p-6 md:p-0 md:flex-row md:space-x-8 md:mt-0 md:h-auto">
+                    <div className="max-h-[70vh] overflow-y-auto p-6 md:p-0 md:flex md:space-x-8 md:overflow-visible">
                         {/* Mobile Header */}
-                        <div className="flex justify-between items-center mb-8 md:hidden">
+                        <div className="flex justify-between items-center mb-6 md:hidden">
                             <span className="text-2xl font-bold text-yellow">LUX SUV</span>
                             <button
                                 onClick={closeMobileMenu}
@@ -79,7 +79,7 @@ const Header = () => {
                         </div>
 
                         {/* Navigation Links */}
-                        <div className="mb-8 md:mb-0">
+                        <div className="mb-6 md:mb-0">
                             <h3 className="text-xl font-semibold text-yellow mb-4 md:hidden">Navigation</h3>
                             <ul className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-8">
                                 <li>
@@ -112,10 +112,10 @@ const Header = () => {
                             </ul>
                         </div>
 
-                        {/* Social Links - Moved to middle */}
-                        <div className="flex-1 flex flex-col justify-center items-center mb-8 md:hidden">
+                        {/* Social Links */}
+                        <div className="mb-6 md:hidden">
                             <h3 className="text-xl font-semibold text-yellow mb-4">Follow Us</h3>
-                            <div className="flex space-x-6">
+                            <div className="flex justify-center space-x-6">
                                 <a
                                     href="https://x.com"
                                     className="text-light hover:text-yellow transition-colors"
@@ -144,10 +144,10 @@ const Header = () => {
                         </div>
 
                         {/* Copyright Section */}
-                        <div className="mt-auto md:hidden">
-                            <div className="text-sm text-light/80 flex flex-col items-center space-y-2">
-                                <span>© {new Date().getFullYear()} LUX SUV. All rights reserved.</span>
-                                <div className="flex space-x-2">
+                        <div className="text-center md:hidden">
+                            <div className="text-sm text-light/80">
+                                <p className="mb-2">© {new Date().getFullYear()} LUX SUV. All rights reserved.</p>
+                                <div className="flex justify-center space-x-2">
                                     <Link to="/privacy" className="hover:text-yellow transition-colors" onClick={closeMobileMenu}>
                                         Privacy Policy
                                     </Link>
@@ -164,7 +164,7 @@ const Header = () => {
                 {/* Overlay for Mobile Menu */}
                 {isMobileMenuOpen && (
                     <div
-                        className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-400"
+                        className="fixed inset-0 bg-black/50 z-20 md:hidden"
                         onClick={closeMobileMenu}
                         aria-hidden="true"
                     ></div>
