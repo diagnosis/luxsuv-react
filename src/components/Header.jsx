@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faXTwitter, faInstagram, faTiktok} from '@fortawesome/free-brands-svg-icons';
-import {Menu, X} from 'lucide-react'
+import {ChevronUp, Menu} from 'lucide-react'
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,15 +44,25 @@ const Header = () => {
                         aria-label="Toggle navigation menu"
                     >
                         <span className="sr-only">Toggle navigation menu</span>
-                        <Menu className="text-light w-8 h-8" strokeWidth={2.5} />
+                        {isMobileMenuOpen ? (
+                            <ChevronUp 
+                                className="text-light w-8 h-8 transform transition-transform duration-300" 
+                                strokeWidth={2.5}
+                            />
+                        ) : (
+                            <Menu 
+                                className="text-light w-8 h-8 transform transition-transform duration-300" 
+                                strokeWidth={2.5}
+                            />
+                        )}
                     </button>
                 </div>
 
                 {/* Top Menu (Mobile) and Desktop Navigation */}
                 <div
-                    className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-transform duration-300 overflow-y-auto ${
-                        isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
-                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto md:overflow-visible`}
+                    className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-all duration-300 ease-in-out ${
+                        isMobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto md:overflow-visible md:opacity-100`}
                     id="navbar-sticky"
                 >
                     <div className="flex flex-col p-6 h-full md:p-0 md:flex-row md:space-x-8 md:mt-0">
@@ -61,10 +71,10 @@ const Header = () => {
                             <span className="text-2xl font-bold text-yellow">LUX SUV</span>
                             <button
                                 onClick={closeMobileMenu}
-                                className="p-2"
+                                className="p-2 transition-transform duration-300 hover:rotate-180"
                                 aria-label="Close menu"
                             >
-                                <X className="text-light w-8 h-8" strokeWidth={2.5} />
+                                <ChevronUp className="text-light w-8 h-8" strokeWidth={2.5} />
                             </button>
                         </div>
 
@@ -168,7 +178,7 @@ const Header = () => {
                 {/* Overlay for Mobile Menu */}
                 {isMobileMenuOpen && (
                     <div
-                        className="fixed inset-0 bg-black/50 z-20 md:hidden"
+                        className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-300"
                         onClick={closeMobileMenu}
                         aria-hidden="true"
                     ></div>
