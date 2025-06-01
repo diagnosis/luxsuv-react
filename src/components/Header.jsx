@@ -56,45 +56,51 @@ const Header = () => {
                     id="navbar-sticky"
                 >
                     <div className="flex flex-col p-6 h-full md:p-0 md:flex-row md:space-x-8 md:mt-0">
-                        {/* Close button for mobile */}
-                        <button
-                            onClick={closeMobileMenu}
-                            className="self-end p-2 mb-4 md:hidden"
-                            aria-label="Close menu"
-                        >
-                            <X className="text-light w-8 h-8" strokeWidth={2.5} />
-                        </button>
+                        {/* Mobile Header */}
+                        <div className="flex justify-between items-center mb-8 md:hidden">
+                            <span className="text-2xl font-bold text-yellow">LUX SUV</span>
+                            <button
+                                onClick={closeMobileMenu}
+                                className="p-2"
+                                aria-label="Close menu"
+                            >
+                                <X className="text-light w-8 h-8" strokeWidth={2.5} />
+                            </button>
+                        </div>
 
                         {/* Navigation Links */}
-                        <ul className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-8">
-                            <li>
-                                <Link
-                                    to="/"
-                                    className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
-                                    onClick={closeMobileMenu}
-                                >
-                                    Home
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/about"
-                                    className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
-                                    onClick={closeMobileMenu}
-                                >
-                                    About
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/services"
-                                    className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
-                                    onClick={closeMobileMenu}
-                                >
-                                    Services
-                                </Link>
-                            </li>
-                        </ul>
+                        <div className="mb-8 md:mb-0">
+                            <h3 className="text-xl font-semibold text-yellow mb-4 md:hidden">Navigation</h3>
+                            <ul className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-8">
+                                <li>
+                                    <Link
+                                        to="/"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
+                                        onClick={closeMobileMenu}
+                                    >
+                                        Home
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/about"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
+                                        onClick={closeMobileMenu}
+                                    >
+                                        About
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/services"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
+                                        onClick={closeMobileMenu}
+                                    >
+                                        Services
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
 
                         {/* Footer Content (Mobile Only) */}
                         <div className="mt-auto border-t border-yellow/30 pt-6 md:hidden">
