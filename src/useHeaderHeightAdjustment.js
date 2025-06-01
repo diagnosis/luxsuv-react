@@ -1,24 +1,24 @@
-import {useEffect, useState} from "react";
+import { useState, useEffect } from 'react';
 
-export const useHeaderHeightAdjustment = () =>{
-
+export const useHeaderHeightAdjustment = () => {
     const [headerHeight, setHeaderHeight] = useState(0);
 
     useEffect(() => {
-        const header = document.querySelector('nav');
-        if (header) {
-            setHeaderHeight(header.offsetHeight);
-        }
-        // Update height on window resize
-        const handleResize = () => {
+        const updateHeight = () => {
+            const header = document.querySelector('nav');
             if (header) {
-                setHeaderHeight(header.offsetHeight);
+                setHeaderHeight(header.offsetHeight || 0);
             }
         };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+
+        updateHeight(); // Initial calculation
+        window.addEventListener('resize', updateHeight);
+        window.addEventListener('load', updateHeight); // Ensure calculation on load
+        return () => {
+            window.removeEventListener('resize', updateHeight);
+            window.removeEventListener('load', updateHeight);
+        };
     }, []);
 
-    return headerHeight
-
-}
+    return headerHeight;
+};
