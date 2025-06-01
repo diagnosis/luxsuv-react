@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faXTwitter, faInstagram, faTiktok} from '@fortawesome/free-brands-svg-icons';
-import {Icon, Menu} from 'lucide-react'
+import {Menu} from 'lucide-react'
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,17 +44,15 @@ const Header = () => {
                         aria-label="Toggle navigation menu"
                     >
                         <span className="sr-only">Toggle navigation menu</span>
-
-                        <Menu></Menu>
-
+                        <Menu />
                     </button>
                 </div>
 
-                {/* Side Menu (Mobile) and Desktop Navigation */}
+                {/* Top Menu (Mobile) and Desktop Navigation */}
                 <div
-                    className={`fixed top-0 left-0 h-full w-11/12 max-w-sm bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-transform duration-300 ${
-                        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent`}
+                    className={`fixed top-0 left-0 w-full h-[90vh] bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-transform duration-300 ${
+                        isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
+                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto`}
                     id="navbar-sticky"
                 >
                     <div className="flex flex-col p-6 h-full overflow-y-auto md:p-0 md:flex-row md:space-x-8 md:mt-0">
