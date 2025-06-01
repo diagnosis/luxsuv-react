@@ -50,12 +50,12 @@ const Header = () => {
 
                 {/* Top Menu (Mobile) and Desktop Navigation */}
                 <div
-                    className={`fixed top-0 left-0 w-full h-[90vh] bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-transform duration-300 ${
+                    className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-transform duration-300 overflow-y-auto ${
                         isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
-                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto`}
+                    } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto md:overflow-visible`}
                     id="navbar-sticky"
                 >
-                    <div className="flex flex-col p-6 h-full overflow-y-auto md:p-0 md:flex-row md:space-x-8 md:mt-0">
+                    <div className="flex flex-col p-6 h-full md:p-0 md:flex-row md:space-x-8 md:mt-0">
                         {/* Close button for mobile */}
                         <button
                             onClick={closeMobileMenu}
@@ -94,45 +94,66 @@ const Header = () => {
                                     Services
                                 </Link>
                             </li>
-                            <li>
-                                <Link
-                                    to="/contact"
-                                    className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
-                                    onClick={closeMobileMenu}
-                                >
-                                    Contact
-                                </Link>
-                            </li>
                         </ul>
 
-                        {/* Social Media (Mobile Only) */}
-                        <div className="mt-6 md:hidden">
-                            <h3 className="text-base font-medium text-yellow mb-2">Follow Us</h3>
-                            <div className="flex space-x-4">
-                                <a
-                                    href="https://x.com"
-                                    className="text-light hover:text-yellow transition-colors"
-                                    onClick={closeMobileMenu}
-                                    aria-label="Follow us on X"
-                                >
-                                    <FontAwesomeIcon icon={faXTwitter} size="lg" />
-                                </a>
-                                <a
-                                    href="https://instagram.com"
-                                    className="text-light hover:text-yellow transition-colors"
-                                    onClick={closeMobileMenu}
-                                    aria-label="Follow us on Instagram"
-                                >
-                                    <FontAwesomeIcon icon={faInstagram} size="lg" />
-                                </a>
-                                <a
-                                    href="https://tiktok.com"
-                                    className="text-light hover:text-yellow transition-colors"
-                                    onClick={closeMobileMenu}
-                                    aria-label="Follow us on TikTok"
-                                >
-                                    <FontAwesomeIcon icon={faTiktok} size="lg" />
-                                </a>
+                        {/* Footer Content (Mobile Only) */}
+                        <div className="mt-auto border-t border-yellow/30 pt-6 md:hidden">
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-yellow mb-4">Contact Us</h3>
+                                <ul className="space-y-2 text-sm">
+                                    <li>
+                                        <a href="mailto:support@luxsuv.com" className="text-light hover:text-yellow transition-colors">
+                                            support@luxsuv.com
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="tel:+1234567890" className="text-light hover:text-yellow transition-colors">
+                                            +1 (234) 567-890
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-yellow mb-4">Follow Us</h3>
+                                <div className="flex space-x-4">
+                                    <a
+                                        href="https://x.com"
+                                        className="text-light hover:text-yellow transition-colors"
+                                        onClick={closeMobileMenu}
+                                        aria-label="Follow us on X"
+                                    >
+                                        <FontAwesomeIcon icon={faXTwitter} size="lg" />
+                                    </a>
+                                    <a
+                                        href="https://instagram.com"
+                                        className="text-light hover:text-yellow transition-colors"
+                                        onClick={closeMobileMenu}
+                                        aria-label="Follow us on Instagram"
+                                    >
+                                        <FontAwesomeIcon icon={faInstagram} size="lg" />
+                                    </a>
+                                    <a
+                                        href="https://tiktok.com"
+                                        className="text-light hover:text-yellow transition-colors"
+                                        onClick={closeMobileMenu}
+                                        aria-label="Follow us on TikTok"
+                                    >
+                                        <FontAwesomeIcon icon={faTiktok} size="lg" />
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div className="text-sm text-light/80">
+                                <p>© {new Date().getFullYear()} LUX SUV. All rights reserved.</p>
+                                <div className="flex flex-col space-y-2 mt-2">
+                                    <Link to="/privacy" className="hover:text-yellow transition-colors" onClick={closeMobileMenu}>
+                                        Privacy Policy
+                                    </Link>
+                                    <Link to="/terms" className="hover:text-yellow transition-colors" onClick={closeMobileMenu}>
+                                        Terms of Service
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>

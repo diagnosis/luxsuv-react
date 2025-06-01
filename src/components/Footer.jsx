@@ -1,35 +1,14 @@
-import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faInstagram, faTiktok } from '@fortawesome/free-brands-svg-icons';
 
-const Accordion = ({ title, children }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <div className="mb-4">
-            <button
-                className="text-base font-medium text-yellow w-full text-left flex justify-between items-center md:hidden"
-                onClick={() => setIsOpen(!isOpen)}
-                aria-expanded={isOpen}
-                aria-label={`Toggle ${title} section`}
-            >
-                {title}
-                <span className="text-yellow">{isOpen ? '−' : '+'}</span>
-            </button>
-            <div className={isOpen ? 'block' : 'hidden md:block'}>
-                {children}
-            </div>
-        </div>
-    );
-};
-
 const Footer = () => {
     return (
-        <footer className="bg-gradient-to-r from-dark to-gray-dark text-light w-full">
+        <footer className="bg-gradient-to-r from-dark to-gray-dark text-light w-full hidden md:block">
             <div className="mx-auto p-6 max-w-screen-xl md:p-12">
                 {/* Top Section: Branding and Main Links */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-12">
-                    {/* Branding Column (No Accordion) */}
+                    {/* Branding Column */}
                     <div className="mb-4">
                         <h2 className="text-xl font-semibold mb-2 text-yellow md:text-2xl md:mb-4">LUX SUV</h2>
                         <p className="text-sm text-light/80">
@@ -38,7 +17,8 @@ const Footer = () => {
                     </div>
 
                     {/* Services Column */}
-                    <Accordion title="Our Services">
+                    <div>
+                        <h3 className="text-base font-medium text-yellow mb-2">Our Services</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link to="/services/airport" className="hover:text-yellow transition-colors">
@@ -56,10 +36,11 @@ const Footer = () => {
                                 </Link>
                             </li>
                         </ul>
-                    </Accordion>
+                    </div>
 
                     {/* About Column */}
-                    <Accordion title="About Us">
+                    <div>
+                        <h3 className="text-base font-medium text-yellow mb-2">About Us</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link to="/about" className="hover:text-yellow transition-colors">
@@ -77,10 +58,11 @@ const Footer = () => {
                                 </Link>
                             </li>
                         </ul>
-                    </Accordion>
+                    </div>
 
                     {/* Contact Column */}
-                    <Accordion title="Contact">
+                    <div>
+                        <h3 className="text-base font-medium text-yellow mb-2">Contact</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a href="mailto:support@luxsuv.com" className="hover:text-yellow transition-colors">
@@ -92,13 +74,8 @@ const Footer = () => {
                                     +1 (234) 567-890
                                 </a>
                             </li>
-                            <li>
-                                <Link to="/contact" className="hover:text-yellow transition-colors">
-                                    Contact Form
-                                </Link>
-                            </li>
                         </ul>
-                    </Accordion>
+                    </div>
                 </div>
 
                 {/* Bottom Section: Social Media and Legal */}
