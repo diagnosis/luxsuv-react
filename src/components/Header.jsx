@@ -45,15 +45,9 @@ const Header = () => {
                     >
                         <span className="sr-only">Toggle navigation menu</span>
                         {isMobileMenuOpen ? (
-                            <ChevronUp 
-                                className="text-light w-8 h-8" 
-                                strokeWidth={2.5}
-                            />
+                            <ChevronUp className="w-6 h-6" />
                         ) : (
-                            <Menu 
-                                className="text-light w-8 h-8" 
-                                strokeWidth={2.5}
-                            />
+                            <Menu className="w-6 h-6" />
                         )}
                     </button>
                 </div>
