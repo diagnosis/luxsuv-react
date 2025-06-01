@@ -1,14 +1,10 @@
-import { useHeaderHeightAdjustment } from "../useHeaderHeightAdjustment.js";
 import { Link } from '@tanstack/react-router';
 
 const Hero = () => {
-    const headerHeight = useHeaderHeightAdjustment();
-
     return (
         <div
             className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex items-center"
             style={{
-                marginTop: `${headerHeight}px`,
                 backgroundImage: 'url("https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg")'
             }}
         >
@@ -44,5 +40,3 @@ const Hero = () => {
         </div>
     );
 };
-
-export default Hero;
