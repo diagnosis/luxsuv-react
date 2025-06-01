@@ -38,7 +38,7 @@ const Header = () => {
                     <button
                         onClick={toggleMobileMenu}
                         type="button"
-                        className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-light rounded-lg hover:bg-gray-dark focus:outline-none focus:ring-2 focus:ring-yellow md:hidden"
+                        className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-light rounded-lg border border-yellow hover:bg-gray-dark focus:outline-none focus:ring-2 focus:ring-yellow md:hidden"
                         aria-controls="navbar-sticky"
                         aria-expanded={isMobileMenuOpen}
                         aria-label="Toggle navigation menu"
@@ -65,13 +65,13 @@ const Header = () => {
                     } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto md:overflow-visible md:opacity-100`}
                     id="navbar-sticky"
                 >
-                    <div className="flex flex-col p-6 md:p-0 md:flex-row md:space-x-8 md:mt-0">
+                    <div className="flex flex-col h-screen p-6 md:p-0 md:flex-row md:space-x-8 md:mt-0 md:h-auto">
                         {/* Mobile Header */}
                         <div className="flex justify-between items-center mb-8 md:hidden">
                             <span className="text-2xl font-bold text-yellow">LUX SUV</span>
                             <button
                                 onClick={closeMobileMenu}
-                                className="p-2"
+                                className="p-2 border border-yellow rounded-lg"
                                 aria-label="Close menu"
                             >
                                 <ChevronUp className="text-light w-8 h-8" strokeWidth={2.5} />
@@ -112,16 +112,17 @@ const Header = () => {
                             </ul>
                         </div>
 
-                        {/* Social Links */}
-                        <div className="mt-auto md:hidden">
-                            <div className="flex space-x-4 mb-6">
+                        {/* Social Links - Moved to middle */}
+                        <div className="flex-1 flex flex-col justify-center items-center mb-8 md:hidden">
+                            <h3 className="text-xl font-semibold text-yellow mb-4">Follow Us</h3>
+                            <div className="flex space-x-6">
                                 <a
                                     href="https://x.com"
                                     className="text-light hover:text-yellow transition-colors"
                                     onClick={closeMobileMenu}
                                     aria-label="Follow us on X"
                                 >
-                                    <FontAwesomeIcon icon={faXTwitter} size="lg" />
+                                    <FontAwesomeIcon icon={faXTwitter} size="2x" />
                                 </a>
                                 <a
                                     href="https://instagram.com"
@@ -129,7 +130,7 @@ const Header = () => {
                                     onClick={closeMobileMenu}
                                     aria-label="Follow us on Instagram"
                                 >
-                                    <FontAwesomeIcon icon={faInstagram} size="lg" />
+                                    <FontAwesomeIcon icon={faInstagram} size="2x" />
                                 </a>
                                 <a
                                     href="https://tiktok.com"
@@ -137,11 +138,13 @@ const Header = () => {
                                     onClick={closeMobileMenu}
                                     aria-label="Follow us on TikTok"
                                 >
-                                    <FontAwesomeIcon icon={faTiktok} size="lg" />
+                                    <FontAwesomeIcon icon={faTiktok} size="2x" />
                                 </a>
                             </div>
+                        </div>
 
-                            {/* Copyright Section */}
+                        {/* Copyright Section */}
+                        <div className="mt-auto md:hidden">
                             <div className="text-sm text-light/80 flex flex-col items-center space-y-2">
                                 <span>© {new Date().getFullYear()} LUX SUV. All rights reserved.</span>
                                 <div className="flex space-x-2">
