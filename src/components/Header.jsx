@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faXTwitter, faInstagram, faTiktok} from '@fortawesome/free-brands-svg-icons';
-import {Menu} from 'lucide-react'
+import {Menu, X} from 'lucide-react'
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,7 +44,11 @@ const Header = () => {
                         aria-label="Toggle navigation menu"
                     >
                         <span className="sr-only">Toggle navigation menu</span>
-                        <Menu className="text-light w-8 h-8" strokeWidth={2.5} />
+                        {isMobileMenuOpen ? (
+                            <X className="text-light w-8 h-8" strokeWidth={2.5} />
+                        ) : (
+                            <Menu className="text-light w-8 h-8" strokeWidth={2.5} />
+                        )}
                     </button>
                 </div>
 
