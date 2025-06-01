@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Home, Info, Phone, Car } from 'lucide-react';
+import { Home, Info, CalendarCheck, Car } from 'lucide-react';
 
 const BottomNav = () => {
     return (
@@ -27,11 +27,11 @@ const BottomNav = () => {
                     <span className="text-xs mt-1">About</span>
                 </Link>
                 <Link
-                    to="/contact"
+                    to="/book"
                     className="flex flex-col items-center text-light hover:text-yellow transition-colors"
                 >
-                    <Phone className="w-6 h-6" />
-                    <span className="text-xs mt-1">Contact</span>
+                    <CalendarCheck className="w-6 h-6" />
+                    <span className="text-xs mt-1">Book Now</span>
                 </Link>
             </div>
         </nav>
