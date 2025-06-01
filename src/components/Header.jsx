@@ -44,7 +44,7 @@ const Header = () => {
                         aria-label="Toggle navigation menu"
                     >
                         <span className="sr-only">Toggle navigation menu</span>
-                        <Menu className="text-light" />
+                        <Menu className="text-light w-8 h-8" strokeWidth={2.5} />
                     </button>
                 </div>
 
