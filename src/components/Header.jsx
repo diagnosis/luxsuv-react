@@ -67,25 +67,18 @@ const Header = () => {
                 >
                     <div className="max-h-[70vh] overflow-y-auto p-6 md:p-0 md:flex md:space-x-8 md:overflow-visible">
                         {/* Mobile Header */}
-                        <div className="flex justify-between items-center mb-6 md:hidden">
+                        <div className="flex justify-center items-center mb-6 md:hidden">
                             <span className="text-2xl font-bold text-yellow">LUX SUV</span>
-                            <button
-                                onClick={closeMobileMenu}
-                                className="p-2 border border-yellow rounded-lg"
-                                aria-label="Close menu"
-                            >
-                                <ChevronUp className="text-light w-8 h-8" strokeWidth={2.5} />
-                            </button>
                         </div>
 
                         {/* Navigation Links */}
                         <div className="mb-6 md:mb-0">
-                            <h3 className="text-xl font-semibold text-yellow mb-4 md:hidden">Navigation</h3>
-                            <ul className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-8">
+                            <h3 className="text-xl font-semibold text-yellow mb-4 text-center md:hidden">Navigation</h3>
+                            <ul className="flex flex-col items-center space-y-4 md:flex-row md:space-y-0 md:space-x-8">
                                 <li>
                                     <Link
                                         to="/"
-                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors text-center"
                                         onClick={closeMobileMenu}
                                     >
                                         Home
@@ -94,7 +87,7 @@ const Header = () => {
                                 <li>
                                     <Link
                                         to="/about"
-                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors text-center"
                                         onClick={closeMobileMenu}
                                     >
                                         About
@@ -103,7 +96,7 @@ const Header = () => {
                                 <li>
                                     <Link
                                         to="/services"
-                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors text-center"
                                         onClick={closeMobileMenu}
                                     >
                                         Services
@@ -114,7 +107,7 @@ const Header = () => {
 
                         {/* Social Links */}
                         <div className="mb-6 md:hidden">
-                            <h3 className="text-xl font-semibold text-yellow mb-4">Follow Us</h3>
+                            <h3 className="text-xl font-semibold text-yellow mb-4 text-center">Follow Us</h3>
                             <div className="flex justify-center space-x-6">
                                 <a
                                     href="https://x.com"
