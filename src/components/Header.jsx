@@ -44,11 +44,7 @@ const Header = () => {
                         aria-label="Toggle navigation menu"
                     >
                         <span className="sr-only">Toggle navigation menu</span>
-                        {isMobileMenuOpen ? (
-                            <X className="text-light w-8 h-8" strokeWidth={2.5} />
-                        ) : (
-                            <Menu className="text-light w-8 h-8" strokeWidth={2.5} />
-                        )}
+                        <Menu className="text-light w-8 h-8" strokeWidth={2.5} />
                     </button>
                 </div>
 
@@ -60,6 +56,15 @@ const Header = () => {
                     id="navbar-sticky"
                 >
                     <div className="flex flex-col p-6 h-full overflow-y-auto md:p-0 md:flex-row md:space-x-8 md:mt-0">
+                        {/* Close button for mobile */}
+                        <button
+                            onClick={closeMobileMenu}
+                            className="self-end p-2 mb-4 md:hidden"
+                            aria-label="Close menu"
+                        >
+                            <X className="text-light w-8 h-8" strokeWidth={2.5} />
+                        </button>
+
                         {/* Navigation Links */}
                         <ul className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-8">
                             <li>
