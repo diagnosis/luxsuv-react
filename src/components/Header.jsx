@@ -114,7 +114,7 @@ const Header = () => {
 
                         {/* Social Links */}
                         <div className="mt-auto md:hidden">
-                            <div className="flex space-x-4">
+                            <div className="flex space-x-4 mb-6">
                                 <a
                                     href="https://x.com"
                                     className="text-light hover:text-yellow transition-colors"
@@ -139,6 +139,20 @@ const Header = () => {
                                 >
                                     <FontAwesomeIcon icon={faTiktok} size="lg" />
                                 </a>
+                            </div>
+
+                            {/* Copyright Section */}
+                            <div className="text-sm text-light/80 flex flex-col items-center space-y-2">
+                                <span>© {new Date().getFullYear()} LUX SUV. All rights reserved.</span>
+                                <div className="flex space-x-2">
+                                    <Link to="/privacy" className="hover:text-yellow transition-colors" onClick={closeMobileMenu}>
+                                        Privacy Policy
+                                    </Link>
+                                    <span>|</span>
+                                    <Link to="/terms" className="hover:text-yellow transition-colors" onClick={closeMobileMenu}>
+                                        Terms of Service
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
