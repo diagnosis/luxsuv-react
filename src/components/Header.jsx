@@ -46,12 +46,12 @@ const Header = () => {
                         <span className="sr-only">Toggle navigation menu</span>
                         {isMobileMenuOpen ? (
                             <ChevronUp 
-                                className="text-light w-8 h-8 transform transition-transform duration-300" 
+                                className="text-light w-8 h-8" 
                                 strokeWidth={2.5}
                             />
                         ) : (
                             <Menu 
-                                className="text-light w-8 h-8 transform transition-transform duration-300" 
+                                className="text-light w-8 h-8" 
                                 strokeWidth={2.5}
                             />
                         )}
@@ -60,7 +60,7 @@ const Header = () => {
 
                 {/* Top Menu (Mobile) and Desktop Navigation */}
                 <div
-                    className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-all duration-300 ease-in-out ${
+                    className={`fixed top-0 left-0 w-full h-screen bg-gradient-to-r from-dark to-gray-dark z-30 transform transition-all duration-400 ease-in-out ${
                         isMobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
                     } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:h-auto md:overflow-visible md:opacity-100`}
                     id="navbar-sticky"
@@ -71,7 +71,7 @@ const Header = () => {
                             <span className="text-2xl font-bold text-yellow">LUX SUV</span>
                             <button
                                 onClick={closeMobileMenu}
-                                className="p-2 transition-transform duration-300 hover:rotate-180"
+                                className="p-2"
                                 aria-label="Close menu"
                             >
                                 <ChevronUp className="text-light w-8 h-8" strokeWidth={2.5} />
@@ -178,7 +178,7 @@ const Header = () => {
                 {/* Overlay for Mobile Menu */}
                 {isMobileMenuOpen && (
                     <div
-                        className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-300"
+                        className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-400"
                         onClick={closeMobileMenu}
                         aria-hidden="true"
                     ></div>
