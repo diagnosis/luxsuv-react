@@ -1,22 +1,44 @@
+import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXTwitter, faInstagram, faTiktok } from '@fortawesome/free-brands-svg-icons';
+
+const Accordion = ({ title, children }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <div className="mb-4">
+            <button
+                className="text-base font-medium text-yellow w-full text-left flex justify-between items-center md:hidden"
+                onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
+                aria-label={`Toggle ${title} section`}
+            >
+                {title}
+                <span className="text-yellow">{isOpen ? '−' : '+'}</span>
+            </button>
+            <div className={isOpen ? 'block' : 'hidden md:block'}>
+                {children}
+            </div>
+        </div>
+    );
+};
 
 const Footer = () => {
     return (
         <footer className="bg-gradient-to-r from-dark to-gray-dark text-light w-full">
-            <div className="max-w-screen-xl mx-auto p-8 md:p-12">
+            <div className="mx-auto p-6 max-w-screen-xl md:p-12">
                 {/* Top Section: Branding and Main Links */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
-                    {/* Branding Column */}
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-4 text-yellow">LUX SUV</h2>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-12">
+                    {/* Branding Column (No Accordion) */}
+                    <div className="mb-4">
+                        <h2 className="text-xl font-semibold mb-2 text-yellow md:text-2xl md:mb-4">LUX SUV</h2>
                         <p className="text-sm text-light/80">
                             Premium SUV transportation for business, leisure, and special occasions.
                         </p>
                     </div>
 
                     {/* Services Column */}
-                    <div>
-                        <h3 className="text-lg font-medium mb-4 text-yellow">Our Services</h3>
+                    <Accordion title="Our Services">
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link to="/services/airport" className="hover:text-yellow transition-colors">
@@ -34,11 +56,10 @@ const Footer = () => {
                                 </Link>
                             </li>
                         </ul>
-                    </div>
+                    </Accordion>
 
                     {/* About Column */}
-                    <div>
-                        <h3 className="text-lg font-medium mb-4 text-yellow">About Us</h3>
+                    <Accordion title="About Us">
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link to="/about" className="hover:text-yellow transition-colors">
@@ -56,11 +77,10 @@ const Footer = () => {
                                 </Link>
                             </li>
                         </ul>
-                    </div>
+                    </Accordion>
 
                     {/* Contact Column */}
-                    <div>
-                        <h3 className="text-lg font-medium mb-4 text-yellow">Contact</h3>
+                    <Accordion title="Contact">
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <a href="mailto:support@luxsuv.com" className="hover:text-yellow transition-colors">
@@ -78,32 +98,44 @@ const Footer = () => {
                                 </Link>
                             </li>
                         </ul>
-                    </div>
+                    </Accordion>
                 </div>
 
                 {/* Bottom Section: Social Media and Legal */}
-                <div className="mt-12 pt-8 border-t border-yellow/30 flex flex-col md:flex-row justify-between items-center">
+                <div className="mt-8 pt-6 border-t border-yellow/30 flex flex-col items-center md:mt-12 md:pt-8 md:flex-row md:justify-between">
                     {/* Social Media Links */}
                     <div className="flex space-x-6 mb-4 md:mb-0">
-                        <a href="https://twitter.com" className="text-light hover:text-yellow transition-colors">
-                            Twitter
+                        <a
+                            href="https://x.com"
+                            className="text-light hover:text-yellow transition-colors"
+                            aria-label="Follow us on X"
+                        >
+                            <FontAwesomeIcon icon={faXTwitter} size="lg" />
                         </a>
-                        <a href="https://instagram.com" className="text-light hover:text-yellow transition-colors">
-                            Instagram
+                        <a
+                            href="https://instagram.com"
+                            className="text-light hover:text-yellow transition-colors"
+                            aria-label="Follow us on Instagram"
+                        >
+                            <FontAwesomeIcon icon={faInstagram} size="lg" />
                         </a>
-                        <a href="https://linkedin.com" className="text-light hover:text-yellow transition-colors">
-                            LinkedIn
+                        <a
+                            href="https://tiktok.com"
+                            className="text-light hover:text-yellow transition-colors"
+                            aria-label="Follow us on TikTok"
+                        >
+                            <FontAwesomeIcon icon={faTiktok} size="lg" />
                         </a>
                     </div>
 
                     {/* Legal and Copyright */}
-                    <div className="text-sm text-light/80">
-                        <span>&copy; {new Date().getFullYear()} LUX SUV. All rights reserved.</span>
-                        <span className="mx-2">|</span>
+                    <div className="text-sm text-light/80 flex flex-col items-center md:flex-row">
+                        <span>© {new Date().getFullYear()} LUX SUV. All rights reserved.</span>
+                        <span className="mx-0 my-2 md:mx-2 md:my-0">|</span>
                         <Link to="/privacy" className="hover:text-yellow transition-colors">
                             Privacy Policy
                         </Link>
-                        <span className="mx-2">|</span>
+                        <span className="mx-0 my-2 md:mx-2 md:my-0">|</span>
                         <Link to="/terms" className="hover:text-yellow transition-colors">
                             Terms of Service
                         </Link>

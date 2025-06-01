@@ -8,4 +8,9 @@ export default defineConfig({
     TanStackRouterVite({ target: 'react', autoCodeSplitting: true }),
     react(),
   ],
+  server: {
+    mimeTypes: {
+      'application/javascript': ['js'],
+    },
+  },
 });
