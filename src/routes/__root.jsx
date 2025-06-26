@@ -20,8 +20,8 @@ function RootComponent() {
                 <Outlet />
             </main>
             
-            {/* Footer/BottomNav - 25% on desktop, compact on mobile */}
-            <div className="h-12 md:h-[25vh] flex-shrink-0">
+            {/* Footer/BottomNav - 25% on desktop, slightly bigger on mobile */}
+            <div className="h-16 md:h-[25vh] flex-shrink-0">
                 <BottomNav />
                 <Footer />
             </div>
