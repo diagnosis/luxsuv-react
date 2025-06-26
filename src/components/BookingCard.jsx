@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X } from 'lucide-react';
 import { useUpdateBooking } from '../hooks/useBooking';
+import AddressAutocomplete from './AddressAutocomplete';
 
 const BookingCard = ({ booking, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -169,11 +170,11 @@ const BookingCard = ({ booking, onUpdate }) => {
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-1">Pickup Location</label>
               {isEditing ? (
-                <input
-                  type="text"
+                <AddressAutocomplete
                   value={editData.pickupLocation}
-                  onChange={(e) => handleInputChange('pickupLocation', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
+                  onChange={(value) => handleInputChange('pickupLocation', value)}
+                  placeholder="Enter pickup location"
+                  className="text-sm"
                 />
               ) : (
                 <p className="text-light">{booking.pickup_location}</p>
@@ -185,11 +186,11 @@ const BookingCard = ({ booking, onUpdate }) => {
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-1">Drop-off Location</label>
               {isEditing ? (
-                <input
-                  type="text"
+                <AddressAutocomplete
                   value={editData.dropoffLocation}
-                  onChange={(e) => handleInputChange('dropoffLocation', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
+                  onChange={(value) => handleInputChange('dropoffLocation', value)}
+                  placeholder="Enter drop-off location"
+                  className="text-sm"
                 />
               ) : (
                 <p className="text-light">{booking.dropoff_location}</p>

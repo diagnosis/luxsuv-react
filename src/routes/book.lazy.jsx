@@ -1,6 +1,7 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useBookRide } from '../hooks/useBooking';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 export const Route = createLazyFileRoute('/book')({
   component: RouteComponent,
@@ -9,6 +10,8 @@ export const Route = createLazyFileRoute('/book')({
 function RouteComponent() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [dropoffLocation, setDropoffLocation] = useState('');
   
   const bookRideMutation = useBookRide();
 
@@ -24,8 +27,8 @@ function RouteComponent() {
         email: formData.get('email'),
         phone: formData.get('phone'),
         rideType: 'hourly', // Default ride type
-        pickupLocation: formData.get('pickupLocation'),
-        dropoffLocation: formData.get('dropoffLocation'),
+        pickupLocation: pickupLocation,
+        dropoffLocation: dropoffLocation,
         date: formData.get('date'),
         time: formData.get('time'),
         passengers: parseInt(formData.get('passengers')),
@@ -38,11 +41,21 @@ function RouteComponent() {
         throw new Error('Number of passengers must be between 1 and 8.');
       }
 
+      if (!pickupLocation.trim()) {
+        throw new Error('Please enter a pickup location.');
+      }
+
+      if (!dropoffLocation.trim()) {
+        throw new Error('Please enter a drop-off location.');
+      }
+
       const result = await bookRideMutation.mutateAsync(bookingData);
       setSuccessMessage(`Booking successful! Your booking ID is: ${result.id}`);
       
       // Reset form
       e.target.reset();
+      setPickupLocation('');
+      setDropoffLocation('');
     } catch (err) {
       setError(err.message);
     }
@@ -134,13 +147,14 @@ function RouteComponent() {
                 >
                   Pickup Location *
                 </label>
-                <input
-                    type="text"
-                    id="pickupLocation"
-                    name="pickupLocation"
-                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-                    placeholder="Enter pickup location"
-                    required
+                <AddressAutocomplete
+                  id="pickupLocation"
+                  name="pickupLocation"
+                  value={pickupLocation}
+                  onChange={setPickupLocation}
+                  placeholder="Enter pickup location"
+                  required
+                  className="text-sm md:text-base md:px-4"
                 />
               </div>
               <div>
@@ -150,13 +164,14 @@ function RouteComponent() {
                 >
                   Drop-off Location *
                 </label>
-                <input
-                    type="text"
-                    id="dropoffLocation"
-                    name="dropoffLocation"
-                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-                    placeholder="Enter drop-off location"
-                    required
+                <AddressAutocomplete
+                  id="dropoffLocation"
+                  name="dropoffLocation"
+                  value={dropoffLocation}
+                  onChange={setDropoffLocation}
+                  placeholder="Enter drop-off location"
+                  required
+                  className="text-sm md:text-base md:px-4"
                 />
               </div>
             </div>
