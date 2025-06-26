@@ -4,7 +4,7 @@ import { useBookRide } from '../hooks/useBooking';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import BookingForm from '../components/BookingForm';
 import BookingSuccess from '../components/BookingSuccess';
-import BookingError from '../components/BookingError.jsx';
+import BookingError from '../components/BookingError';
 import BookingLoading from '../components/BookingLoading';
 
 export const Route = createLazyFileRoute('/book')({
@@ -14,6 +14,7 @@ export const Route = createLazyFileRoute('/book')({
 function RouteComponent() {
   const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'success', 'error'
   const [bookingResult, setBookingResult] = useState(null);
+  const [bookingFormData, setBookingFormData] = useState(null); // Store form data for success screen
   const [error, setError] = useState(null);
   const [pickupLocation, setPickupLocation] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState('');
@@ -52,8 +53,30 @@ function RouteComponent() {
         throw new Error('Please enter a drop-off location.');
       }
 
+      // Store form data for success screen
+      setBookingFormData({
+        ...bookingData,
+        pickup_location: pickupLocation,
+        dropoff_location: dropoffLocation,
+        your_name: bookingData.name,
+        phone_number: bookingData.phone,
+        number_of_passengers: bookingData.passengers,
+        number_of_luggage: bookingData.luggage,
+        ride_type: bookingData.rideType,
+        additional_notes: bookingData.notes,
+        status: 'pending' // Set status to pending
+      });
+
       const result = await bookRideMutation.mutateAsync(bookingData);
-      setBookingResult(result);
+      
+      // Combine API result with form data for complete booking info
+      setBookingResult({
+        ...result,
+        ...bookingFormData,
+        id: result.id,
+        status: 'pending' // Ensure status is pending
+      });
+      
       setBookingState('success');
       
       // Reset form data
@@ -73,6 +96,7 @@ function RouteComponent() {
   const handleNewBooking = () => {
     setBookingState('form');
     setBookingResult(null);
+    setBookingFormData(null);
     setError(null);
     setPickupLocation('');
     setDropoffLocation('');

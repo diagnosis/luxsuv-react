@@ -1,4 +1,4 @@
-import { CheckCircle, Calendar, MapPin, Users, Clock, Car, ArrowRight } from 'lucide-react';
+import { CheckCircle, Calendar, MapPin, Users, Clock, Car, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 const BookingSuccess = ({ bookingResult, onNewBooking }) => {
@@ -30,6 +30,9 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
     }
   };
 
+  // Get booking data from the result or use stored form data
+  const bookingData = bookingResult?.booking || bookingResult || {};
+
   return (
     <div className="max-w-2xl mx-auto text-center">
       {/* Success Icon and Header */}
@@ -42,13 +45,24 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
         </div>
         
         <h1 className="text-3xl font-bold text-light mb-4 md:text-4xl">
-          Booking Confirmed!
+          Booking Submitted!
         </h1>
         <p className="text-xl text-light/80 mb-2">
-          Your luxury SUV has been reserved
+          Your luxury SUV booking request has been received
         </p>
         <p className="text-yellow font-semibold text-lg">
-          Booking ID: #{bookingResult?.id}
+          Booking ID: #{bookingResult?.id || 'Pending'}
+        </p>
+      </div>
+
+      {/* Status Notice */}
+      <div className="bg-yellow/10 rounded-lg p-4 mb-6 border border-yellow/30">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          <AlertTriangle className="w-5 h-5 text-yellow" />
+          <span className="text-yellow font-semibold">Pending Approval</span>
+        </div>
+        <p className="text-light/80 text-sm">
+          Your booking is currently pending driver approval. You'll be notified once it's confirmed.
         </p>
       </div>
 
@@ -60,6 +74,29 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
         </h3>
         
         <div className="space-y-4">
+          {/* Contact Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-400">Name</p>
+              <p className="text-light font-medium">
+                {bookingData.your_name || bookingData.name || 'Not specified'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-400">Email</p>
+              <p className="text-light font-medium">
+                {bookingData.email || 'Not specified'}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-400">Phone</p>
+            <p className="text-light font-medium">
+              {bookingData.phone_number || bookingData.phone || 'Not specified'}
+            </p>
+          </div>
+
           {/* Date and Time */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-3">
@@ -67,7 +104,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               <div>
                 <p className="text-sm text-gray-400">Date</p>
                 <p className="text-light font-medium">
-                  {bookingResult?.date ? formatDate(bookingResult.date) : 'Not specified'}
+                  {bookingData.date ? formatDate(bookingData.date) : 'Not specified'}
                 </p>
               </div>
             </div>
@@ -76,7 +113,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               <div>
                 <p className="text-sm text-gray-400">Time</p>
                 <p className="text-light font-medium">
-                  {bookingResult?.time ? formatTime(bookingResult.time) : 'Not specified'}
+                  {bookingData.time ? formatTime(bookingData.time) : 'Not specified'}
                 </p>
               </div>
             </div>
@@ -88,14 +125,14 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               <MapPin className="w-5 h-5 text-green-400 mt-1 flex-shrink-0" />
               <div>
                 <p className="text-sm text-gray-400">Pickup Location</p>
-                <p className="text-light">{bookingResult?.pickup_location || 'Not specified'}</p>
+                <p className="text-light">{bookingData.pickup_location || 'Not specified'}</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
               <div>
                 <p className="text-sm text-gray-400">Drop-off Location</p>
-                <p className="text-light">{bookingResult?.dropoff_location || 'Not specified'}</p>
+                <p className="text-light">{bookingData.dropoff_location || 'Not specified'}</p>
               </div>
             </div>
           </div>
@@ -107,7 +144,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               <div>
                 <p className="text-sm text-gray-400">Passengers</p>
                 <p className="text-light font-medium">
-                  {bookingResult?.number_of_passengers || 1} passenger{(bookingResult?.number_of_passengers || 1) !== 1 ? 's' : ''}
+                  {bookingData.number_of_passengers || bookingData.passengers || 1} passenger{(bookingData.number_of_passengers || bookingData.passengers || 1) !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -116,11 +153,19 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               <div>
                 <p className="text-sm text-gray-400">Service Type</p>
                 <p className="text-light font-medium capitalize">
-                  {bookingResult?.ride_type?.replace('_', ' ') || 'Hourly Service'}
+                  {(bookingData.ride_type || bookingData.rideType || 'hourly').replace('_', ' ')}
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Additional Notes */}
+          {(bookingData.additional_notes || bookingData.notes) && (
+            <div>
+              <p className="text-sm text-gray-400">Additional Notes</p>
+              <p className="text-light">{bookingData.additional_notes || bookingData.notes}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -141,7 +186,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               2
             </div>
             <p className="text-light/90">
-              Our team will contact you 24 hours before your scheduled pickup to confirm details.
+              Our drivers will review your booking request and approve it within 24 hours.
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -149,7 +194,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               3
             </div>
             <p className="text-light/90">
-              Your luxury SUV will arrive at the specified pickup location on time.
+              Once approved, we'll contact you to confirm final details before your scheduled pickup.
             </p>
           </div>
         </div>
