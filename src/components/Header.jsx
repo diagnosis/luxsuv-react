@@ -93,6 +93,15 @@ const Header = () => {
                                         Services
                                     </Link>
                                 </li>
+                                <li>
+                                    <Link
+                                        to="/manage-bookings"
+                                        className="block py-2 px-3 text-light hover:text-yellow rounded-sm md:text-yellow md:hover:text-light md:p-0 transition-colors text-center"
+                                        onClick={closeMobileMenu}
+                                    >
+                                        Manage Bookings
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
 
