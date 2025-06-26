@@ -16,12 +16,12 @@ function RootComponent() {
             </div>
             
             {/* Main content - 65% on large screens, 80% on mobile */}
-            <main className="h-[65vh] md:h-[65vh] sm:h-[80vh] flex-shrink-0 overflow-y-auto">
+            <main className="h-[65vh] md:h-[65vh] sm:h-[calc(90vh-3rem)] flex-shrink-0 overflow-y-auto">
                 <Outlet />
             </main>
             
-            {/* Footer/BottomNav - 25% on large screens, 10% on mobile */}
-            <div className="h-[25vh] md:h-[25vh] sm:h-[10vh] flex-shrink-0">
+            {/* Footer/BottomNav - 25% on large screens, compact on mobile */}
+            <div className="h-[25vh] md:h-[25vh] sm:h-12 flex-shrink-0">
                 <BottomNav />
                 <Footer />
             </div>
