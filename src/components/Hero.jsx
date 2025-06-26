@@ -1,17 +1,11 @@
 import { Link } from '@tanstack/react-router';
-import { useHeaderHeightAdjustment } from "../useHeaderHeightAdjustment.js";
-import { useFooterHeightAdjustment } from "../useFooterHeightAdjustment.js";
 
 const Hero = () => {
-    const headerHeight = useHeaderHeightAdjustment();
-    const footerHeight = useFooterHeightAdjustment();
-
     return (
         <div
-            className="relative w-full bg-cover bg-center bg-no-repeat flex items-center justify-center"
+            className="relative w-full h-full bg-cover bg-center bg-no-repeat flex items-center justify-center"
             style={{
                 backgroundImage: 'url("../public/images/hero.jpg")',
-                minHeight: `calc(100vh - ${headerHeight}px - ${footerHeight}px)`, // Dynamically set height
             }}
         >
             {/* Overlay */}

@@ -4,12 +4,12 @@ import { faXTwitter, faInstagram, faTiktok } from '@fortawesome/free-brands-svg-
 
 const Footer = () => {
     return (
-        <footer className="bg-gradient-to-r from-dark to-gray-dark text-light w-full hidden md:block">
-            <div className="mx-auto p-6 max-w-screen-xl md:p-12">
+        <footer className="bg-gradient-to-r from-dark to-gray-dark text-light w-full h-full hidden md:flex md:items-center">
+            <div className="mx-auto p-6 max-w-screen-xl w-full">
                 {/* Top Section: Branding and Main Links */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-12">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-12 mb-6">
                     {/* Branding Column */}
-                    <div className="mb-4">
+                    <div>
                         <h2 className="text-xl font-semibold mb-2 text-yellow md:text-2xl md:mb-4">LUX SUV</h2>
                         <p className="text-sm text-light/80">
                             Premium SUV transportation for business, leisure, and special occasions.
@@ -79,7 +79,7 @@ const Footer = () => {
                 </div>
 
                 {/* Bottom Section: Social Media and Legal */}
-                <div className="mt-8 pt-6 border-t border-yellow/30 flex flex-col items-center md:mt-12 md:pt-8 md:flex-row md:justify-between">
+                <div className="pt-6 border-t border-yellow/30 flex flex-col items-center md:flex-row md:justify-between">
                     {/* Social Media Links */}
                     <div className="flex space-x-6 mb-4 md:mb-0">
                         <a

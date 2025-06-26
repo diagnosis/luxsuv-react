@@ -3,8 +3,8 @@ import { Home, Info, CalendarCheck, Car } from 'lucide-react';
 
 const BottomNav = () => {
     return (
-        <nav className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-dark to-gray-dark border-t border-yellow/30 md:hidden">
-            <div className="flex justify-around items-center h-16">
+        <nav className="w-full bg-gradient-to-r from-dark to-gray-dark border-t border-yellow/30 md:hidden h-full flex items-center">
+            <div className="flex justify-around items-center w-full px-4">
                 <Link
                     to="/"
                     className="flex flex-col items-center text-light hover:text-yellow transition-colors"

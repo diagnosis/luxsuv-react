@@ -16,8 +16,8 @@ const Header = () => {
     };
 
     return (
-        <nav className="bg-gradient-to-r from-dark to-gray-dark fixed w-full z-50 top-0 start-0 border-b border-yellow">
-            <div className="flex flex-wrap items-center justify-between mx-auto p-4 max-w-screen-xl">
+        <nav className="bg-gradient-to-r from-dark to-gray-dark w-full h-full flex items-center border-b border-yellow">
+            <div className="flex flex-wrap items-center justify-between mx-auto p-4 max-w-screen-xl w-full">
                 {/* Logo */}
                 <Link to="/" className="flex items-center space-x-3" onClick={closeMobileMenu}>
                     <span className="self-center text-xl font-semibold whitespace-nowrap text-light md:text-2xl">
@@ -54,12 +54,13 @@ const Header = () => {
 
                 {/* Mobile Menu */}
                 <div
-                    className={`absolute top-full left-0 w-full bg-gradient-to-r from-dark to-gray-dark transform transition-all duration-500 ease-in-out ${
+                    className={`absolute top-full left-0 w-full bg-gradient-to-r from-dark to-gray-dark transform transition-all duration-500 ease-in-out z-40 ${
                         isMobileMenuOpen ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
                     } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:opacity-100 md:visible md:translate-y-0`}
                     id="navbar-sticky"
+                    style={{ maxHeight: isMobileMenuOpen ? '65vh' : '0' }}
                 >
-                    <div className="max-h-[calc(100vh-5rem)] overflow-y-auto p-6 md:p-0 md:flex md:space-x-8 md:overflow-visible">
+                    <div className="max-h-full overflow-y-auto p-6 md:p-0 md:flex md:space-x-8 md:overflow-visible">
 
                         {/* Navigation Links */}
                         <div className="mb-6 md:mb-0">

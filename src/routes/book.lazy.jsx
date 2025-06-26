@@ -1,6 +1,4 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
-import { useHeaderHeightAdjustment } from "../useHeaderHeightAdjustment.js";
-import { useFooterHeightAdjustment } from "../useFooterHeightAdjustment.js";
 import { useState } from 'react';
 
 export const Route = createLazyFileRoute('/book')({
@@ -8,8 +6,6 @@ export const Route = createLazyFileRoute('/book')({
 });
 
 function RouteComponent() {
-  const headerHeight = useHeaderHeightAdjustment();
-  const footerHeight = useFooterHeightAdjustment();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -50,13 +46,8 @@ function RouteComponent() {
   };
 
   return (
-      <div
-          className="w-full bg-dark text-light flex flex-col"
-          style={{
-            minHeight: `calc(100vh - ${headerHeight}px - ${footerHeight}px)`,
-          }}
-      >
-        <div className="max-w-screen-xl mx-auto px-4 py-6 md:py-12 flex-1">
+      <div className="w-full h-full bg-dark text-light overflow-y-auto">
+        <div className="max-w-screen-xl mx-auto px-4 py-6 md:py-12 h-full">
           <h1 className="text-3xl font-bold mb-6 md:text-4xl">
             Book Your Luxury SUV
           </h1>
