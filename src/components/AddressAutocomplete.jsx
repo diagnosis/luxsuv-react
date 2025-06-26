@@ -9,7 +9,8 @@ const AddressAutocomplete = ({
   required = false,
   className = "",
   id,
-  name 
+  name,
+  disabled = false
 }) => {
   const [query, setQuery] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -154,19 +155,20 @@ const AddressAutocomplete = ({
           onBlur={handleBlur}
           placeholder={placeholder}
           required={required}
-          className={`w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors ${className}`}
+          disabled={disabled}
+          className={`w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
           autoComplete="off"
         />
         
         {/* Loading indicator */}
-        {isLoading && (
+        {isLoading && !disabled && (
           <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
             <Loader2 className="w-4 h-4 text-yellow animate-spin" />
           </div>
         )}
         
         {/* Clear button */}
-        {query && !isLoading && (
+        {query && !isLoading && !disabled && (
           <button
             type="button"
             onClick={handleClear}
@@ -179,7 +181,7 @@ const AddressAutocomplete = ({
       </div>
 
       {/* Suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
+      {showSuggestions && suggestions.length > 0 && !disabled && (
         <div
           ref={suggestionsRef}
           className="absolute z-50 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
