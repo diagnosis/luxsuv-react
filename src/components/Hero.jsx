@@ -3,16 +3,17 @@ import { Link } from '@tanstack/react-router';
 const Hero = () => {
     return (
         <div
-            className="relative w-full h-full bg-cover bg-center bg-no-repeat flex items-center justify-center overflow-hidden"
+            className="relative w-full h-full bg-cover bg-center bg-no-repeat flex items-center justify-center"
             style={{
                 backgroundImage: 'url("../public/images/hero.jpg")',
+                minHeight: '100%',
             }}
         >
             {/* Overlay */}
             <div className="absolute inset-0 bg-dark/60"></div>
 
             {/* Content */}
-            <div className="relative w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8">
+            <div className="relative w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8 h-full flex items-center">
                 <div className="w-full">
                     <h1 className="text-2xl font-bold text-light mb-3 md:text-6xl md:mb-4">
                         Luxury SUV Transportation
