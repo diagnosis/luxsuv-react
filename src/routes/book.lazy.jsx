@@ -4,7 +4,7 @@ import { useBookRide } from '../hooks/useBooking';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import BookingForm from '../components/BookingForm';
 import BookingSuccess from '../components/BookingSuccess';
-import BookingError from '../components/BookingError';
+import BookingError from '../components/BookingError.jsx';
 import BookingLoading from '../components/BookingLoading';
 
 export const Route = createLazyFileRoute('/book')({
