@@ -26,7 +26,7 @@ function RouteComponent() {
         name: formData.get('name'),
         email: formData.get('email'),
         phone: formData.get('phone'),
-        rideType: 'hourly', // Default ride type
+        rideType: formData.get('rideType'),
         pickupLocation: pickupLocation,
         dropoffLocation: dropoffLocation,
         date: formData.get('date'),
@@ -136,6 +136,29 @@ function RouteComponent() {
                     required
                 />
               </div>
+            </div>
+
+            {/* Ride Type */}
+            <div>
+              <label
+                  htmlFor="rideType"
+                  className="block text-sm font-medium mb-1 md:text-base"
+              >
+                Ride Type *
+              </label>
+              <select
+                  id="rideType"
+                  name="rideType"
+                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+                  required
+                  defaultValue="hourly"
+              >
+                <option value="hourly">Hourly Service</option>
+                <option value="per_ride">Per Ride</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1 md:text-sm">
+                Choose "Hourly Service" for extended trips or "Per Ride" for point-to-point transportation
+              </p>
             </div>
 
             {/* Pickup and Drop-off Locations */}
