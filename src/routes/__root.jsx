@@ -9,19 +9,19 @@ export const Route = createRootRoute({
 
 function RootComponent() {
     return (
-        <div className="h-screen flex flex-col overflow-hidden">
-            {/* Header - 10% on large screens, 10% on mobile */}
+        <div className="h-screen flex flex-col">
+            {/* Header - 10% on all screens */}
             <div className="h-[10vh] flex-shrink-0">
                 <Header />
             </div>
             
-            {/* Main content - 65% on large screens, 80% on mobile */}
-            <main className="h-[65vh] md:h-[65vh] sm:h-[calc(90vh-3rem)] flex-shrink-0 overflow-y-auto">
+            {/* Main content - fills remaining space minus bottom nav on mobile */}
+            <main className="flex-1 overflow-y-auto md:h-[65vh] md:flex-shrink-0">
                 <Outlet />
             </main>
             
-            {/* Footer/BottomNav - 25% on large screens, compact on mobile */}
-            <div className="h-[25vh] md:h-[25vh] sm:h-12 flex-shrink-0">
+            {/* Footer/BottomNav - 25% on desktop, compact on mobile */}
+            <div className="h-12 md:h-[25vh] flex-shrink-0">
                 <BottomNav />
                 <Footer />
             </div>
