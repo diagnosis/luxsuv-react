@@ -16,7 +16,7 @@ const Header = () => {
     };
 
     return (
-        <nav className="bg-gradient-to-r from-dark to-gray-dark w-full h-full flex items-center border-b border-yellow">
+        <nav className="bg-gradient-to-r from-dark to-gray-dark w-full h-full flex items-center border-b border-yellow relative">
             <div className="flex flex-wrap items-center justify-between mx-auto p-4 max-w-screen-xl w-full">
                 {/* Logo */}
                 <Link to="/" className="flex items-center space-x-3" onClick={closeMobileMenu}>
@@ -58,7 +58,7 @@ const Header = () => {
                         isMobileMenuOpen ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible'
                     } md:static md:w-auto md:order-1 md:flex md:transform-none md:transition-none md:bg-transparent md:opacity-100 md:visible md:translate-y-0`}
                     id="navbar-sticky"
-                    style={{ maxHeight: isMobileMenuOpen ? '65vh' : '0' }}
+                    style={{ maxHeight: isMobileMenuOpen ? '80vh' : '0' }}
                 >
                     <div className="max-h-full overflow-y-auto p-6 md:p-0 md:flex md:space-x-8 md:overflow-visible">
 

@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 const Hero = () => {
     return (
         <div
-            className="relative w-full h-full bg-cover bg-center bg-no-repeat flex items-center justify-center"
+            className="relative w-full h-full bg-cover bg-center bg-no-repeat flex items-center justify-center overflow-hidden"
             style={{
                 backgroundImage: 'url("../public/images/hero.jpg")',
             }}
@@ -14,23 +14,23 @@ const Hero = () => {
             {/* Content */}
             <div className="relative w-full max-w-screen-xl mx-auto px-4 py-6 md:py-8">
                 <div className="w-full">
-                    <h1 className="text-3xl font-bold text-light mb-4 md:text-6xl">
+                    <h1 className="text-2xl font-bold text-light mb-3 md:text-6xl md:mb-4">
                         Luxury SUV Transportation
                     </h1>
-                    <p className="text-lg text-light/90 mb-6 md:text-2xl md:mb-8">
+                    <p className="text-base text-light/90 mb-4 md:text-2xl md:mb-8">
                         Experience premium comfort and style with our executive SUV service.
                         Perfect for business travel, special occasions, or luxury airport transfers.
                     </p>
-                    <div className="flex flex-col gap-4 sm:flex-row">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                         <Link
                             to="/book"
-                            className="inline-block bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg text-center transition-colors md:px-8 md:py-4"
+                            className="inline-block bg-yellow hover:bg-yellow/90 text-dark font-semibold px-5 py-2 rounded-lg text-center transition-colors text-sm md:px-8 md:py-4 md:text-base"
                         >
                             Book Now
                         </Link>
                         <Link
                             to="/services"
-                            className="inline-block bg-light/10 hover:bg-light/20 text-light font-semibold px-6 py-3 rounded-lg text-center transition-colors md:px-8 md:py-4"
+                            className="inline-block bg-light/10 hover:bg-light/20 text-light font-semibold px-5 py-2 rounded-lg text-center transition-colors text-sm md:px-8 md:py-4 md:text-base"
                         >
                             Our Services
                         </Link>

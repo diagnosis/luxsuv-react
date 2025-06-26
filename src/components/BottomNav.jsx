@@ -9,28 +9,28 @@ const BottomNav = () => {
                     to="/"
                     className="flex flex-col items-center text-light hover:text-yellow transition-colors"
                 >
-                    <Home className="w-6 h-6" />
+                    <Home className="w-5 h-5" />
                     <span className="text-xs mt-1">Home</span>
                 </Link>
                 <Link
                     to="/services"
                     className="flex flex-col items-center text-light hover:text-yellow transition-colors"
                 >
-                    <Car className="w-6 h-6" />
+                    <Car className="w-5 h-5" />
                     <span className="text-xs mt-1">Services</span>
                 </Link>
                 <Link
                     to="/about"
                     className="flex flex-col items-center text-light hover:text-yellow transition-colors"
                 >
-                    <Info className="w-6 h-6" />
+                    <Info className="w-5 h-5" />
                     <span className="text-xs mt-1">About</span>
                 </Link>
                 <Link
                     to="/book"
                     className="flex flex-col items-center text-light hover:text-yellow transition-colors"
                 >
-                    <CalendarCheck className="w-6 h-6" />
+                    <CalendarCheck className="w-5 h-5" />
                     <span className="text-xs mt-1">Book Now</span>
                 </Link>
             </div>

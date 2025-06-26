@@ -47,21 +47,21 @@ function RouteComponent() {
 
   return (
       <div className="w-full h-full bg-dark text-light overflow-y-auto">
-        <div className="max-w-screen-xl mx-auto px-4 py-6 md:py-12 h-full">
-          <h1 className="text-3xl font-bold mb-6 md:text-4xl">
+        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
+          <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
             Book Your Luxury SUV
           </h1>
           {error && (
-              <div className="mb-4 p-4 bg-red-600/20 text-red-400 rounded-lg text-sm md:text-base">
+              <div className="mb-3 p-3 bg-red-600/20 text-red-400 rounded-lg text-sm md:text-base md:mb-4 md:p-4">
                 {error}
               </div>
           )}
           <form
               onSubmit={handleSubmit}
-              className="space-y-6 md:space-y-8"
+              className="space-y-4 md:space-y-6"
           >
             {/* Pickup and Drop-off Locations */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
               <div>
                 <label
                     htmlFor="pickupLocation"
@@ -73,7 +73,7 @@ function RouteComponent() {
                     type="text"
                     id="pickupLocation"
                     name="pickupLocation"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     placeholder="Enter pickup location"
                     required
                 />
@@ -89,7 +89,7 @@ function RouteComponent() {
                     type="text"
                     id="dropoffLocation"
                     name="dropoffLocation"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     placeholder="Enter drop-off location"
                     required
                 />
@@ -97,7 +97,7 @@ function RouteComponent() {
             </div>
 
             {/* Date and Time */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
               <div>
                 <label
                     htmlFor="date"
@@ -109,7 +109,7 @@ function RouteComponent() {
                     type="date"
                     id="date"
                     name="date"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     min="2025-05-31" // Today's date (May 31, 2025)
                     required
                 />
@@ -125,14 +125,14 @@ function RouteComponent() {
                     type="time"
                     id="time"
                     name="time"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     required
                 />
               </div>
             </div>
 
             {/* Passengers and Vehicle Type */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
               <div>
                 <label
                     htmlFor="passengers"
@@ -144,7 +144,7 @@ function RouteComponent() {
                     type="number"
                     id="passengers"
                     name="passengers"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     min="1"
                     max="8"
                     defaultValue="1"
@@ -161,7 +161,7 @@ function RouteComponent() {
                 <select
                     id="vehicleType"
                     name="vehicleType"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     required
                 >
                   <option value="luxury-suv">Luxury SUV</option>
@@ -172,7 +172,7 @@ function RouteComponent() {
             </div>
 
             {/* Contact Information */}
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
                 <label
                     htmlFor="name"
@@ -184,7 +184,7 @@ function RouteComponent() {
                     type="text"
                     id="name"
                     name="name"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     placeholder="Enter your full name"
                     required
                 />
@@ -200,7 +200,7 @@ function RouteComponent() {
                     type="email"
                     id="email"
                     name="email"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     placeholder="Enter your email"
                     required
                 />
@@ -216,7 +216,7 @@ function RouteComponent() {
                     type="tel"
                     id="phone"
                     name="phone"
-                    className="w-full px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
                     placeholder="Enter your phone number"
                     required
                 />
@@ -224,10 +224,10 @@ function RouteComponent() {
             </div>
 
             {/* Submit Button */}
-            <div className="text-center">
+            <div className="text-center pt-2">
               <button
                   type="submit"
-                  className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-8 py-3 rounded-lg transition-colors md:px-10 md:py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-2 rounded-lg transition-colors text-sm md:px-10 md:py-4 md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Booking'}
