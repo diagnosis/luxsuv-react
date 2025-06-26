@@ -2,15 +2,16 @@ const GEOAPIFY_API_KEY = 'd0644b6aa4b34f09a380020e438d19c0';
 const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1';
 
 export const addressApi = {
-  // Search for addresses with autocomplete
+  // Search for addresses with autocomplete (USA and Canada only)
   searchAddresses: async (query, limit = 5) => {
     if (!query || query.length < 3) {
       return [];
     }
 
     try {
+      // Filter results to USA and Canada only
       const response = await fetch(
-        `${GEOAPIFY_BASE_URL}/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=${limit}&apiKey=${GEOAPIFY_API_KEY}&format=json`
+        `${GEOAPIFY_BASE_URL}/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=${limit}&filter=countrycode:us,ca&apiKey=${GEOAPIFY_API_KEY}&format=json`
       );
 
       if (!response.ok) {
@@ -54,11 +55,11 @@ export const addressApi = {
     }
   },
 
-  // Reverse geocoding - get address from coordinates
+  // Reverse geocoding - get address from coordinates (USA and Canada only)
   reverseGeocode: async (lat, lon) => {
     try {
       const response = await fetch(
-        `${GEOAPIFY_BASE_URL}/geocode/reverse?lat=${lat}&lon=${lon}&apiKey=${GEOAPIFY_API_KEY}&format=json`
+        `${GEOAPIFY_BASE_URL}/geocode/reverse?lat=${lat}&lon=${lon}&filter=countrycode:us,ca&apiKey=${GEOAPIFY_API_KEY}&format=json`
       );
 
       if (!response.ok) {
