@@ -1,185 +1,135 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi';
+import { createLazyFileRoute, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
-const AuthContext = createContext();
+function SignIn() {
+  const navigate = useNavigate();
+  const { signIn, isLoading } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await signIn(formData);
+      navigate({ to: '/' });
+    } catch (err) {
+      setError(err.message || 'Sign in failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
-  return context;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('luxsuv_user');
-      const storedToken = localStorage.getItem('luxsuv_token');
-      
-      if (storedUser && storedToken) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          
-          // Verify token is still valid by fetching user profile
-          const profileData = await authApi.getProfile(storedToken);
-          
-          // Update user data with fresh profile info
-          const updatedUser = { ...userData, ...profileData };
-          setUser(updatedUser);
-          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-        } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid session
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('luxsuv_user');
-          localStorage.removeItem('luxsuv_token');
-        }
-      }
-      setIsLoading(false);
-    };
-
-    initializeAuth();
-  }, []);
-
-  const signUp = async (userData) => {
-    try {
-      const result = await authApi.register(userData);
-      
-      // Extract user data and token from response
-      const newUser = {
-        id: result.user?.id || result.id,
-        email: userData.email,
-        name: userData.name,
-        phone: userData.phone,
-        role: result.user?.role || 'rider',
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(newUser);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return newUser;
-    } catch (error) {
-      console.error('Sign up failed:', error);
-      throw error;
-    }
-  };
-
-  const signIn = async (credentials) => {
-    try {
-      const result = await authApi.login(credentials);
-      
-      // Extract user data and token from response
-      const userData = {
-        id: result.user?.id || result.id,
-        email: credentials.email,
-        name: result.user?.name || result.name || 'User',
-        phone: result.user?.phone || result.phone || '',
-        role: result.user?.role || 'rider',
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(userData);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return userData;
-    } catch (error) {
-      console.error('Sign in failed:', error);
-      throw error;
-    }
-  };
-
-  const signOut = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('luxsuv_user');
-    localStorage.removeItem('luxsuv_token');
-  };
-
-  const updatePassword = async (passwordData) => {
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    try {
-      await authApi.updatePassword(token, passwordData);
-      return true;
-    } catch (error) {
-      console.error('Password update failed:', error);
-      throw error;
-    }
-  };
-
-  const forgotPassword = async (email) => {
-    try {
-      await authApi.forgotPassword(email);
-      return true;
-    } catch (error) {
-      console.error('Forgot password failed:', error);
-      throw error;
-    }
-  };
-
-  const resetPassword = async (resetData) => {
-    try {
-      await authApi.resetPassword(resetData);
-      return true;
-    } catch (error) {
-      console.error('Reset password failed:', error);
-      throw error;
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    try {
-      const profileData = await authApi.getProfile(token);
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-      return updatedUser;
-    } catch (error) {
-      console.error('Profile refresh failed:', error);
-      throw error;
-    }
-  };
-
-  const value = {
-    user,
-    token,
-    isLoading,
-    signUp,
-    signIn,
-    signOut,
-    updatePassword,
-    forgotPassword,
-    resetPassword,
-    refreshProfile,
-    isAuthenticated: !!user && !!token,
-  };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <button
+              onClick={() => navigate({ to: '/signup' })}
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              create a new account
+            </button>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <button
+                type="button"
+                onClick={() => navigate({ to: '/forgot-password' })}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
-};
+}
+
+export const Route = createLazyFileRoute('/signin')({
+  component: SignIn,
+});
