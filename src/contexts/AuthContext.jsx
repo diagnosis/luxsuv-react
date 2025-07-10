@@ -56,10 +56,11 @@ export const AuthProvider = ({ children }) => {
       // Extract user data and token from response
       const newUser = {
         id: result.user?.id || result.id,
+        username: result.user?.username || userData.username,
         email: userData.email,
         name: userData.name,
         phone: userData.phone,
-        role: result.user?.role || 'rider',
+        role: 'rider', // Always rider for this app
         createdAt: result.user?.created_at || new Date().toISOString(),
       };
 
