@@ -1,5 +1,6 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { useBookRide } from '../hooks/useBooking';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import BookingForm from '../components/BookingForm';
@@ -12,6 +13,7 @@ export const Route = createLazyFileRoute('/book')({
 });
 
 function RouteComponent() {
+  const { user, isAuthenticated } = useAuth();
   const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'success', 'error'
   const [bookingResult, setBookingResult] = useState(null);
   const [bookingFormData, setBookingFormData] = useState(null); // Store form data for success screen
@@ -20,6 +22,14 @@ function RouteComponent() {
   const [dropoffLocation, setDropoffLocation] = useState('');
   
   const bookRideMutation = useBookRide();
+
+  // Pre-fill form with user data if authenticated
+  const getInitialFormData = () => {
+    if (isAuthenticated && user) {
+      return { name: user.name || '', email: user.email || '', phone: user.phone || '' };
+    }
+    return {};
+  };
 
   const handleSubmit = async (formData) => {
     setBookingState('loading');
@@ -129,6 +139,7 @@ function RouteComponent() {
         return (
           <BookingForm
             onSubmit={handleSubmit}
+            initialData={getInitialFormData()}
             pickupLocation={pickupLocation}
             setPickupLocation={setPickupLocation}
             dropoffLocation={dropoffLocation}

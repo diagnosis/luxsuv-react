@@ -17,7 +17,9 @@ import { Route as IndexImport } from './routes/index'
 
 // Create Virtual Routes
 
+const SettingsLazyImport = createFileRoute('/settings')()
 const ServicesLazyImport = createFileRoute('/services')()
+const ProfileLazyImport = createFileRoute('/profile')()
 const ManageBookingsLazyImport = createFileRoute('/manage-bookings')()
 const ContactLazyImport = createFileRoute('/contact')()
 const BookLazyImport = createFileRoute('/book')()
@@ -25,11 +27,23 @@ const AboutLazyImport = createFileRoute('/about')()
 
 // Create/Update Routes
 
+const SettingsLazyRoute = SettingsLazyImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
+
 const ServicesLazyRoute = ServicesLazyImport.update({
   id: '/services',
   path: '/services',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/services.lazy').then((d) => d.Route))
+
+const ProfileLazyRoute = ProfileLazyImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/profile.lazy').then((d) => d.Route))
 
 const ManageBookingsLazyRoute = ManageBookingsLazyImport.update({
   id: '/manage-bookings',
@@ -102,11 +116,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageBookingsLazyImport
       parentRoute: typeof rootRoute
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/services': {
       id: '/services'
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsLazyImport
       parentRoute: typeof rootRoute
     }
   }
@@ -120,7 +148,9 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookLazyRoute
   '/contact': typeof ContactLazyRoute
   '/manage-bookings': typeof ManageBookingsLazyRoute
+  '/profile': typeof ProfileLazyRoute
   '/services': typeof ServicesLazyRoute
+  '/settings': typeof SettingsLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -129,7 +159,9 @@ export interface FileRoutesByTo {
   '/book': typeof BookLazyRoute
   '/contact': typeof ContactLazyRoute
   '/manage-bookings': typeof ManageBookingsLazyRoute
+  '/profile': typeof ProfileLazyRoute
   '/services': typeof ServicesLazyRoute
+  '/settings': typeof SettingsLazyRoute
 }
 
 export interface FileRoutesById {
@@ -139,7 +171,9 @@ export interface FileRoutesById {
   '/book': typeof BookLazyRoute
   '/contact': typeof ContactLazyRoute
   '/manage-bookings': typeof ManageBookingsLazyRoute
+  '/profile': typeof ProfileLazyRoute
   '/services': typeof ServicesLazyRoute
+  '/settings': typeof SettingsLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -150,9 +184,19 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/manage-bookings'
+    | '/profile'
     | '/services'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/book' | '/contact' | '/manage-bookings' | '/services'
+  to:
+    | '/'
+    | '/about'
+    | '/book'
+    | '/contact'
+    | '/manage-bookings'
+    | '/profile'
+    | '/services'
+    | '/settings'
   id:
     | '__root__'
     | '/'
@@ -160,7 +204,9 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/manage-bookings'
+    | '/profile'
     | '/services'
+    | '/settings'
   fileRoutesById: FileRoutesById
 }
 
@@ -170,7 +216,9 @@ export interface RootRouteChildren {
   BookLazyRoute: typeof BookLazyRoute
   ContactLazyRoute: typeof ContactLazyRoute
   ManageBookingsLazyRoute: typeof ManageBookingsLazyRoute
+  ProfileLazyRoute: typeof ProfileLazyRoute
   ServicesLazyRoute: typeof ServicesLazyRoute
+  SettingsLazyRoute: typeof SettingsLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -179,7 +227,9 @@ const rootRouteChildren: RootRouteChildren = {
   BookLazyRoute: BookLazyRoute,
   ContactLazyRoute: ContactLazyRoute,
   ManageBookingsLazyRoute: ManageBookingsLazyRoute,
+  ProfileLazyRoute: ProfileLazyRoute,
   ServicesLazyRoute: ServicesLazyRoute,
+  SettingsLazyRoute: SettingsLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -197,7 +247,9 @@ export const routeTree = rootRoute
         "/book",
         "/contact",
         "/manage-bookings",
-        "/services"
+        "/profile",
+        "/services",
+        "/settings"
       ]
     },
     "/": {
@@ -215,8 +267,14 @@ export const routeTree = rootRoute
     "/manage-bookings": {
       "filePath": "manage-bookings.lazy.jsx"
     },
+    "/profile": {
+      "filePath": "profile.lazy.jsx"
+    },
     "/services": {
       "filePath": "services.lazy.jsx"
+    },
+    "/settings": {
+      "filePath": "settings.lazy.jsx"
     }
   }
 }

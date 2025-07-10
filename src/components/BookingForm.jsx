@@ -2,6 +2,7 @@ import AddressAutocomplete from './AddressAutocomplete';
 
 const BookingForm = ({ 
   onSubmit, 
+  initialData = {},
   pickupLocation, 
   setPickupLocation, 
   dropoffLocation, 
@@ -24,7 +25,10 @@ const BookingForm = ({
       notes: formData.get('notes'),
     };
 
-    onSubmit(data);
+    // Merge with any initial data
+    const finalData = { ...initialData, ...data };
+
+    onSubmit(finalData);
   };
 
   return (
@@ -47,6 +51,7 @@ const BookingForm = ({
               type="text"
               id="name"
               name="name"
+              defaultValue={initialData.name || ''}
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               placeholder="Enter your full name"
               required
@@ -64,6 +69,7 @@ const BookingForm = ({
               type="email"
               id="email"
               name="email"
+              defaultValue={initialData.email || ''}
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               placeholder="Enter your email"
               required
@@ -81,6 +87,7 @@ const BookingForm = ({
               type="tel"
               id="phone"
               name="phone"
+              defaultValue={initialData.phone || ''}
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               placeholder="Enter your phone number"
               required
