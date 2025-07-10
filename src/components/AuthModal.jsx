@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { X, Eye, EyeOff, User, Mail, Phone, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
 const AuthModal = ({ isOpen, onClose, initialMode = 'signin', showGuestOption = false, onContinueAsGuest }) => {
   const [mode, setMode] = useState(initialMode); // 'signin' or 'signup'
   const [showPassword, setShowPassword] = useState(false);
