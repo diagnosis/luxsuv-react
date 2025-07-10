@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi';
+import { authApi } from '../api/authApi.jsx';
 
 const AuthContext = createContext();
 
@@ -56,10 +56,10 @@ export const AuthProvider = ({ children }) => {
       // Extract user data and token from response
       const newUser = {
         id: result.user?.id || result.id,
-        username: userData.username,
+        username: result.user?.username || userData.username,
         email: userData.email,
-        name: userData.username, // Use username as display name for now
-        phone: '', // Phone not collected during registration
+        name: userData.name,
+        phone: userData.phone,
         role: 'rider', // Always rider for this app
         createdAt: result.user?.created_at || new Date().toISOString(),
       };
