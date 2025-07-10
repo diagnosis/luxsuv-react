@@ -3,6 +3,7 @@ import AddressAutocomplete from './AddressAutocomplete';
 const BookingForm = ({ 
   onSubmit, 
   initialData = {},
+  isGuestMode = false,
   pickupLocation, 
   setPickupLocation, 
   dropoffLocation, 
@@ -33,6 +34,17 @@ const BookingForm = ({
 
   return (
     <>
+      {isGuestMode && (
+        <div className="bg-yellow/10 border border-yellow/30 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-yellow font-semibold">Guest Booking</span>
+          </div>
+          <p className="text-light/80 text-sm">
+            You're booking as a guest. To manage this booking later, you'll need to use the email address you provide below.
+          </p>
+        </div>
+      )}
+      
       <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
         Book Your Luxury SUV
       </h1>

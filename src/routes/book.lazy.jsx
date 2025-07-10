@@ -14,6 +14,8 @@ export const Route = createLazyFileRoute('/book')({
 
 function RouteComponent() {
   const { user, isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(!isAuthenticated);
+  const [isGuestMode, setIsGuestMode] = useState(false);
   const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'success', 'error'
   const [bookingResult, setBookingResult] = useState(null);
   const [bookingFormData, setBookingFormData] = useState(null); // Store form data for success screen
@@ -23,12 +25,28 @@ function RouteComponent() {
   
   const bookRideMutation = useBookRide();
 
+  // Show auth modal when component mounts if user is not authenticated
+  useState(() => {
+    if (!isAuthenticated && !isGuestMode) {
+      setShowAuthModal(true);
+    }
+  }, []);
+
   // Pre-fill form with user data if authenticated
   const getInitialFormData = () => {
     if (isAuthenticated && user) {
       return { name: user.name || '', email: user.email || '', phone: user.phone || '' };
     }
     return {};
+  };
+
+  const handleContinueAsGuest = () => {
+    setIsGuestMode(true);
+    setShowAuthModal(false);
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
   };
 
   const handleSubmit = async (formData) => {
@@ -112,6 +130,71 @@ function RouteComponent() {
     setDropoffLocation('');
   };
 
+  // If user is not authenticated and hasn't chosen to continue as guest, show auth modal
+  if (!isAuthenticated && !isGuestMode && showAuthModal) {
+    return (
+      <div className="w-full h-full bg-dark text-light overflow-y-auto">
+        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
+              Book Your Luxury SUV
+            </h1>
+            <p className="text-light/80 mb-6">
+              Sign in to your account for a faster booking experience, or continue as a guest.
+            </p>
+            
+            {/* Benefits of signing in */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-6 text-left border border-gray-600">
+              <h3 className="text-lg font-semibold text-yellow mb-4">Benefits of signing in:</h3>
+              <ul className="space-y-2 text-light/90">
+                <li className="flex items-start space-x-2">
+                  <span className="text-yellow mt-1">✓</span>
+                  <span>Auto-fill your contact information</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-yellow mt-1">✓</span>
+                  <span>Easy access to all your bookings</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-yellow mt-1">✓</span>
+                  <span>Faster future bookings</span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-yellow mt-1">✓</span>
+                  <span>Booking history and preferences</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
+              >
+                Sign In / Sign Up
+              </button>
+              <button
+                onClick={handleContinueAsGuest}
+                className="bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
+              >
+                Continue as Guest
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Auth Modal */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          initialMode="signin"
+          showGuestOption={true}
+          onContinueAsGuest={handleContinueAsGuest}
+        />
+      </div>
+    );
+  }
+
   // Render different screens based on booking state
   const renderContent = () => {
     switch (bookingState) {
@@ -140,6 +223,7 @@ function RouteComponent() {
           <BookingForm
             onSubmit={handleSubmit}
             initialData={getInitialFormData()}
+            isGuestMode={isGuestMode}
             pickupLocation={pickupLocation}
             setPickupLocation={setPickupLocation}
             dropoffLocation={dropoffLocation}

@@ -3,6 +3,7 @@ import { X, Eye, EyeOff, User, Mail, Phone, Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
+const AuthModal = ({ isOpen, onClose, initialMode = 'signin', showGuestOption = false, onContinueAsGuest }) => {
   const [mode, setMode] = useState(initialMode); // 'signin' or 'signup'
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +38,13 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
   const handleClose = () => {
     resetForm();
     onClose();
+  };
+
+  const handleContinueAsGuest = () => {
+    if (onContinueAsGuest) {
+      onContinueAsGuest();
+    }
+    handleClose();
   };
 
   const handleInputChange = (e) => {
@@ -281,6 +289,23 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
                 {mode === 'signin' ? 'Sign Up' : 'Sign In'}
               </button>
             </p>
+            
+            {/* Continue as Guest Option */}
+            {showGuestOption && (
+              <div className="mt-4 pt-4 border-t border-gray-600">
+                <button
+                  type="button"
+                  onClick={handleContinueAsGuest}
+                  className="text-gray-400 hover:text-light text-sm transition-colors underline"
+                  disabled={isLoading}
+                >
+                  Continue as Guest
+                </button>
+                <p className="text-xs text-gray-500 mt-1">
+                  You can book without an account, but you'll need to enter your email to manage bookings later.
+                </p>
+              </div>
+            )}
           </div>
         </form>
       </div>

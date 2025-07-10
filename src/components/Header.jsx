@@ -206,6 +206,7 @@ const Header = () => {
                 isOpen={authModalOpen}
                 onClose={closeAuthModal}
                 initialMode={authMode}
+                showGuestOption={false}
             />
         </nav>
     );
