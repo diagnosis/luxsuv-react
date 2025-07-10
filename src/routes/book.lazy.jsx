@@ -1,6 +1,7 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 import { useBookRide } from '../hooks/useBooking';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import BookingForm from '../components/BookingForm';
