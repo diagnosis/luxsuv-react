@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:8080';
 
 export const authApi = {
-  // Register a new user
+  // Register a new rider
   register: async (userData) => {
     const response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
@@ -24,7 +24,7 @@ export const authApi = {
     return response.json();
   },
 
-  // Login user
+  // Login rider
   login: async (credentials) => {
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
@@ -45,7 +45,7 @@ export const authApi = {
     return response.json();
   },
 
-  // Get current user profile
+  // Get current rider profile
   getProfile: async (token) => {
     const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: 'GET',
@@ -63,7 +63,7 @@ export const authApi = {
     return response.json();
   },
 
-  // Update user password
+  // Update rider password
   updatePassword: async (token, passwordData) => {
     const response = await fetch(`${API_BASE_URL}/users/me/password`, {
       method: 'PUT',
