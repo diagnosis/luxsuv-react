@@ -1,126 +1,185 @@
-import { createLazyFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../api/authApi';
 
-export const Route = createLazyFileRoute('/signin')({
-  component: SignIn,
-});
+const AuthContext = createContext();
 
-function SignIn() {
-  const navigate = useNavigate();
-  const { signIn, isLoading } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (error) setError('');
-  };
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
+  // Check for existing session on mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem('luxsuv_user');
+      const storedToken = localStorage.getItem('luxsuv_token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setToken(storedToken);
+          
+          // Verify token is still valid by fetching user profile
+          const profileData = await authApi.getProfile(storedToken);
+          
+          // Update user data with fresh profile info
+          const updatedUser = { ...userData, ...profileData };
+          setUser(updatedUser);
+          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          // Clear invalid session
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('luxsuv_user');
+          localStorage.removeItem('luxsuv_token');
+        }
+      }
+      setIsLoading(false);
+    };
 
+    initializeAuth();
+  }, []);
+
+  const signUp = async (userData) => {
     try {
-      await signIn(formData);
-      navigate({ to: '/' });
-    } catch (err) {
-      setError(err.message || 'Sign in failed. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+      const result = await authApi.register(userData);
+      
+      // Extract user data and token from response
+      const newUser = {
+        id: result.user?.id || result.id,
+        email: userData.email,
+        name: userData.name,
+        phone: userData.phone,
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
+
+      const authToken = result.token;
+
+      setUser(newUser);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return newUser;
+    } catch (error) {
+      console.error('Sign up failed:', error);
+      throw error;
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const signIn = async (credentials) => {
+    try {
+      const result = await authApi.login(credentials);
+      
+      // Extract user data and token from response
+      const userData = {
+        id: result.user?.id || result.id,
+        email: credentials.email,
+        name: result.user?.name || result.name || 'User',
+        phone: result.user?.phone || result.phone || '',
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
+
+      const authToken = result.token;
+
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return userData;
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      throw error;
+    }
+  };
+
+  const signOut = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('luxsuv_user');
+    localStorage.removeItem('luxsuv_token');
+  };
+
+  const updatePassword = async (passwordData) => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      await authApi.updatePassword(token, passwordData);
+      return true;
+    } catch (error) {
+      console.error('Password update failed:', error);
+      throw error;
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      await authApi.forgotPassword(email);
+      return true;
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (resetData) => {
+    try {
+      await authApi.resetPassword(resetData);
+      return true;
+    } catch (error) {
+      console.error('Reset password failed:', error);
+      throw error;
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      const profileData = await authApi.getProfile(token);
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      console.error('Profile refresh failed:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    token,
+    isLoading,
+    signUp,
+    signIn,
+    signOut,
+    updatePassword,
+    forgotPassword,
+    resetPassword,
+    refreshProfile,
+    isAuthenticated: !!user && !!token,
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your email"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/signup' })}
-              className="text-blue-600 hover:text-blue-500 text-sm"
-            >
-              Don't have an account? Sign up
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
   );
-}
+};

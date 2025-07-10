@@ -1,103 +1,185 @@
-import { createLazyFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { PasswordChangeModal } from '../components/PasswordChangeModal';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../api/authApi';
 
-export const Route = createLazyFileRoute('/profile')({
-  component: Profile,
-});
+const AuthContext = createContext();
 
-function Profile() {
-  const navigate = useNavigate();
-  const { user, signOut, isLoading } = useAuth();
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-  const handleSignOut = () => {
-    signOut();
-    navigate({ to: '/' });
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem('luxsuv_user');
+      const storedToken = localStorage.getItem('luxsuv_token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setToken(storedToken);
+          
+          // Verify token is still valid by fetching user profile
+          const profileData = await authApi.getProfile(storedToken);
+          
+          // Update user data with fresh profile info
+          const updatedUser = { ...userData, ...profileData };
+          setUser(updatedUser);
+          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          // Clear invalid session
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('luxsuv_user');
+          localStorage.removeItem('luxsuv_token');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
+  const signUp = async (userData) => {
+    try {
+      const result = await authApi.register(userData);
+      
+      // Extract user data and token from response
+      const newUser = {
+        id: result.user?.id || result.id,
+        email: userData.email,
+        name: userData.name,
+        phone: userData.phone,
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
+
+      const authToken = result.token;
+
+      setUser(newUser);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return newUser;
+    } catch (error) {
+      console.error('Sign up failed:', error);
+      throw error;
+    }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const signIn = async (credentials) => {
+    try {
+      const result = await authApi.login(credentials);
+      
+      // Extract user data and token from response
+      const userData = {
+        id: result.user?.id || result.id,
+        email: credentials.email,
+        name: result.user?.name || result.name || 'User',
+        phone: result.user?.phone || result.phone || '',
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
 
-  if (!user) {
-    navigate({ to: '/signin' });
-    return null;
-  }
+      const authToken = result.token;
+
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return userData;
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      throw error;
+    }
+  };
+
+  const signOut = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('luxsuv_user');
+    localStorage.removeItem('luxsuv_token');
+  };
+
+  const updatePassword = async (passwordData) => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      await authApi.updatePassword(token, passwordData);
+      return true;
+    } catch (error) {
+      console.error('Password update failed:', error);
+      throw error;
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      await authApi.forgotPassword(email);
+      return true;
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (resetData) => {
+    try {
+      await authApi.resetPassword(resetData);
+      return true;
+    } catch (error) {
+      console.error('Reset password failed:', error);
+      throw error;
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      const profileData = await authApi.getProfile(token);
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      console.error('Profile refresh failed:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    token,
+    isLoading,
+    signUp,
+    signIn,
+    signOut,
+    updatePassword,
+    forgotPassword,
+    resetPassword,
+    refreshProfile,
+    isAuthenticated: !!user && !!token,
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile</h1>
-            
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Name
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">{user.name}</p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">{user.email}</p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Phone
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">{user.phone || 'Not provided'}</p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Member Since
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={() => setShowPasswordModal(true)}
-                    className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Change Password
-                  </button>
-                  
-                  <button
-                    onClick={handleSignOut}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {showPasswordModal && (
-        <PasswordChangeModal
-          isOpen={showPasswordModal}
-          onClose={() => setShowPasswordModal(false)}
-        />
-      )}
-    </div>
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
   );
-}
+};
