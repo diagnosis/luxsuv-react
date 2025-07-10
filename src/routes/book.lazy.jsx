@@ -1,22 +1,25 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import { useAuth } from '../contexts/AuthContext';
-import AuthModal from '../components/AuthModal';
 import { useBookRide } from '../hooks/useBooking';
-import AddressAutocomplete from '../components/AddressAutocomplete';
 import BookingForm from '../components/BookingForm';
 import BookingSuccess from '../components/BookingSuccess';
 import BookingError from '../components/BookingError';
 import BookingLoading from '../components/BookingLoading';
+import { Link } from '@tanstack/react-router';
 
 export const Route = createLazyFileRoute('/book')({
+  validateSearch: (search) => ({
+    guest: search.guest === true || search.guest === 'true',
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { user, isAuthenticated } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(!isAuthenticated);
-  const [isGuestMode, setIsGuestMode] = useState(false);
+  const search = useSearch({ from: '/book' });
+  const [isGuestMode, setIsGuestMode] = useState(search.guest || false);
   const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'success', 'error'
   const [bookingResult, setBookingResult] = useState(null);
   const [bookingFormData, setBookingFormData] = useState(null); // Store form data for success screen
@@ -26,12 +29,12 @@ function RouteComponent() {
   
   const bookRideMutation = useBookRide();
 
-  // Show auth modal when component mounts if user is not authenticated
-  useState(() => {
-    if (!isAuthenticated && !isGuestMode) {
-      setShowAuthModal(true);
+  // Set guest mode based on URL search params
+  useEffect(() => {
+    if (search.guest) {
+      setIsGuestMode(true);
     }
-  }, []);
+  }, [search.guest]);
 
   // Pre-fill form with user data if authenticated
   const getInitialFormData = () => {
@@ -39,15 +42,6 @@ function RouteComponent() {
       return { name: user.name || '', email: user.email || '', phone: user.phone || '' };
     }
     return {};
-  };
-
-  const handleContinueAsGuest = () => {
-    setIsGuestMode(true);
-    setShowAuthModal(false);
-  };
-
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false);
   };
 
   const handleSubmit = async (formData) => {
@@ -131,8 +125,8 @@ function RouteComponent() {
     setDropoffLocation('');
   };
 
-  // If user is not authenticated and hasn't chosen to continue as guest, show auth modal
-  if (!isAuthenticated && !isGuestMode && showAuthModal) {
+  // If user is not authenticated and hasn't chosen to continue as guest, show auth prompt
+  if (!isAuthenticated && !isGuestMode) {
     return (
       <div className="w-full h-full bg-dark text-light overflow-y-auto">
         <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
@@ -140,7 +134,7 @@ function RouteComponent() {
             <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
               Book Your Luxury SUV
             </h1>
-            <p className="text-light/80 mb-6">
+            <p className="text-light/80 mb-8">
               Sign in to your account for a faster booking experience, or continue as a guest.
             </p>
             
@@ -168,30 +162,22 @@ function RouteComponent() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => setShowAuthModal(true)}
+              <Link
+                to="/signin"
                 className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
               >
                 Sign In / Sign Up
-              </button>
-              <button
-                onClick={handleContinueAsGuest}
+              </Link>
+              <Link
+                to="/book"
+                search={{ guest: true }}
                 className="bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
               >
                 Continue as Guest
-              </button>
+              </Link>
             </div>
           </div>
         </div>
-
-        {/* Auth Modal */}
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          initialMode="signin"
-          showGuestOption={true}
-          onContinueAsGuest={handleContinueAsGuest}
-        />
       </div>
     );
   }

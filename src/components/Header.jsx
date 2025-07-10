@@ -4,13 +4,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faXTwitter, faInstagram, faTiktok} from '@fortawesome/free-brands-svg-icons';
 import {ChevronUp, Menu, LogIn} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import AuthModal from './AuthModal';
 import UserMenu from './UserMenu';
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [authModalOpen, setAuthModalOpen] = useState(false);
-    const [authMode, setAuthMode] = useState('signin');
     const { isAuthenticated } = useAuth();
 
     const toggleMobileMenu = () => {
@@ -19,16 +16,6 @@ const Header = () => {
 
     const closeMobileMenu = () => {
         setIsMobileMenuOpen(false);
-    };
-
-    const openAuthModal = (mode = 'signin') => {
-        setAuthMode(mode);
-        setAuthModalOpen(true);
-        closeMobileMenu();
-    };
-
-    const closeAuthModal = () => {
-        setAuthModalOpen(false);
     };
 
     return (
@@ -46,13 +33,14 @@ const Header = () => {
                     {/* Authentication Buttons */}
                     {!isAuthenticated ? (
                         <>
-                            <button
-                                onClick={() => openAuthModal('signin')}
+                            <Link
+                                to="/signin"
                                 className="hidden md:flex items-center space-x-2 text-light hover:text-yellow transition-colors px-3 py-2 rounded-lg"
+                                onClick={closeMobileMenu}
                             >
                                 <LogIn className="w-4 h-4" />
                                 <span>Sign In</span>
-                            </button>
+                            </Link>
                         </>
                     ) : (
                         <UserMenu />
@@ -141,12 +129,12 @@ const Header = () => {
                             <div className="mb-6 md:hidden">
                                 <h3 className="text-xl font-semibold text-yellow mb-4 text-center">Account</h3>
                                 <div className="flex flex-col space-y-3">
-                                    <button onClick={() => openAuthModal('signin')} className="bg-yellow hover:bg-yellow/90 text-dark font-semibold py-2 px-4 rounded-lg transition-colors">
+                                    <Link to="/signin" onClick={closeMobileMenu} className="bg-yellow hover:bg-yellow/90 text-dark font-semibold py-2 px-4 rounded-lg transition-colors text-center">
                                         Sign In
-                                    </button>
-                                    <button onClick={() => openAuthModal('signup')} className="bg-gray-700 hover:bg-gray-600 text-light font-semibold py-2 px-4 rounded-lg transition-colors">
+                                    </Link>
+                                    <Link to="/signup" onClick={closeMobileMenu} className="bg-gray-700 hover:bg-gray-600 text-light font-semibold py-2 px-4 rounded-lg transition-colors text-center">
                                         Create Account
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         )}
@@ -201,13 +189,6 @@ const Header = () => {
                 </div>
             </div>
 
-            {/* Auth Modal */}
-            <AuthModal
-                isOpen={authModalOpen}
-                onClose={closeAuthModal}
-                initialMode={authMode}
-                showGuestOption={false}
-            />
         </nav>
     );
 };

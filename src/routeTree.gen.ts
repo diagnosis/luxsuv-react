@@ -17,6 +17,8 @@ import { Route as IndexImport } from './routes/index'
 
 // Create Virtual Routes
 
+const SignupLazyImport = createFileRoute('/signup')()
+const SigninLazyImport = createFileRoute('/signin')()
 const SettingsLazyImport = createFileRoute('/settings')()
 const ServicesLazyImport = createFileRoute('/services')()
 const ProfileLazyImport = createFileRoute('/profile')()
@@ -26,6 +28,18 @@ const BookLazyImport = createFileRoute('/book')()
 const AboutLazyImport = createFileRoute('/about')()
 
 // Create/Update Routes
+
+const SignupLazyRoute = SignupLazyImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/signup.lazy').then((d) => d.Route))
+
+const SigninLazyRoute = SigninLazyImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/signin.lazy').then((d) => d.Route))
 
 const SettingsLazyRoute = SettingsLazyImport.update({
   id: '/settings',
@@ -137,6 +151,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsLazyImport
       parentRoute: typeof rootRoute
     }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -151,6 +179,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileLazyRoute
   '/services': typeof ServicesLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/signin': typeof SigninLazyRoute
+  '/signup': typeof SignupLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -162,6 +192,8 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileLazyRoute
   '/services': typeof ServicesLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/signin': typeof SigninLazyRoute
+  '/signup': typeof SignupLazyRoute
 }
 
 export interface FileRoutesById {
@@ -174,6 +206,8 @@ export interface FileRoutesById {
   '/profile': typeof ProfileLazyRoute
   '/services': typeof ServicesLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/signin': typeof SigninLazyRoute
+  '/signup': typeof SignupLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -187,6 +221,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/services'
     | '/settings'
+    | '/signin'
+    | '/signup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,6 +233,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/services'
     | '/settings'
+    | '/signin'
+    | '/signup'
   id:
     | '__root__'
     | '/'
@@ -207,6 +245,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/services'
     | '/settings'
+    | '/signin'
+    | '/signup'
   fileRoutesById: FileRoutesById
 }
 
@@ -219,6 +259,8 @@ export interface RootRouteChildren {
   ProfileLazyRoute: typeof ProfileLazyRoute
   ServicesLazyRoute: typeof ServicesLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
+  SigninLazyRoute: typeof SigninLazyRoute
+  SignupLazyRoute: typeof SignupLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -230,6 +272,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileLazyRoute: ProfileLazyRoute,
   ServicesLazyRoute: ServicesLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
+  SigninLazyRoute: SigninLazyRoute,
+  SignupLazyRoute: SignupLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -249,7 +293,9 @@ export const routeTree = rootRoute
         "/manage-bookings",
         "/profile",
         "/services",
-        "/settings"
+        "/settings",
+        "/signin",
+        "/signup"
       ]
     },
     "/": {
@@ -275,6 +321,12 @@ export const routeTree = rootRoute
     },
     "/settings": {
       "filePath": "settings.lazy.jsx"
+    },
+    "/signin": {
+      "filePath": "signin.lazy.jsx"
+    },
+    "/signup": {
+      "filePath": "signup.lazy.jsx"
     }
   }
 }
