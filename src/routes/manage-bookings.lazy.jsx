@@ -187,7 +187,6 @@ function ManageBookings() {
           )}
         </div>
       </div>
-    </ProtectedRoute>
     }>
     <div className="w-full h-full bg-dark text-light overflow-y-auto">
       <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
@@ -328,5 +327,6 @@ function ManageBookings() {
         )}
       </div>
     </div>
+  </ProtectedRoute>
   );
 }
