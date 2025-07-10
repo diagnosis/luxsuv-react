@@ -1,206 +1,186 @@
-import { createLazyFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../api/authApi.jsx';
 
-export const Route = createLazyFileRoute('/signin')({
-  component: SignIn,
-});
+const AuthContext = createContext();
 
-function SignIn() {
-  const navigate = useNavigate();
-  const { signIn, isAuthenticated } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate({ to: '/book' });
-    return null;
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  return context;
+};
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (error) setError('');
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem('luxsuv_user');
+      const storedToken = localStorage.getItem('luxsuv_token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setToken(storedToken);
+          
+          // Verify token is still valid by fetching user profile
+          const profileData = await authApi.getProfile(storedToken);
+          
+          // Update user data with fresh profile info
+          const updatedUser = { ...userData, ...profileData };
+          setUser(updatedUser);
+          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          // Clear invalid session
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('luxsuv_user');
+          localStorage.removeItem('luxsuv_token');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
+  const signUp = async (userData) => {
+    try {
+      const result = await authApi.register(userData);
+      
+      // Extract user data and token from response
+      const newUser = {
+        id: result.user?.id || result.id,
+        username: userData.username,
+        email: userData.email,
+        name: userData.username, // Use username as display name for now
+        phone: '', // Phone not collected during registration
+        role: 'rider', // Always rider for this app
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
+
+      const authToken = result.token;
+
+      setUser(newUser);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return newUser;
+    } catch (error) {
+      console.error('Sign up failed:', error);
+      throw error;
+    }
   };
 
-  const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      setError('Email and password are required');
-      return false;
-    }
+  const signIn = async (credentials) => {
+    try {
+      const result = await authApi.login(credentials);
+      
+      // Extract user data and token from response
+      const userData = {
+        id: result.user?.id || result.id,
+        email: credentials.email,
+        name: result.user?.name || result.name || 'User',
+        phone: result.user?.phone || result.phone || '',
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
 
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email address');
-      return false;
-    }
+      const authToken = result.token;
 
-    return true;
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return userData;
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      throw error;
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
+  const signOut = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('luxsuv_user');
+    localStorage.removeItem('luxsuv_token');
+  };
 
-    setIsLoading(true);
-    setError('');
+  const updatePassword = async (passwordData) => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
 
     try {
-      await signIn({
-        email: formData.email,
-        password: formData.password,
-      });
-      
-      // Redirect to book page after successful sign in
-      navigate({ to: '/book' });
-    } catch (err) {
-      setError(err.message || 'Sign in failed');
-    } finally {
-      setIsLoading(false);
+      await authApi.updatePassword(token, passwordData);
+      return true;
+    } catch (error) {
+      console.error('Password update failed:', error);
+      throw error;
     }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      await authApi.forgotPassword(email);
+      return true;
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (resetData) => {
+    try {
+      await authApi.resetPassword(resetData);
+      return true;
+    } catch (error) {
+      console.error('Reset password failed:', error);
+      throw error;
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      const profileData = await authApi.getProfile(token);
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      console.error('Profile refresh failed:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    token,
+    isLoading,
+    signUp,
+    signIn,
+    signOut,
+    updatePassword,
+    forgotPassword,
+    resetPassword,
+    refreshProfile,
+    isAuthenticated: !!user && !!token,
   };
 
   return (
-    <div className="w-full h-full bg-dark text-light overflow-y-auto">
-      <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
-        <div className="max-w-md mx-auto">
-          {/* Back Button */}
-          <Link
-            to="/book"
-            className="inline-flex items-center space-x-2 text-yellow hover:text-yellow/80 transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Booking</span>
-          </Link>
-
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-light mb-2">Welcome Back</h1>
-            <p className="text-light/80">Sign in to your LUX SUV account</p>
-          </div>
-
-          {/* Sign In Form */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-600/20 text-red-400 p-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* Email Field */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-light mb-1">
-                  Email Address *
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                    placeholder="Enter your email"
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-light mb-1">
-                  Password *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                    placeholder="Enter your password"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light transition-colors"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Forgot Password Link */}
-              <div className="text-right">
-                <button
-                  type="button"
-                  className="text-yellow hover:text-yellow/80 text-sm transition-colors"
-                  onClick={() => {
-                    // TODO: Implement forgot password functionality
-                    alert('Forgot password functionality will be implemented soon');
-                  }}
-                >
-                  Forgot your password?
-                </button>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-yellow hover:bg-yellow/90 text-dark font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-              >
-                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                <span>Sign In</span>
-              </button>
-            </form>
-
-            {/* Links */}
-            <div className="mt-6 text-center space-y-3">
-              <p className="text-light/80 text-sm">
-                Don't have an account?{' '}
-                <Link
-                  to="/signup"
-                  className="text-yellow hover:text-yellow/80 font-medium transition-colors"
-                >
-                  Create Account
-                </Link>
-              </p>
-              
-              <div className="border-t border-gray-600 pt-3">
-                <Link
-                  to="/book"
-                  search={{ guest: true }}
-                  className="text-gray-400 hover:text-light text-sm transition-colors underline"
-                >
-                  Continue as Guest
-                </Link>
-                <p className="text-xs text-gray-500 mt-1">
-                  You can book without an account, but you'll need to enter your email to manage bookings later.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
   );
-}
+};
