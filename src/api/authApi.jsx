@@ -1,15 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi';
-
-const AuthContext = createContext();
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+const API_BASE_URL = 'http://localhost:8080';
 
 // Helper function to extract meaningful error messages from API responses
 const getErrorMessage = async (response) => {
@@ -38,176 +27,126 @@ const getErrorMessage = async (response) => {
   }
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const authApi = {
+  async register(userData) {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
 
-  // Check for existing session on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('luxsuv_user');
-      const storedToken = localStorage.getItem('luxsuv_token');
-      
-      if (storedUser && storedToken) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          
-          // Verify token is still valid by fetching user profile
-          const profileData = await authApi.getProfile(storedToken);
-          
-          // Update user data with fresh profile info
-          const updatedUser = { ...userData, ...profileData };
-          setUser(updatedUser);
-          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-        } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid session
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('luxsuv_user');
-          localStorage.removeItem('luxsuv_token');
-        }
-      }
-      setIsLoading(false);
-    };
-
-    initializeAuth();
-  }, []);
-
-  const signUp = async (userData) => {
-    try {
-      const result = await authApi.register(userData);
-      
-      // Extract user data and token from response
-      const newUser = {
-        id: result.user?.id || result.id,
-        username: userData.username,
-        email: userData.email,
-        name: userData.username, // Use username as display name for now
-        phone: '', // Phone not collected during registration
-        role: 'rider', // Always rider for this app
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(newUser);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return newUser;
-    } catch (error) {
-      console.error('Sign up failed:', error.message);
-      throw error;
-    }
-  };
-
-  const signIn = async (credentials) => {
-    try {
-      const result = await authApi.login(credentials);
-      
-      // Extract user data and token from response
-      const userData = {
-        id: result.user?.id || result.id,
-        email: credentials.email,
-        name: result.user?.name || result.name || 'User',
-        phone: result.user?.phone || result.phone || '',
-        role: result.user?.role || 'rider',
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(userData);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return userData;
-    } catch (error) {
-      console.error('Sign in failed:', error.message);
-      throw error;
-    }
-  };
-
-  const signOut = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('luxsuv_user');
-    localStorage.removeItem('luxsuv_token');
-  };
-
-  const updatePassword = async (passwordData) => {
-    if (!token) {
-      throw new Error('No authentication token available');
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      throw new Error(errorMessage);
     }
 
-    try {
-      await authApi.updatePassword(token, passwordData);
-      return true;
-    } catch (error) {
-      console.error('Password update failed:', error);
-      throw error;
-    }
-  };
+    return response.json();
+  },
 
-  const forgotPassword = async (email) => {
-    try {
-      await authApi.forgotPassword(email);
-      return true;
-    } catch (error) {
-      console.error('Forgot password failed:', error);
-      throw error;
-    }
-  };
+  async login(credentials) {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    });
 
-  const resetPassword = async (resetData) => {
-    try {
-      await authApi.resetPassword(resetData);
-      return true;
-    } catch (error) {
-      console.error('Reset password failed:', error);
-      throw error;
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (!token) {
-      throw new Error('No authentication token available');
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      throw new Error(errorMessage);
     }
 
-    try {
-      const profileData = await authApi.getProfile(token);
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-      return updatedUser;
-    } catch (error) {
-      console.error('Profile refresh failed:', error);
-      throw error;
+    return response.json();
+  },
+
+  async getProfile(token) {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      throw new Error(errorMessage);
     }
-  };
 
-  const value = {
-    user,
-    token,
-    isLoading,
-    signUp,
-    signIn,
-    signOut,
-    updatePassword,
-    forgotPassword,
-    resetPassword,
-    refreshProfile,
-    isAuthenticated: !!user && !!token,
-  };
+    return response.json();
+  },
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  async updatePassword(token, passwordData) {
+    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(passwordData),
+    });
+
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  async forgotPassword(email) {
+    console.log('Sending forgot password request for:', email); // Debug log
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    console.log('Forgot password response status:', response.status); // Debug log
+
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      console.log('Forgot password error:', errorMessage); // Debug log
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('Forgot password success:', result); // Debug log
+    return result;
+  },
+
+  async resetPassword(resetData) {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resetData),
+    });
+
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  async healthCheck() {
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      const errorMessage = await getErrorMessage(response);
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
 };
