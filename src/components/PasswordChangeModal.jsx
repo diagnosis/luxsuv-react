@@ -1,253 +1,186 @@
-import { useState } from 'react';
-import { X, Eye, EyeOff, Lock, Loader2, CheckCircle } from 'lucide-react';
-import { useUpdatePassword } from '../hooks/useAuth';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../api/authApi.jsx';
 
-const PasswordChangeModal = ({ isOpen, onClose }) => {
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
-  const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+const AuthContext = createContext();
 
-  const updatePasswordMutation = useUpdatePassword();
-
-  const resetForm = () => {
-    setFormData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    });
-    setError('');
-    setSuccess(false);
-    setShowPasswords({
-      current: false,
-      new: false,
-      confirm: false,
-    });
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (error) setError('');
-    if (success) setSuccess(false);
-  };
-
-  const togglePasswordVisibility = (field) => {
-    setShowPasswords(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  };
-
-  const validateForm = () => {
-    if (!formData.currentPassword) {
-      setError('Current password is required');
-      return false;
-    }
-
-    if (!formData.newPassword) {
-      setError('New password is required');
-      return false;
-    }
-
-    if (formData.newPassword.length < 6) {
-      setError('New password must be at least 6 characters long');
-      return false;
-    }
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      setError('New passwords do not match');
-      return false;
-    }
-
-    if (formData.currentPassword === formData.newPassword) {
-      setError('New password must be different from current password');
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    try {
-      await updatePasswordMutation.mutateAsync({
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword,
-      });
-      
-      setSuccess(true);
-      setFormData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-      
-      // Auto close after success
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
-    } catch (err) {
-      setError(err.message || 'Password update failed');
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-600">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-600">
-          <h2 className="text-xl font-semibold text-light">Change Password</h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-light transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Success Message */}
-          {success && (
-            <div className="bg-green-600/20 text-green-400 p-3 rounded-lg text-sm flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4" />
-              <span>Password updated successfully!</span>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-600/20 text-red-400 p-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Current Password */}
-          <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-light mb-1">
-              Current Password *
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type={showPasswords.current ? 'text' : 'password'}
-                id="currentPassword"
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-10 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                placeholder="Enter current password"
-                disabled={updatePasswordMutation.isPending || success}
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility('current')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light transition-colors"
-                aria-label={showPasswords.current ? 'Hide password' : 'Show password'}
-              >
-                {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* New Password */}
-          <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-light mb-1">
-              New Password *
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type={showPasswords.new ? 'text' : 'password'}
-                id="newPassword"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-10 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                placeholder="Enter new password"
-                disabled={updatePasswordMutation.isPending || success}
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility('new')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light transition-colors"
-                aria-label={showPasswords.new ? 'Hide password' : 'Show password'}
-              >
-                {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Password must be at least 6 characters long
-            </p>
-          </div>
-
-          {/* Confirm New Password */}
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-light mb-1">
-              Confirm New Password *
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type={showPasswords.confirm ? 'text' : 'password'}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="w-full pl-10 pr-10 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                placeholder="Confirm new password"
-                disabled={updatePasswordMutation.isPending || success}
-              />
-              <button
-                type="button"
-                onClick={() => togglePasswordVisibility('confirm')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light transition-colors"
-                aria-label={showPasswords.confirm ? 'Hide password' : 'Show password'}
-              >
-                {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={updatePasswordMutation.isPending || success}
-            className="w-full bg-yellow hover:bg-yellow/90 text-dark font-semibold py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-          >
-            {updatePasswordMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>
-              {updatePasswordMutation.isPending ? 'Updating...' : success ? 'Updated!' : 'Update Password'}
-            </span>
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
-export default PasswordChangeModal;
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const storedUser = localStorage.getItem('luxsuv_user');
+      const storedToken = localStorage.getItem('luxsuv_token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setToken(storedToken);
+          
+          // Verify token is still valid by fetching user profile
+          const profileData = await authApi.getProfile(storedToken);
+          
+          // Update user data with fresh profile info
+          const updatedUser = { ...userData, ...profileData };
+          setUser(updatedUser);
+          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          // Clear invalid session
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('luxsuv_user');
+          localStorage.removeItem('luxsuv_token');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
+  const signUp = async (userData) => {
+    try {
+      const result = await authApi.register(userData);
+      
+      // Extract user data and token from response
+      const newUser = {
+        id: result.user?.id || result.id,
+        username: result.user?.username || userData.username,
+        email: userData.email,
+        name: userData.name,
+        phone: userData.phone,
+        role: 'rider', // Always rider for this app
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
+
+      const authToken = result.token;
+
+      setUser(newUser);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return newUser;
+    } catch (error) {
+      console.error('Sign up failed:', error);
+      throw error;
+    }
+  };
+
+  const signIn = async (credentials) => {
+    try {
+      const result = await authApi.login(credentials);
+      
+      // Extract user data and token from response
+      const userData = {
+        id: result.user?.id || result.id,
+        email: credentials.email,
+        name: result.user?.name || result.name || 'User',
+        phone: result.user?.phone || result.phone || '',
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || new Date().toISOString(),
+      };
+
+      const authToken = result.token;
+
+      setUser(userData);
+      setToken(authToken);
+      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
+      localStorage.setItem('luxsuv_token', authToken);
+      
+      return userData;
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      throw error;
+    }
+  };
+
+  const signOut = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('luxsuv_user');
+    localStorage.removeItem('luxsuv_token');
+  };
+
+  const updatePassword = async (passwordData) => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      await authApi.updatePassword(token, passwordData);
+      return true;
+    } catch (error) {
+      console.error('Password update failed:', error);
+      throw error;
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      await authApi.forgotPassword(email);
+      return true;
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (resetData) => {
+    try {
+      await authApi.resetPassword(resetData);
+      return true;
+    } catch (error) {
+      console.error('Reset password failed:', error);
+      throw error;
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (!token) {
+      throw new Error('No authentication token available');
+    }
+
+    try {
+      const profileData = await authApi.getProfile(token);
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (error) {
+      console.error('Profile refresh failed:', error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    token,
+    isLoading,
+    signUp,
+    signIn,
+    signOut,
+    updatePassword,
+    forgotPassword,
+    resetPassword,
+    refreshProfile,
+    isAuthenticated: !!user && !!token,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
