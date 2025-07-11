@@ -47,7 +47,7 @@ function SignIn() {
   }
 
   const handleForgotPassword = () => {
-    navigate({ to: '/reset-password' })
+    navigate({ to: '/forgot-password' })
   }
 
   if (isLoading) {

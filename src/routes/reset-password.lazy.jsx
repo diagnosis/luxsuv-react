@@ -110,7 +110,7 @@ function ResetPassword() {
               <p className="text-sm text-gray-400">
                 Need a new reset link?{' '}
                 <button
-                  onClick={() => navigate({ to: '/signin' })}
+                  onClick={() => navigate({ to: '/forgot-password' })}
                   className="text-yellow-400 hover:text-yellow-300 transition-colors"
                 >
                   Request another one
