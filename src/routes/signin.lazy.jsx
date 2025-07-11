@@ -1,5 +1,6 @@
-import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
+import { createLazyFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState } from 'react'
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 export const Route = createLazyFileRoute('/signin')({
@@ -13,6 +14,7 @@ function SignIn() {
     email: '',
     password: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -43,81 +45,123 @@ function SignIn() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="w-full h-full bg-dark text-light flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-yellow animate-spin mx-auto mb-4" />
+          <p>Loading...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
+    <div className="w-full h-full bg-dark text-light overflow-y-auto">
+      <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8 flex items-center justify-center min-h-full">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-light mb-2 md:text-4xl">
+              Welcome Back
+            </h1>
+            <p className="text-light/80">
+              Sign in to your LUX SUV account
+            </p>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-600/20 text-red-400 p-3 rounded-lg text-sm border border-red-400/30">
+                  {error}
+                </div>
+              )}
+
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-light mb-1">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    placeholder="Enter your email"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-light mb-1">
+                  Password *
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-10 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    placeholder="Enter your password"
+                    disabled={isSubmitting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light transition-colors"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-yellow hover:bg-yellow/90 text-dark font-semibold py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{isSubmitting ? 'Signing In...' : 'Sign In'}</span>
+              </button>
+            </form>
+
+            {/* Sign Up Link */}
+            <div className="text-center mt-6 pt-6 border-t border-gray-600">
+              <p className="text-light/80 text-sm">
+                Don't have an account?{' '}
+                <Link
+                  to="/signup"
+                  className="text-yellow hover:text-yellow/80 font-medium transition-colors"
+                >
+                  Create Account
+                </Link>
+              </p>
+            </div>
+
+            {/* Guest Booking Option */}
+            <div className="text-center mt-4">
+              <Link
+                to="/book"
+                search={{ guest: true }}
+                className="text-gray-400 hover:text-light text-sm transition-colors underline"
+              >
+                Continue as Guest
+              </Link>
+            </div>
+          </div>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/signup' })}
-              className="text-blue-600 hover:text-blue-500 text-sm"
-            >
-              Don't have an account? Sign up
-            </button>
-          </div>
-        </form>
       </div>
     </div>
   )
