@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi.jsx';
+import { authApi } from '../api/authApi';
 
 const AuthContext = createContext();
 
@@ -56,10 +56,10 @@ export const AuthProvider = ({ children }) => {
       // Extract user data and token from response
       const newUser = {
         id: result.user?.id || result.id,
-        username: result.user?.username || userData.username,
+        username: userData.username,
         email: userData.email,
-        name: userData.name,
-        phone: userData.phone,
+        name: userData.username, // Use username as display name for now
+        phone: '', // Phone not collected during registration
         role: 'rider', // Always rider for this app
         createdAt: result.user?.created_at || new Date().toISOString(),
       };
@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
       
       return newUser;
     } catch (error) {
-      console.error('Sign up failed:', error);
+      console.error('Sign up failed:', error.message);
       throw error;
     }
   };
@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
       
       return userData;
     } catch (error) {
-      console.error('Sign in failed:', error);
+      console.error('Sign in failed:', error.message);
       throw error;
     }
   };
