@@ -46,14 +46,22 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (userData) => {
     try {
-      const result = await authApi.register(userData);
+      // Ensure we're sending the username field as required by the backend
+      const registrationData = {
+        username: userData.name || userData.username,
+        email: userData.email,
+        password: userData.password,
+        role: 'rider' // Always rider for this app
+      };
+      
+      const result = await authApi.register(registrationData);
       
       // Extract user data and token from response
       const newUser = {
         id: result.user?.id || result.id,
-        username: userData.username,
+        username: registrationData.username,
         email: userData.email,
-        name: userData.username, // Use username as display name for now
+        name: registrationData.username, // Use username as display name
         phone: '', // Phone not collected during registration
         role: 'rider', // Always rider for this app
         createdAt: result.user?.created_at || new Date().toISOString(),
@@ -80,8 +88,9 @@ export const AuthProvider = ({ children }) => {
       // Extract user data and token from response
       const userData = {
         id: result.user?.id || result.id,
+        username: result.user?.username || result.username,
         email: credentials.email,
-        name: result.user?.name || result.name || 'User',
+        name: result.user?.username || result.user?.name || result.name || 'User',
         phone: result.user?.phone || result.phone || '',
         role: result.user?.role || 'rider',
         createdAt: result.user?.created_at || new Date().toISOString(),

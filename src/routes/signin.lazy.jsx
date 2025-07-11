@@ -34,9 +34,12 @@ function SignIn() {
     setIsSubmitting(true)
 
     try {
+      console.log('🔐 Attempting sign in with:', { email: formData.email });
       await signIn(formData)
+      console.log('✅ Sign in successful, redirecting...');
       navigate({ to: '/' })
     } catch (err) {
+      console.error('❌ Sign in failed:', err);
       setError(err.message || 'Failed to sign in. Please try again.')
     } finally {
       setIsSubmitting(false)

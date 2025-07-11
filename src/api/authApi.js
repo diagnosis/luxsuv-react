@@ -1,29 +1,52 @@
+// Updated API base URL to match your backend
 const API_BASE_URL = 'http://localhost:8080';
 
 export const authApi = {
   // User registration
   register: async (userData) => {
-    console.log('🔐 Register API Call:', { email: userData.email, username: userData.username });
+    console.log('🔐 Register API Call:', { 
+      username: userData.username,
+      email: userData.email, 
+      role: userData.role || 'rider'
+    });
     
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const requestBody = {
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,
+      role: userData.role || 'rider'
+    };
+    
+    console.log('📦 Register Request Body:', requestBody);
+    
+    const response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(requestBody),
     });
 
     console.log('📡 Register Response Status:', response.status);
+    console.log('📋 Register Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Register Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse register response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Register Error Response:', errorData);
-      
-      const errorMessage = errorData.error || errorData.message || `Registration failed with status ${response.status}`;
+      console.error('❌ Register Error Response:', data);
+      const errorMessage = data.error || data.message || `Registration failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
     console.log('✅ Register Success:', data);
     return data;
   },
@@ -32,25 +55,41 @@ export const authApi = {
   login: async (credentials) => {
     console.log('🔐 Login API Call:', { email: credentials.email });
     
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const requestBody = {
+      email: credentials.email,
+      password: credentials.password
+    };
+    
+    console.log('📦 Login Request Body:', requestBody);
+    
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(credentials),
+      body: JSON.stringify(requestBody),
     });
 
     console.log('📡 Login Response Status:', response.status);
+    console.log('📋 Login Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Login Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse login response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Login Error Response:', errorData);
-      
-      const errorMessage = errorData.error || errorData.message || `Login failed with status ${response.status}`;
+      console.error('❌ Login Error Response:', data);
+      const errorMessage = data.error || data.message || `Login failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
     console.log('✅ Login Success:', data);
     return data;
   },
@@ -58,8 +97,13 @@ export const authApi = {
   // Get user profile
   getProfile: async (token) => {
     console.log('👤 Profile API Call');
+    console.log('🔑 Using Token:', token ? `${token.substring(0, 20)}...` : 'No token');
     
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+    if (!token) {
+      throw new Error('No authentication token provided');
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -68,16 +112,25 @@ export const authApi = {
     });
 
     console.log('📡 Profile Response Status:', response.status);
+    console.log('📋 Profile Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Profile Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse profile response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Profile Error Response:', errorData);
-      
-      const errorMessage = errorData.error || errorData.message || `Profile fetch failed with status ${response.status}`;
+      console.error('❌ Profile Error Response:', data);
+      const errorMessage = data.error || data.message || `Profile fetch failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
     console.log('✅ Profile Success:', data);
     return data;
   },
@@ -85,27 +138,51 @@ export const authApi = {
   // Update password
   updatePassword: async (token, passwordData) => {
     console.log('🔒 Update Password API Call');
+    console.log('🔑 Using Token:', token ? `${token.substring(0, 20)}...` : 'No token');
     
-    const response = await fetch(`${API_BASE_URL}/auth/update-password`, {
+    if (!token) {
+      throw new Error('No authentication token provided');
+    }
+    
+    const requestBody = {
+      current_password: passwordData.currentPassword,
+      new_password: passwordData.newPassword
+    };
+    
+    console.log('📦 Update Password Request Body:', { 
+      current_password: '[HIDDEN]', 
+      new_password: '[HIDDEN]' 
+    });
+    
+    const response = await fetch(`${API_BASE_URL}/users/me/password`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(passwordData),
+      body: JSON.stringify(requestBody),
     });
 
     console.log('📡 Update Password Response Status:', response.status);
+    console.log('📋 Update Password Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Update Password Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse update password response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Update Password Error Response:', errorData);
-      
-      const errorMessage = errorData.error || errorData.message || `Password update failed with status ${response.status}`;
+      console.error('❌ Update Password Error Response:', data);
+      const errorMessage = data.error || data.message || `Password update failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
     console.log('✅ Update Password Success:', data);
     return data;
   },
@@ -113,28 +190,29 @@ export const authApi = {
   // Forgot password
   forgotPassword: async (email) => {
     console.log('📧 Forgot Password API Call:', { email });
-    console.log('🌐 Request URL:', `${API_BASE_URL}/auth/forgot-password`);
-    console.log('📦 Request Body:', JSON.stringify({ email }));
+    
+    const requestBody = { email };
+    console.log('📦 Forgot Password Request Body:', requestBody);
     
     const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(requestBody),
     });
 
     console.log('📡 Forgot Password Response Status:', response.status);
-    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
+    console.log('📋 Forgot Password Response Headers:', Object.fromEntries(response.headers.entries()));
     
     const responseText = await response.text();
-    console.log('📄 Raw Response:', responseText);
+    console.log('📄 Forgot Password Raw Response:', responseText);
     
     let data;
     try {
       data = JSON.parse(responseText);
     } catch (e) {
-      console.error('❌ Failed to parse response as JSON:', e);
+      console.error('❌ Failed to parse forgot password response as JSON:', e);
       throw new Error(`Invalid response format: ${responseText}`);
     }
     
@@ -151,33 +229,45 @@ export const authApi = {
   // Reset password
   resetPassword: async (resetData) => {
     console.log('🔄 Reset Password API Call');
-    console.log('📦 Request Body:', JSON.stringify({
+    
+    const requestBody = {
       reset_token: resetData.token,
       new_password: resetData.newPassword
-    }));
+    };
+    
+    console.log('📦 Reset Password Request Body:', {
+      reset_token: resetData.token ? `${resetData.token.substring(0, 20)}...` : 'No token',
+      new_password: '[HIDDEN]'
+    });
     
     const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        reset_token: resetData.token,
-        new_password: resetData.newPassword
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     console.log('📡 Reset Password Response Status:', response.status);
+    console.log('📋 Reset Password Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Reset Password Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse reset password response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Reset Password Error Response:', errorData);
-      
-      const errorMessage = errorData.error || errorData.message || `Password reset failed with status ${response.status}`;
+      console.error('❌ Reset Password Error Response:', data);
+      const errorMessage = data.error || data.message || `Password reset failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
     console.log('✅ Reset Password Success:', data);
     return data;
   },
@@ -188,19 +278,31 @@ export const authApi = {
     
     const response = await fetch(`${API_BASE_URL}/health`, {
       method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     console.log('📡 Health Check Response Status:', response.status);
+    console.log('📋 Health Check Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Health Check Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse health check response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Health Check Error Response:', errorData);
-      
-      const errorMessage = errorData.error || errorData.message || `Health check failed with status ${response.status}`;
+      console.error('❌ Health Check Error Response:', data);
+      const errorMessage = data.error || data.message || `Health check failed with status ${response.status}`;
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
     console.log('✅ Health Check Success:', data);
     return data;
   },

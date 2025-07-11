@@ -63,13 +63,19 @@ function SignUp() {
     setIsSubmitting(true)
 
     try {
+      console.log('🔐 Attempting sign up with:', { 
+        username: formData.username, 
+        email: formData.email 
+      });
       await signUp({
         username: formData.username,
         email: formData.email,
         password: formData.password,
       })
+      console.log('✅ Sign up successful, redirecting...');
       navigate({ to: '/' })
     } catch (err) {
+      console.error('❌ Sign up failed:', err);
       setError(err.message || 'Registration failed')
     } finally {
       setIsSubmitting(false)
