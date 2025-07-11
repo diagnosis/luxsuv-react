@@ -1,181 +1,207 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi';
+const API_BASE_URL = 'http://localhost:8080';
 
-const AuthContext = createContext();
+export const authApi = {
+  // User registration
+  register: async (userData) => {
+    console.log('🔐 Register API Call:', { email: userData.email, username: userData.username });
+    
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('luxsuv_user');
-      const storedToken = localStorage.getItem('luxsuv_token');
+    console.log('📡 Register Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Register Error Response:', errorData);
       
-      if (storedUser && storedToken) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          
-          // For now, just use stored user data since /profile endpoint doesn't exist yet
-          setUser(userData);
-        } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid session
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('luxsuv_user');
-          localStorage.removeItem('luxsuv_token');
-        }
-      }
-      setIsLoading(false);
-    };
+      const errorMessage = errorData.error || errorData.message || `Registration failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
 
-    initializeAuth();
-  }, []);
+    const data = await response.json();
+    console.log('✅ Register Success:', data);
+    return data;
+  },
 
-  const signUp = async (userData) => {
-    try {
-      const result = await authApi.register(userData);
+  // User login
+  login: async (credentials) => {
+    console.log('🔐 Login API Call:', { email: credentials.email });
+    
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    });
+
+    console.log('📡 Login Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Login Error Response:', errorData);
       
-      // Extract user data and token from response
-      const newUser = {
-        id: result.user?.id || result.id,
-        username: userData.username,
-        email: userData.email,
-        name: userData.username, // Use username as display name for now
-        phone: '', // Phone not collected during registration
-        role: 'rider', // Always rider for this app
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
+      const errorMessage = errorData.error || errorData.message || `Login failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
 
-      const authToken = result.token;
+    const data = await response.json();
+    console.log('✅ Login Success:', data);
+    return data;
+  },
 
-      setUser(newUser);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
-      localStorage.setItem('luxsuv_token', authToken);
+  // Get user profile
+  getProfile: async (token) => {
+    console.log('👤 Profile API Call');
+    
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('📡 Profile Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Profile Error Response:', errorData);
       
-      return newUser;
-    } catch (error) {
-      console.error('Sign up failed:', error.message);
-      throw error;
+      const errorMessage = errorData.error || errorData.message || `Profile fetch failed with status ${response.status}`;
+      throw new Error(errorMessage);
     }
-  };
 
-  const signIn = async (credentials) => {
-    try {
-      const result = await authApi.login(credentials);
+    const data = await response.json();
+    console.log('✅ Profile Success:', data);
+    return data;
+  },
+
+  // Update password
+  updatePassword: async (token, passwordData) => {
+    console.log('🔒 Update Password API Call');
+    
+    const response = await fetch(`${API_BASE_URL}/auth/update-password`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(passwordData),
+    });
+
+    console.log('📡 Update Password Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Update Password Error Response:', errorData);
       
-      // Extract user data and token from response
-      const userData = {
-        id: result.user?.id || result.id,
-        email: credentials.email,
-        name: result.user?.name || result.name || 'User',
-        phone: result.user?.phone || result.phone || '',
-        role: result.user?.role || 'rider',
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
+      const errorMessage = errorData.error || errorData.message || `Password update failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
 
-      const authToken = result.token;
+    const data = await response.json();
+    console.log('✅ Update Password Success:', data);
+    return data;
+  },
 
-      setUser(userData);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
-      localStorage.setItem('luxsuv_token', authToken);
+  // Forgot password
+  forgotPassword: async (email) => {
+    console.log('📧 Forgot Password API Call:', { email });
+    console.log('🌐 Request URL:', `${API_BASE_URL}/auth/forgot-password`);
+    console.log('📦 Request Body:', JSON.stringify({ email }));
+    
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    console.log('📡 Forgot Password Response Status:', response.status);
+    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    const responseText = await response.text();
+    console.log('📄 Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
+    
+    if (!response.ok) {
+      console.error('❌ Forgot Password Error Response:', data);
+      const errorMessage = data.error || data.message || `Forgot password failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    console.log('✅ Forgot Password Success:', data);
+    return data;
+  },
+
+  // Reset password
+  resetPassword: async (resetData) => {
+    console.log('🔄 Reset Password API Call');
+    console.log('📦 Request Body:', JSON.stringify({
+      reset_token: resetData.token,
+      new_password: resetData.newPassword
+    }));
+    
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        reset_token: resetData.token,
+        new_password: resetData.newPassword
+      }),
+    });
+
+    console.log('📡 Reset Password Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Reset Password Error Response:', errorData);
       
-      return userData;
-    } catch (error) {
-      console.error('Sign in failed:', error.message);
-      throw error;
-    }
-  };
-
-  const signOut = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('luxsuv_user');
-    localStorage.removeItem('luxsuv_token');
-  };
-
-  const updatePassword = async (passwordData) => {
-    if (!token) {
-      throw new Error('No authentication token available');
+      const errorMessage = errorData.error || errorData.message || `Password reset failed with status ${response.status}`;
+      throw new Error(errorMessage);
     }
 
-    try {
-      await authApi.updatePassword(token, passwordData);
-      return true;
-    } catch (error) {
-      console.error('Password update failed:', error);
-      throw error;
-    }
-  };
+    const data = await response.json();
+    console.log('✅ Reset Password Success:', data);
+    return data;
+  },
 
-  const forgotPassword = async (email) => {
-    try {
-      await authApi.forgotPassword(email);
-      return true;
-    } catch (error) {
-      console.error('Forgot password failed:', error);
-      throw error;
-    }
-  };
+  // Health check
+  healthCheck: async () => {
+    console.log('🏥 Health Check API Call');
+    
+    const response = await fetch(`${API_BASE_URL}/health`, {
+      method: 'GET',
+    });
 
-  const resetPassword = async (resetData) => {
-    try {
-      await authApi.resetPassword(resetData);
-      return true;
-    } catch (error) {
-      console.error('Reset password failed:', error);
-      throw error;
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (!token) {
-      throw new Error('No authentication token available');
+    console.log('📡 Health Check Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Health Check Error Response:', errorData);
+      
+      const errorMessage = errorData.error || errorData.message || `Health check failed with status ${response.status}`;
+      throw new Error(errorMessage);
     }
 
-    try {
-      const profileData = await authApi.getProfile(token);
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-      return updatedUser;
-    } catch (error) {
-      console.error('Profile refresh failed:', error);
-      throw error;
-    }
-  };
-
-  const value = {
-    user,
-    token,
-    isLoading,
-    signUp,
-    signIn,
-    signOut,
-    updatePassword,
-    forgotPassword,
-    resetPassword,
-    refreshProfile,
-    isAuthenticated: !!user && !!token,
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+    const data = await response.json();
+    console.log('✅ Health Check Success:', data);
+    return data;
+  },
 };
