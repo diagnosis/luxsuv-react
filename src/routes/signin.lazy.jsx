@@ -1,181 +1,184 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi';
+import { createLazyFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
-const AuthContext = createContext();
+export const Route = createLazyFileRoute('/signin')({
+  component: SignIn,
+})
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+function SignIn() {
+  const navigate = useNavigate()
+  const { signIn, isLoading } = useAuth()
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    // Clear error when user starts typing
+    if (error) setError('')
   }
-  return context;
-};
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('luxsuv_user');
-      const storedToken = localStorage.getItem('luxsuv_token');
-      
-      if (storedUser && storedToken) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          
-          // For now, just use stored user data since /profile endpoint doesn't exist yet
-          setUser(userData);
-        } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid session
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('luxsuv_user');
-          localStorage.removeItem('luxsuv_token');
-        }
-      }
-      setIsLoading(false);
-    };
-
-    initializeAuth();
-  }, []);
-
-  const signUp = async (userData) => {
-    try {
-      const result = await authApi.register(userData);
-      
-      // Extract user data and token from response
-      const newUser = {
-        id: result.user?.id || result.id,
-        username: userData.username,
-        email: userData.email,
-        name: userData.username, // Use username as display name for now
-        phone: '', // Phone not collected during registration
-        role: 'rider', // Always rider for this app
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(newUser);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return newUser;
-    } catch (error) {
-      console.error('Sign up failed:', error.message);
-      throw error;
-    }
-  };
-
-  const signIn = async (credentials) => {
-    try {
-      const result = await authApi.login(credentials);
-      
-      // Extract user data and token from response
-      const userData = {
-        id: result.user?.id || result.id,
-        email: credentials.email,
-        name: result.user?.name || result.name || 'User',
-        phone: result.user?.phone || result.phone || '',
-        role: result.user?.role || 'rider',
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(userData);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return userData;
-    } catch (error) {
-      console.error('Sign in failed:', error.message);
-      throw error;
-    }
-  };
-
-  const signOut = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('luxsuv_user');
-    localStorage.removeItem('luxsuv_token');
-  };
-
-  const updatePassword = async (passwordData) => {
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setIsSubmitting(true)
 
     try {
-      await authApi.updatePassword(token, passwordData);
-      return true;
-    } catch (error) {
-      console.error('Password update failed:', error);
-      throw error;
+      await signIn(formData)
+      navigate({ to: '/' })
+    } catch (err) {
+      setError(err.message || 'Failed to sign in. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const forgotPassword = async (email) => {
-    try {
-      await authApi.forgotPassword(email);
-      return true;
-    } catch (error) {
-      console.error('Forgot password failed:', error);
-      throw error;
-    }
-  };
+  const handleForgotPassword = () => {
+    navigate({ to: '/reset-password' })
+  }
 
-  const resetPassword = async (resetData) => {
-    try {
-      await authApi.resetPassword(resetData);
-      return true;
-    } catch (error) {
-      console.error('Reset password failed:', error);
-      throw error;
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    try {
-      const profileData = await authApi.getProfile(token);
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-      return updatedUser;
-    } catch (error) {
-      console.error('Profile refresh failed:', error);
-      throw error;
-    }
-  };
-
-  const value = {
-    user,
-    token,
-    isLoading,
-    signUp,
-    signIn,
-    signOut,
-    updatePassword,
-    forgotPassword,
-    resetPassword,
-    refreshProfile,
-    isAuthenticated: !!user && !!token,
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-dark flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="w-6 h-6 animate-spin text-yellow" />
+          <span className="text-light">Loading...</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    <div className="min-h-screen bg-dark flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+            <p className="text-gray-600">Sign in to your LUX SUV account</p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Sign In Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow focus:border-transparent transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  required
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow focus:border-transparent transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Forgot Password Link */}
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-yellow hover:text-yellow/80 font-medium transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {/* Sign In Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-yellow hover:bg-yellow/90 text-dark font-bold py-3 px-4 rounded-lg border-2 border-yellow shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Signing In...</span>
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          {/* Footer Links */}
+          <div className="mt-8 text-center space-y-3">
+            <p className="text-gray-600">
+              Don't have an account?{' '}
+              <Link
+                to="/signup"
+                className="text-yellow hover:text-yellow/80 font-semibold transition-colors"
+              >
+                Sign up here
+              </Link>
+            </p>
+            <p className="text-gray-500">
+              Or{' '}
+              <Link
+                to="/"
+                className="text-yellow hover:text-yellow/80 font-medium transition-colors"
+              >
+                continue as guest
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
