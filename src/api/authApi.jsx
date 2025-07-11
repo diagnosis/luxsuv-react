@@ -1,12 +1,40 @@
 const API_BASE_URL = 'http://localhost:8080';
 
+// Helper function to extract error message from response
+const getErrorMessage = async (response) => {
+  try {
+    const errorData = await response.json();
+    // Return the actual error message from backend
+    return errorData.message || errorData.error || `Request failed with status ${response.status}`;
+  } catch (parseError) {
+    // If response is not JSON, return status-based message
+    switch (response.status) {
+      case 400:
+        return 'Invalid request data';
+      case 401:
+        return 'Invalid email or password';
+      case 403:
+        return 'Access denied';
+      case 404:
+        return 'Service not found';
+      case 409:
+        return 'User already exists';
+      case 500:
+        return 'Server error. Please try again later';
+      default:
+        return `Request failed with status ${response.status}`;
+    }
+  }
+};
+
 export const authApi = {
   // Health check endpoint
   async healthCheck() {
     try {
       const response = await fetch(`${API_BASE_URL}/health`);
       if (!response.ok) {
-        throw new Error(`Health check failed: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
       return await response.json();
     } catch (error) {
@@ -32,8 +60,8 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Registration failed: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -59,8 +87,8 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Login failed: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -83,8 +111,8 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to get profile: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -111,8 +139,8 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Password update failed: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -135,8 +163,8 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Forgot password failed: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -162,8 +190,8 @@ export const authApi = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Password reset failed: ${response.status}`);
+        const errorMessage = await getErrorMessage(response);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
