@@ -1,186 +1,190 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../api/authApi.jsx';
+import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
-const AuthContext = createContext();
+export const PasswordChangeModal = ({ isOpen, onClose }) => {
+  const { updatePassword } = useAuth()
+  const [formData, setFormData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    // Clear messages when user starts typing
+    if (error) setError('')
+    if (success) setSuccess(false)
   }
-  return context;
-};
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('luxsuv_user');
-      const storedToken = localStorage.getItem('luxsuv_token');
-      
-      if (storedUser && storedToken) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          
-          // Verify token is still valid by fetching user profile
-          const profileData = await authApi.getProfile(storedToken);
-          
-          // Update user data with fresh profile info
-          const updatedUser = { ...userData, ...profileData };
-          setUser(updatedUser);
-          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-        } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid session
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('luxsuv_user');
-          localStorage.removeItem('luxsuv_token');
-        }
-      }
-      setIsLoading(false);
-    };
-
-    initializeAuth();
-  }, []);
-
-  const signUp = async (userData) => {
-    try {
-      const result = await authApi.register(userData);
-      
-      // Extract user data and token from response
-      const newUser = {
-        id: result.user?.id || result.id,
-        username: result.user?.username || userData.username,
-        email: userData.email,
-        name: userData.name,
-        phone: userData.phone,
-        role: 'rider', // Always rider for this app
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(newUser);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return newUser;
-    } catch (error) {
-      console.error('Sign up failed:', error);
-      throw error;
+  const validateForm = () => {
+    if (formData.currentPassword.length < 1) {
+      setError('Current password is required')
+      return false
     }
-  };
-
-  const signIn = async (credentials) => {
-    try {
-      const result = await authApi.login(credentials);
-      
-      // Extract user data and token from response
-      const userData = {
-        id: result.user?.id || result.id,
-        email: credentials.email,
-        name: result.user?.name || result.name || 'User',
-        phone: result.user?.phone || result.phone || '',
-        role: result.user?.role || 'rider',
-        createdAt: result.user?.created_at || new Date().toISOString(),
-      };
-
-      const authToken = result.token;
-
-      setUser(userData);
-      setToken(authToken);
-      localStorage.setItem('luxsuv_user', JSON.stringify(userData));
-      localStorage.setItem('luxsuv_token', authToken);
-      
-      return userData;
-    } catch (error) {
-      console.error('Sign in failed:', error);
-      throw error;
+    
+    if (formData.newPassword.length < 6) {
+      setError('New password must be at least 6 characters long')
+      return false
     }
-  };
-
-  const signOut = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('luxsuv_user');
-    localStorage.removeItem('luxsuv_token');
-  };
-
-  const updatePassword = async (passwordData) => {
-    if (!token) {
-      throw new Error('No authentication token available');
+    
+    if (formData.newPassword !== formData.confirmPassword) {
+      setError('New passwords do not match')
+      return false
     }
+    
+    if (formData.currentPassword === formData.newPassword) {
+      setError('New password must be different from current password')
+      return false
+    }
+    
+    return true
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setSuccess(false)
+
+    if (!validateForm()) {
+      return
+    }
+
+    setIsSubmitting(true)
 
     try {
-      await authApi.updatePassword(token, passwordData);
-      return true;
-    } catch (error) {
-      console.error('Password update failed:', error);
-      throw error;
+      await updatePassword({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      })
+      setSuccess(true)
+      setFormData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      })
+      // Auto close after success
+      setTimeout(() => {
+        onClose()
+        setSuccess(false)
+      }, 2000)
+    } catch (err) {
+      setError(err.message || 'Failed to update password')
+    } finally {
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const forgotPassword = async (email) => {
-    try {
-      await authApi.forgotPassword(email);
-      return true;
-    } catch (error) {
-      console.error('Forgot password failed:', error);
-      throw error;
-    }
-  };
+  const handleClose = () => {
+    setFormData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    })
+    setError('')
+    setSuccess(false)
+    onClose()
+  }
 
-  const resetPassword = async (resetData) => {
-    try {
-      await authApi.resetPassword(resetData);
-      return true;
-    } catch (error) {
-      console.error('Reset password failed:', error);
-      throw error;
-    }
-  };
-
-  const refreshProfile = async () => {
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
-
-    try {
-      const profileData = await authApi.getProfile(token);
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
-      return updatedUser;
-    } catch (error) {
-      console.error('Profile refresh failed:', error);
-      throw error;
-    }
-  };
-
-  const value = {
-    user,
-    token,
-    isLoading,
-    signUp,
-    signIn,
-    signOut,
-    updatePassword,
-    forgotPassword,
-    resetPassword,
-    refreshProfile,
-    isAuthenticated: !!user && !!token,
-  };
+  if (!isOpen) return null
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+          <button
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+              Password updated successfully!
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+              Current Password
+            </label>
+            <input
+              id="currentPassword"
+              name="currentPassword"
+              type="password"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              value={formData.currentPassword}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              New Password
+            </label>
+            <input
+              id="newPassword"
+              name="newPassword"
+              type="password"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              value={formData.newPassword}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              Confirm New Password
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
