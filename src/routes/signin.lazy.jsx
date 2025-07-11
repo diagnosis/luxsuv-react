@@ -66,33 +66,33 @@ function SignIn() {
   }
 
   const renderSignInView = () => (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-gray-400">Sign in to your LUX SUV account</p>
+    <div className="w-full max-w-sm mx-auto">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-2xl">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-white mb-1">Welcome Back</h1>
+          <p className="text-gray-400 text-sm">Sign in to your LUX SUV account</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
             <p className="text-red-300 text-sm">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSignIn} className="space-y-6">
+        <form onSubmit={handleSignIn} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all text-sm"
                 placeholder="Enter your email"
                 required
               />
@@ -100,18 +100,18 @@ function SignIn() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-12 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                className="w-full pl-9 pr-10 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all text-sm"
                 placeholder="Enter your password"
                 required
               />
@@ -120,36 +120,36 @@ function SignIn() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={() => setView('forgot')}
-              className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
+              className="text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
             >
-              Forgot your password?
+              Forgot password?
             </button>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-600 disabled:opacity-50 text-black font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center"
+            className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-600 disabled:opacity-50 text-black font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center text-sm"
           >
             {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
             ) : (
               'Sign In'
             )}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-gray-700 text-center space-y-4">
-          <p className="text-gray-400">
+        <div className="mt-6 pt-4 border-t border-gray-700 text-center space-y-3">
+          <p className="text-gray-400 text-sm">
             Don't have an account?{' '}
             <button
               onClick={() => navigate({ to: '/signup' })}
@@ -159,7 +159,7 @@ function SignIn() {
             </button>
           </p>
           
-          <p className="text-gray-400">
+          <p className="text-gray-400 text-sm">
             Or{' '}
             <button
               onClick={() => navigate({ to: '/book' })}
@@ -174,26 +174,26 @@ function SignIn() {
   )
 
   const renderForgotPasswordView = () => (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Reset Password</h1>
-          <p className="text-gray-400">Enter your email to receive a reset link</p>
+    <div className="w-full max-w-sm mx-auto">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-2xl">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-white mb-1">Reset Password</h1>
+          <p className="text-gray-400 text-sm">Enter your email to receive a reset link</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg">
             <p className="text-red-300 text-sm">{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleForgotPassword} className="space-y-6">
+        <form onSubmit={handleForgotPassword} className="space-y-4">
           <div>
-            <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-300 mb-1">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="email"
                 id="forgot-email"
@@ -202,7 +202,7 @@ function SignIn() {
                   setForgotEmail(e.target.value)
                   if (error) setError('')
                 }}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all text-sm"
                 placeholder="Enter your email address"
                 required
               />
@@ -212,25 +212,25 @@ function SignIn() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-600 disabled:opacity-50 text-black font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center"
+            className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-600 disabled:opacity-50 text-black font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center text-sm"
           >
             {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <Send className="w-5 h-5 mr-2" />
+                <Send className="w-4 h-4 mr-2" />
                 Send Reset Link
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center">
           <button
             onClick={() => setView('signin')}
-            className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors flex items-center justify-center mx-auto"
+            className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors flex items-center justify-center mx-auto text-sm"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Sign In
           </button>
         </div>
@@ -239,39 +239,39 @@ function SignIn() {
   )
 
   const renderResetSentView = () => (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-xl text-center">
-        <div className="mb-6">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-2">Check Your Email</h1>
-          <p className="text-gray-400">
+    <div className="w-full max-w-sm mx-auto">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-2xl text-center">
+        <div className="mb-4">
+          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <h1 className="text-2xl font-bold text-white mb-1">Check Your Email</h1>
+          <p className="text-gray-400 text-sm">
             We've sent a password reset link to{' '}
             <span className="text-white font-medium">{forgotEmail}</span>
           </p>
         </div>
 
-        <div className="space-y-4 text-sm text-gray-400 mb-8">
+        <div className="space-y-2 text-xs text-gray-400 mb-6">
           <p>• Click the link in the email to reset your password</p>
           <p>• The link will expire in 24 hours</p>
           <p>• Check your spam folder if you don't see it</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <button
             onClick={() => {
               setView('forgot')
               setError('')
             }}
-            className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200"
+            className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 text-sm"
           >
             Resend Email
           </button>
           
           <button
             onClick={() => setView('signin')}
-            className="w-full text-yellow-400 hover:text-yellow-300 font-medium transition-colors flex items-center justify-center"
+            className="w-full text-yellow-400 hover:text-yellow-300 font-medium transition-colors flex items-center justify-center text-sm"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Sign In
           </button>
         </div>
