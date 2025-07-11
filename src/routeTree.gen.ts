@@ -25,7 +25,6 @@ const ResetPasswordLazyImport = createFileRoute('/reset-password')()
 const ProfileLazyImport = createFileRoute('/profile')()
 const ManageBookingsLazyImport = createFileRoute('/manage-bookings')()
 const ForgotPasswordLazyImport = createFileRoute('/forgot-password')()
-const ForgotPasswordLazyImport = createFileRoute('/forgot-password')()
 const ContactLazyImport = createFileRoute('/contact')()
 const BookLazyImport = createFileRoute('/book')()
 const AboutLazyImport = createFileRoute('/about')()
@@ -76,14 +75,6 @@ const ManageBookingsLazyRoute = ManageBookingsLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
   import('./routes/manage-bookings.lazy').then((d) => d.Route),
-)
-
-const ForgotPasswordLazyRoute = ForgotPasswordLazyImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/forgot-password.lazy').then((d) => d.Route),
 )
 
 const ForgotPasswordLazyRoute = ForgotPasswordLazyImport.update({
@@ -164,13 +155,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageBookingsLazyImport
       parentRoute: typeof rootRoute
     }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordLazyImport
-      parentRoute: typeof rootRoute
-    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -224,7 +208,6 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookLazyRoute
   '/contact': typeof ContactLazyRoute
   '/forgot-password': typeof ForgotPasswordLazyRoute
-  '/forgot-password': typeof ForgotPasswordLazyRoute
   '/manage-bookings': typeof ManageBookingsLazyRoute
   '/profile': typeof ProfileLazyRoute
   '/reset-password': typeof ResetPasswordLazyRoute
@@ -239,7 +222,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutLazyRoute
   '/book': typeof BookLazyRoute
   '/contact': typeof ContactLazyRoute
-  '/forgot-password': typeof ForgotPasswordLazyRoute
   '/forgot-password': typeof ForgotPasswordLazyRoute
   '/manage-bookings': typeof ManageBookingsLazyRoute
   '/profile': typeof ProfileLazyRoute
@@ -256,7 +238,6 @@ export interface FileRoutesById {
   '/about': typeof AboutLazyRoute
   '/book': typeof BookLazyRoute
   '/contact': typeof ContactLazyRoute
-  '/forgot-password': typeof ForgotPasswordLazyRoute
   '/forgot-password': typeof ForgotPasswordLazyRoute
   '/manage-bookings': typeof ManageBookingsLazyRoute
   '/profile': typeof ProfileLazyRoute
@@ -275,7 +256,6 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/forgot-password'
-    | '/forgot-password'
     | '/manage-bookings'
     | '/profile'
     | '/reset-password'
@@ -290,7 +270,6 @@ export interface FileRouteTypes {
     | '/book'
     | '/contact'
     | '/forgot-password'
-    | '/forgot-password'
     | '/manage-bookings'
     | '/profile'
     | '/reset-password'
@@ -304,7 +283,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/book'
     | '/contact'
-    | '/forgot-password'
     | '/forgot-password'
     | '/manage-bookings'
     | '/profile'
@@ -322,7 +300,6 @@ export interface RootRouteChildren {
   BookLazyRoute: typeof BookLazyRoute
   ContactLazyRoute: typeof ContactLazyRoute
   ForgotPasswordLazyRoute: typeof ForgotPasswordLazyRoute
-  ForgotPasswordLazyRoute: typeof ForgotPasswordLazyRoute
   ManageBookingsLazyRoute: typeof ManageBookingsLazyRoute
   ProfileLazyRoute: typeof ProfileLazyRoute
   ResetPasswordLazyRoute: typeof ResetPasswordLazyRoute
@@ -337,7 +314,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutLazyRoute: AboutLazyRoute,
   BookLazyRoute: BookLazyRoute,
   ContactLazyRoute: ContactLazyRoute,
-  ForgotPasswordLazyRoute: ForgotPasswordLazyRoute,
   ForgotPasswordLazyRoute: ForgotPasswordLazyRoute,
   ManageBookingsLazyRoute: ManageBookingsLazyRoute,
   ProfileLazyRoute: ProfileLazyRoute,
@@ -363,7 +339,6 @@ export const routeTree = rootRoute
         "/book",
         "/contact",
         "/forgot-password",
-        "/forgot-password",
         "/manage-bookings",
         "/profile",
         "/reset-password",
@@ -384,9 +359,6 @@ export const routeTree = rootRoute
     },
     "/contact": {
       "filePath": "contact.lazy.jsx"
-    },
-    "/forgot-password": {
-      "filePath": "forgot-password.lazy.jsx"
     },
     "/forgot-password": {
       "filePath": "forgot-password.lazy.jsx"
