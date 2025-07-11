@@ -27,13 +27,8 @@ export const AuthProvider = ({ children }) => {
           const userData = JSON.parse(storedUser);
           setToken(storedToken);
           
-          // Verify token is still valid by fetching user profile
-          const profileData = await authApi.getProfile(storedToken);
-          
-          // Update user data with fresh profile info
-          const updatedUser = { ...userData, ...profileData };
-          setUser(updatedUser);
-          localStorage.setItem('luxsuv_user', JSON.stringify(updatedUser));
+          // For now, just use stored user data since /profile endpoint doesn't exist yet
+          setUser(userData);
         } catch (error) {
           console.error('Token validation failed:', error);
           // Clear invalid session
