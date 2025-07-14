@@ -89,6 +89,11 @@ export const AuthProvider = ({ children }) => {
 
       const authToken = result.token;
 
+      console.log('✅ Sign in successful - storing token:', {
+        hasToken: !!authToken,
+        tokenPreview: authToken ? `${authToken.substring(0, 20)}...` : 'No token',
+        userData: userData
+      });
       setUser(userData);
       setToken(authToken);
       localStorage.setItem('luxsuv_user', JSON.stringify(userData));

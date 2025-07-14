@@ -7,11 +7,19 @@ export const useBookRide = () => {
   
   return useMutation({
     mutationFn: (bookingData) => {
+      console.log('🔐 useBookRide - Auth Status:', {
+        isAuthenticated,
+        hasToken: !!token,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token',
+        userEmail: user?.email,
+        formEmail: bookingData.email
+      });
+      
       // Automatically include user context for authenticated users
       const enhancedData = {
         ...bookingData,
         // Include token for authentication
-        token: isAuthenticated ? token : null,
+        token: isAuthenticated && token ? token : null,
         // Ensure user info is consistent for authenticated users
         ...(isAuthenticated && user && {
           name: user.name || bookingData.name,
@@ -19,6 +27,12 @@ export const useBookRide = () => {
           phone: user.phone || bookingData.phone,
         })
       };
+      
+      console.log('📋 Enhanced booking data:', {
+        hasToken: !!enhancedData.token,
+        email: enhancedData.email,
+        name: enhancedData.name
+      });
       
       return bookingApi.bookRide(enhancedData);
     },

@@ -4,6 +4,7 @@ export const bookingApi = {
   bookRide: async (bookingData) => {
     console.log('📋 Booking API Call:', {
       hasToken: !!bookingData.token,
+      tokenPreview: bookingData.token ? `${bookingData.token.substring(0, 20)}...` : 'No token',
       userEmail: bookingData.email,
       isAuthenticated: !!bookingData.token
     });
@@ -15,7 +16,10 @@ export const bookingApi = {
     // Add authorization header if user is authenticated
     if (bookingData.token) {
       headers['Authorization'] = `Bearer ${bookingData.token}`;
+      console.log('🔑 Authorization header set:', `Bearer ${bookingData.token.substring(0, 20)}...`);
       delete bookingData.token; // Remove token from body
+    } else {
+      console.log('⚠️ No token provided - booking as guest');
     }
 
     // Enhanced request body with better field mapping
@@ -33,10 +37,9 @@ export const bookingApi = {
       additional_notes: bookingData.notes || '',
     };
 
-    console.log('📦 Booking Request Body:', {
-      ...requestBody,
-      phone_number: requestBody.phone_number ? '[PROVIDED]' : '[MISSING]'
-    });
+    console.log('📦 Booking Request Body:', requestBody);
+    console.log('📋 Request Headers:', headers);
+    
     const response = await fetch(`${API_BASE_URL}/book-ride`, {
       method: 'POST',
       headers,
@@ -44,6 +47,7 @@ export const bookingApi = {
     });
 
     console.log('📡 Booking Response Status:', response.status);
+    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

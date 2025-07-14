@@ -49,6 +49,14 @@ function RouteComponent() {
     setError(null);
 
     try {
+      console.log('📋 Booking submission started:', {
+        isAuthenticated,
+        hasUser: !!user,
+        hasToken: !!token,
+        userEmail: user?.email,
+        formEmail: formData.email
+      });
+      
       const bookingData = {
         name: formData.name,
         email: formData.email,
@@ -114,12 +122,8 @@ function RouteComponent() {
         throw new Error(validationErrors.join('. '));
       }
 
-      console.log('📋 Final booking data:', {
-        ...bookingData,
-        isAuthenticated,
-        userEmail: user?.email,
-        hasToken: !!token
-      });
+      console.log('📋 Final booking data before submission:', bookingData);
+      
       // Store form data for success screen
       setBookingFormData({
         ...bookingData,
@@ -137,6 +141,8 @@ function RouteComponent() {
       // Submit booking (token and user context handled in useBookRide hook)
       const result = await bookRideMutation.mutateAsync(bookingData);
 
+      console.log('✅ Booking submission successful:', result);
+      
       // Combine API result with form data for complete booking info
       setBookingResult({
         ...result,
