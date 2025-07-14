@@ -63,19 +63,63 @@ function RouteComponent() {
         notes: formData.notes || '',
       };
 
+      // Enhanced validation
+      const validationErrors = [];
+      
       // Basic validation
       if (bookingData.passengers < 1 || bookingData.passengers > 8) {
-        throw new Error('Number of passengers must be between 1 and 8.');
+        validationErrors.push('Number of passengers must be between 1 and 8');
       }
 
       if (!pickupLocation.trim()) {
-        throw new Error('Please enter a pickup location.');
+        validationErrors.push('Please enter a pickup location');
       }
 
       if (!dropoffLocation.trim()) {
-        throw new Error('Please enter a drop-off location.');
+        validationErrors.push('Please enter a drop-off location');
+      }
+      
+      if (!bookingData.name?.trim()) {
+        validationErrors.push('Please enter your full name');
+      }
+      
+      if (!bookingData.email?.trim() || !bookingData.email.includes('@')) {
+        validationErrors.push('Please enter a valid email address');
+      }
+      
+      if (!bookingData.phone?.trim()) {
+        validationErrors.push('Please enter your phone number');
+      }
+      
+      if (!bookingData.date) {
+        validationErrors.push('Please select a date');
+      }
+      
+      if (!bookingData.time) {
+        validationErrors.push('Please select a time');
+      }
+      
+      // Validate date is not in the past
+      if (bookingData.date && bookingData.time) {
+        const bookingDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
+        const now = new Date();
+        const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+        
+        if (bookingDateTime < oneHourFromNow) {
+          validationErrors.push('Booking must be at least 1 hour in advance');
+        }
+      }
+      
+      if (validationErrors.length > 0) {
+        throw new Error(validationErrors.join('. '));
       }
 
+      console.log('📋 Final booking data:', {
+        ...bookingData,
+        isAuthenticated,
+        userEmail: user?.email,
+        hasToken: !!token
+      });
       // Store form data for success screen
       setBookingFormData({
         ...bookingData,
@@ -90,8 +134,8 @@ function RouteComponent() {
         status: 'pending' // Set status to pending
       });
 
-      // Pass token if authenticated
-      const result = await bookRideMutation.mutateAsync({ ...bookingData, token: isAuthenticated ? token : null });
+      // Submit booking (token and user context handled in useBookRide hook)
+      const result = await bookRideMutation.mutateAsync(bookingData);
 
       // Combine API result with form data for complete booking info
       setBookingResult({
@@ -107,6 +151,7 @@ function RouteComponent() {
       setPickupLocation('');
       setDropoffLocation('');
     } catch (err) {
+      console.error('❌ Booking submission failed:', err);
       setError(err.message);
       setBookingState('error');
     }

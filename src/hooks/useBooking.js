@@ -1,9 +1,27 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useBookRide = () => {
+  const { user, token, isAuthenticated } = useAuth();
+  
   return useMutation({
-    mutationFn: bookingApi.bookRide,
+    mutationFn: (bookingData) => {
+      // Automatically include user context for authenticated users
+      const enhancedData = {
+        ...bookingData,
+        // Include token for authentication
+        token: isAuthenticated ? token : null,
+        // Ensure user info is consistent for authenticated users
+        ...(isAuthenticated && user && {
+          name: user.name || bookingData.name,
+          email: user.email || bookingData.email,
+          phone: user.phone || bookingData.phone,
+        })
+      };
+      
+      return bookingApi.bookRide(enhancedData);
+    },
     onSuccess: (data) => {
       console.log('Booking successful:', data);
     },

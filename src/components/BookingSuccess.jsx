@@ -56,13 +56,13 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
       </div>
 
       {/* Status Notice */}
-      <div className="bg-yellow/10 rounded-lg p-4 mb-6 border border-yellow/30">
+      <div className="bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-400/30">
         <div className="flex items-center justify-center space-x-2 mb-2">
-          <AlertTriangle className="w-5 h-5 text-yellow" />
-          <span className="text-yellow font-semibold">Pending Approval</span>
+          <AlertTriangle className="w-5 h-5 text-blue-400" />
+          <span className="text-blue-400 font-semibold">Booking Submitted</span>
         </div>
         <p className="text-light/80 text-sm">
-          Your booking is currently pending driver approval. You'll be notified once it's confirmed.
+          Your booking has been submitted successfully. Our team will review and confirm your reservation shortly.
         </p>
       </div>
 
