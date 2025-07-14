@@ -1,13 +1,18 @@
-const API_BASE_URL = 'https://luxsuv-backend.fly.dev';
+const API_BASE_URL = 'http://localhost:8080';
 
 export const bookingApi = {
-  // Book a ride
   bookRide: async (bookingData) => {
-    const response = await fetch(`${API_BASE_URL}/rider/book-ride`, {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    if (bookingData.token) {
+      headers['Authorization'] = `Bearer ${bookingData.token}`;
+      delete bookingData.token; // Remove token from body
+    }
+
+    const response = await fetch(`${API_BASE_URL}/book-ride`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         your_name: bookingData.name,
         email: bookingData.email,
@@ -30,10 +35,8 @@ export const bookingApi = {
 
     return response.json();
   },
-
-  // Get bookings by email
   getBookingsByEmail: async (email) => {
-    const response = await fetch(`${API_BASE_URL}/rider/book-rides?email=${encodeURIComponent(email)}`, {
+    const response = await fetch(`${API_BASE_URL}/bookings/email/${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -48,9 +51,8 @@ export const bookingApi = {
     return response.json();
   },
 
-  // Update booking
   updateBooking: async (bookingId, bookingData) => {
-    const response = await fetch(`${API_BASE_URL}/rider/book-ride/${bookingId}`, {
+    const response = await fetch(`${API_BASE_URL}/book-ride/${bookingId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

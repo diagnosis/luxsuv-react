@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi } from '../api/authApi';
 
 const AuthContext = createContext();
@@ -16,54 +16,46 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('luxsuv_user');
-      const storedToken = localStorage.getItem('luxsuv_token');
-      
-      if (storedUser && storedToken) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setToken(storedToken);
-          
-          // For now, just use stored user data since /profile endpoint doesn't exist yet
-          setUser(userData);
-        } catch (error) {
-          console.error('Token validation failed:', error);
-          // Clear invalid session
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('luxsuv_user');
-          localStorage.removeItem('luxsuv_token');
-        }
-      }
-      setIsLoading(false);
-    };
+  const initializeAuth = useCallback(async () => {
+    const storedUser = localStorage.getItem('luxsuv_user');
+    const storedToken = localStorage.getItem('luxsuv_token');
 
-    initializeAuth();
+    if (storedUser && storedToken) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setToken(storedToken);
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to load stored auth:', error);
+        localStorage.removeItem('luxsuv_user');
+        localStorage.removeItem('luxsuv_token');
+      }
+    }
+    setIsLoading(false);
   }, []);
 
-  const signUp = async (userData) => {
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  const signUp = useCallback(async (userData) => {
     try {
-      // Ensure we're sending the username field as required by the backend
       const registrationData = {
         username: userData.name || userData.username,
         email: userData.email,
         password: userData.password,
-        role: 'rider' // Always rider for this app
+        role: 'rider'
       };
-      
+
       const result = await authApi.register(registrationData);
-      
-      // Extract user data and token from response
+
       const newUser = {
         id: result.user?.id || result.id,
         username: registrationData.username,
         email: userData.email,
-        name: registrationData.username, // Use username as display name
-        phone: '', // Phone not collected during registration
-        role: 'rider', // Always rider for this app
+        name: registrationData.username,
+        phone: '',
+        role: 'rider',
         createdAt: result.user?.created_at || new Date().toISOString(),
       };
 
@@ -73,19 +65,18 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken);
       localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
       localStorage.setItem('luxsuv_token', authToken);
-      
+
       return newUser;
     } catch (error) {
       console.error('Sign up failed:', error.message);
       throw error;
     }
-  };
+  }, []);
 
-  const signIn = async (credentials) => {
+  const signIn = useCallback(async (credentials) => {
     try {
       const result = await authApi.login(credentials);
-      
-      // Extract user data and token from response
+
       const userData = {
         id: result.user?.id || result.id,
         username: result.user?.username || result.username,
@@ -102,22 +93,22 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken);
       localStorage.setItem('luxsuv_user', JSON.stringify(userData));
       localStorage.setItem('luxsuv_token', authToken);
-      
+
       return userData;
     } catch (error) {
       console.error('Sign in failed:', error.message);
       throw error;
     }
-  };
+  }, []);
 
-  const signOut = () => {
+  const signOut = useCallback(() => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('luxsuv_user');
     localStorage.removeItem('luxsuv_token');
-  };
+  }, []);
 
-  const updatePassword = async (passwordData) => {
+  const updatePassword = useCallback(async (passwordData) => {
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -129,9 +120,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Password update failed:', error);
       throw error;
     }
-  };
+  }, [token]);
 
-  const forgotPassword = async (email) => {
+  const forgotPassword = useCallback(async (email) => {
     try {
       await authApi.forgotPassword(email);
       return true;
@@ -139,9 +130,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Forgot password failed:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const resetPassword = async (resetData) => {
+  const resetPassword = useCallback(async (resetData) => {
     try {
       await authApi.resetPassword(resetData);
       return true;
@@ -149,9 +140,9 @@ export const AuthProvider = ({ children }) => {
       console.error('Reset password failed:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!token) {
       throw new Error('No authentication token available');
     }
@@ -166,7 +157,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Profile refresh failed:', error);
       throw error;
     }
-  };
+  }, [token, user]);
 
   const value = {
     user,
@@ -183,8 +174,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={value}>
+        {children}
+      </AuthContext.Provider>
   );
 };
