@@ -1,9 +1,9 @@
-const API_BASE_URL = 'https://luxsuv-v4.onrender.com';
+import { API_CONFIG, buildApiUrl } from './config';
 
 export const bookingApi = {
   // Book a ride
   bookRide: async (bookingData) => {
-    const response = await fetch(`${API_BASE_URL}/rider/book-ride`, {
+    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BOOK_RIDE), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const bookingApi = {
 
   // Get bookings by email
   getBookingsByEmail: async (email) => {
-    const response = await fetch(`${API_BASE_URL}/rider/book-rides?email=${encodeURIComponent(email)}`, {
+    const response = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.GET_BOOKINGS)}?email=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export const bookingApi = {
 
   // Update booking
   updateBooking: async (bookingId, bookingData) => {
-    const response = await fetch(`${API_BASE_URL}/rider/book-ride/${bookingId}`, {
+    const response = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.UPDATE_BOOKING)}/${bookingId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

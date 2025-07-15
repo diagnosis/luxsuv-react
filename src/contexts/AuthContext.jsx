@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { API_CONFIG, buildApiUrl } from '../api/config';
 
 const AuthContext = createContext();
 
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (userData) => {
     try {
       // Simulate API call - replace with actual API endpoint
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.SIGN_UP), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (credentials) => {
     try {
       // Simulate API call - replace with actual API endpoint
-      const response = await fetch('/api/auth/signin', {
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.SIGN_IN), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
