@@ -43,8 +43,11 @@ function ManageBookings() {
     if (search.token && search.id) {
       setSecureToken(search.token);
       setTargetBookingId(search.id);
-      // Auto-search for the booking if we have the token
-      // We'll need to extract email from the booking or show a different flow
+      console.log('🔐 Secure token detected:', {
+        hasToken: !!search.token,
+        tokenPreview: search.token ? `${search.token.substring(0, 20)}...` : 'None',
+        bookingId: search.id
+      });
     }
   }, [search.token, search.id]);
   const handleSearch = (e) => {
@@ -88,7 +91,10 @@ function ManageBookings() {
           <span className="text-blue-400 font-semibold">Secure Access</span>
         </div>
         <p className="text-light/80 text-sm">
-          You're accessing this booking via a secure link. You can update or cancel this booking without signing in.
+          You're accessing booking #{targetBookingId} via a secure link. You can update or cancel this booking without signing in.
+        </p>
+        <p className="text-light/60 text-xs mt-2">
+          This secure link will expire after use for security purposes.
         </p>
       </div>
     );

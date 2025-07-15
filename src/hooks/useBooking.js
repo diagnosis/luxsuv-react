@@ -59,9 +59,24 @@ export const useUpdateBooking = () => {
   
   return useMutation({
     mutationFn: ({ bookingId, bookingData, secureToken }) => {
+      console.log('🔄 useUpdateBooking mutation:', {
+        bookingId,
+        hasSecureToken: !!secureToken,
+        hasAuthToken: !!token,
+        secureTokenPreview: secureToken ? `${secureToken.substring(0, 20)}...` : 'None',
+        authTokenPreview: token ? `${token.substring(0, 20)}...` : 'None'
+      });
+      
       if (secureToken) {
+        console.log('📧 Using secure token for guest update');
         return bookingApi.updateBookingWithToken(bookingId, bookingData, secureToken);
       }
+      
+      if (!token) {
+        throw new Error('Authentication required. Please sign in or use a secure update link.');
+      }
+      
+      console.log('🔐 Using auth token for authenticated update');
       return bookingApi.updateBooking(bookingId, bookingData, token);
     },
     onSuccess: (data) => {
@@ -90,9 +105,25 @@ export const useCancelBooking = () => {
   
   return useMutation({
     mutationFn: ({ bookingId, reason, secureToken }) => {
+      console.log('🔄 useCancelBooking mutation:', {
+        bookingId,
+        reason,
+        hasSecureToken: !!secureToken,
+        hasAuthToken: !!token,
+        secureTokenPreview: secureToken ? `${secureToken.substring(0, 20)}...` : 'None',
+        authTokenPreview: token ? `${token.substring(0, 20)}...` : 'None'
+      });
+      
       if (secureToken) {
+        console.log('📧 Using secure token for guest cancellation');
         return bookingApi.cancelBookingWithToken(bookingId, reason, secureToken);
       }
+      
+      if (!token) {
+        throw new Error('Authentication required. Please sign in or use a secure cancellation link.');
+      }
+      
+      console.log('🔐 Using auth token for authenticated cancellation');
       return bookingApi.cancelBooking(bookingId, reason, token);
     },
     onSuccess: (data) => {

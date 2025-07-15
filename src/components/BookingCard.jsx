@@ -135,8 +135,14 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
     // If we have a secure token, user can edit
     if (secureToken) return true;
     
-    // If authenticated and owns the booking
-    if (isAuthenticated && user && booking.email === user.email) return true;
+    // If authenticated, check if user owns the booking or if booking allows editing
+    if (isAuthenticated && user) {
+      // Check if user email matches booking email
+      if (booking.email === user.email) return true;
+      
+      // Check if user ID matches (for authenticated bookings)
+      if (booking.user_id && user.id && booking.user_id === user.id) return true;
+    }
     
     // If booking is not cancelled
     return booking.status?.toLowerCase() !== 'cancelled';
@@ -150,8 +156,14 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
     // If we have a secure token, user can cancel
     if (secureToken) return true;
     
-    // If authenticated and owns the booking
-    if (isAuthenticated && user && booking.email === user.email) return true;
+    // If authenticated, check if user owns the booking
+    if (isAuthenticated && user) {
+      // Check if user email matches booking email
+      if (booking.email === user.email) return true;
+      
+      // Check if user ID matches (for authenticated bookings)
+      if (booking.user_id && user.id && booking.user_id === user.id) return true;
+    }
     
     return false;
   };

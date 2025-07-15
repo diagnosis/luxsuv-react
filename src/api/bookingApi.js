@@ -100,6 +100,10 @@ export const bookingApi = {
       tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
     });
 
+    if (!token) {
+      throw new Error('Authentication token required for booking updates');
+    }
+
     const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}`);
     const response = await apiRequest(url, {
       method: 'PUT',
@@ -140,6 +144,10 @@ export const bookingApi = {
       tokenPreview: secureToken ? `${secureToken.substring(0, 20)}...` : 'No token'
     });
 
+    if (!secureToken) {
+      throw new Error('Secure token required for guest booking updates');
+    }
+
     const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE_WITH_TOKEN}/${bookingId}/update?token=${encodeURIComponent(secureToken)}`);
     const response = await apiRequest(url, {
       method: 'PUT',
@@ -176,7 +184,7 @@ export const bookingApi = {
   generateUpdateLink: async (bookingId, email) => {
     console.log('🔗 Generate Update Link API Call:', { bookingId, email });
 
-    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE_LINK}/${bookingId}/update-link`);
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.GENERATE_UPDATE_LINK}/${bookingId}/update-link`);
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -237,6 +245,10 @@ export const bookingApi = {
       hasToken: !!secureToken,
       tokenPreview: secureToken ? `${secureToken.substring(0, 20)}...` : 'No token'
     });
+
+    if (!secureToken) {
+      throw new Error('Secure token required for guest booking cancellation');
+    }
 
     const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL_WITH_TOKEN}/${bookingId}/cancel?token=${encodeURIComponent(secureToken)}`);
     const response = await apiRequest(url, {

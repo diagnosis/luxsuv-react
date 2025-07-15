@@ -20,12 +20,12 @@ const API_CONFIG = {
     BOOKING: {
       CREATE: '/book-ride',
       GET_BY_EMAIL: '/bookings/email',
-      GET_BY_USER: '/bookings/user',
+      GET_BY_USER: '/bookings/my',
       UPDATE: '/bookings',
       UPDATE_WITH_TOKEN: '/bookings',
       CANCEL: '/bookings',
       CANCEL_WITH_TOKEN: '/bookings',
-      UPDATE_LINK: '/bookings',
+      GENERATE_UPDATE_LINK: '/bookings',
       ACCEPT: '/book-ride',
       AVAILABLE: '/bookings/available'
     }
