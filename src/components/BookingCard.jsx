@@ -63,6 +63,13 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
       }
     } catch (error) {
       console.error('Failed to update booking:', error);
+      
+      // Show user-friendly error message
+      if (error.message.includes('403') || error.message.includes('permission')) {
+        alert('Permission Error: ' + error.message);
+      } else {
+        alert('Update failed: ' + error.message);
+      }
     }
   };
 
@@ -85,7 +92,13 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
       }
     } catch (error) {
       console.error('Failed to cancel booking:', error);
-      alert('Failed to cancel booking: ' + error.message);
+      
+      // Show user-friendly error message
+      if (error.message.includes('403') || error.message.includes('permission')) {
+        alert('Permission Error: ' + error.message);
+      } else {
+        alert('Cancellation failed: ' + error.message);
+      }
     }
   };
 
@@ -132,6 +145,9 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
 
   // Check if user can edit this booking
   const canEdit = () => {
+    // Don't show edit button if booking is cancelled
+    if (booking.status?.toLowerCase() === 'cancelled') return false;
+    
     // If we have a secure token, user can edit
     if (secureToken) return true;
     
@@ -144,8 +160,7 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
       if (booking.user_id && user.id && booking.user_id === user.id) return true;
     }
     
-    // If booking is not cancelled
-    return booking.status?.toLowerCase() !== 'cancelled';
+    return false;
   };
 
   // Check if user can cancel this booking
@@ -206,9 +221,21 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
                   onClick={() => setShowUpdateLinkModal(true)}
                   className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
                   aria-label="Get update link"
+                  title="Get secure update link via email"
                 >
                   <Mail className="w-4 h-4" />
                 </button>
+              )}
+              
+              {/* Debug info in development */}
+              {import.meta.env.DEV && (
+                <div className="text-xs text-gray-500 mt-2">
+                  <p>Debug: Can edit: {canEdit().toString()}</p>
+                  <p>User email: {user?.email || 'None'}</p>
+                  <p>Booking email: {booking.email}</p>
+                  <p>Has secure token: {!!secureToken}</p>
+                  <p>Is authenticated: {isAuthenticated.toString()}</p>
+                </div>
               )}
             </>
           ) : (

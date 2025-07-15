@@ -126,9 +126,20 @@ export const bookingApi = {
     console.log('📡 Update Booking Response Status:', response.status);
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       console.error('❌ Update Booking Error Response:', errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      
+      // Enhanced error handling for 403 Forbidden
+      if (response.status === 403) {
+        const errorMessage = errorData.message || 'You don\'t have permission to modify this booking. This could be because:\n' +
+          '• The booking belongs to a different user\n' +
+          '• The booking status doesn\'t allow modifications\n' +
+          '• Your session has expired\n' +
+          'Please try signing in again or contact support if you believe this is an error.';
+        throw new Error(errorMessage);
+      }
+      
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
@@ -227,9 +238,20 @@ export const bookingApi = {
     console.log('📡 Cancel Booking Response Status:', response.status);
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       console.error('❌ Cancel Booking Error Response:', errorData);
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      
+      // Enhanced error handling for 403 Forbidden
+      if (response.status === 403) {
+        const errorMessage = errorData.message || 'You don\'t have permission to cancel this booking. This could be because:\n' +
+          '• The booking belongs to a different user\n' +
+          '• The booking status doesn\'t allow cancellation\n' +
+          '• Your session has expired\n' +
+          'Please try signing in again or contact support if you believe this is an error.';
+        throw new Error(errorMessage);
+      }
+      
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
     }
 
     const result = await response.json();
