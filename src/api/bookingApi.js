@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://luxsuv-backend.fly.dev';
+const API_BASE_URL = 'https://luxsuv-v4.onrender.com';
 
 export const bookingApi = {
   // Book a ride
