@@ -1,5 +1,5 @@
 import { createLazyFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, User, Mail, Phone, Lock, Loader2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -22,8 +22,14 @@ function SignUp() {
   });
 
   // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: '/book' });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Return null if authenticated to prevent rendering
   if (isAuthenticated) {
-    navigate({ to: '/book' });
     return null;
   }
 
