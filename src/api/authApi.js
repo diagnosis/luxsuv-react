@@ -1,5 +1,4 @@
-// Updated API base URL to match your backend
-const API_BASE_URL = 'http://localhost:8080';
+import API_CONFIG, { buildUrl, getAuthHeaders, apiRequest } from '../config/api.js';
 
 export const authApi = {
   // User registration
@@ -19,11 +18,10 @@ export const authApi = {
     
     console.log('📦 Register Request Body:', requestBody);
     
-    const response = await fetch(`${API_BASE_URL}/register`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.REGISTER);
+    const response = await apiRequest(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 
@@ -62,11 +60,10 @@ export const authApi = {
     
     console.log('📦 Login Request Body:', requestBody);
     
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.LOGIN);
+    const response = await apiRequest(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 
@@ -103,12 +100,10 @@ export const authApi = {
       throw new Error('No authentication token provided');
     }
     
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.PROFILE);
+    const response = await apiRequest(url, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(token),
     });
 
     console.log('📡 Profile Response Status:', response.status);
@@ -154,12 +149,10 @@ export const authApi = {
       new_password: '[HIDDEN]' 
     });
     
-    const response = await fetch(`${API_BASE_URL}/users/me/password`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.UPDATE_PASSWORD);
+    const response = await apiRequest(url, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(token),
       body: JSON.stringify(requestBody),
     });
 
@@ -194,11 +187,10 @@ export const authApi = {
     const requestBody = { email };
     console.log('📦 Forgot Password Request Body:', requestBody);
     
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD);
+    const response = await apiRequest(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 
@@ -240,11 +232,10 @@ export const authApi = {
       new_password: '[HIDDEN]'
     });
     
-    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD);
+    const response = await apiRequest(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 
@@ -276,11 +267,10 @@ export const authApi = {
   healthCheck: async () => {
     console.log('🏥 Health Check API Call');
     
-    const response = await fetch(`${API_BASE_URL}/health`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.AUTH.HEALTH);
+    const response = await apiRequest(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
     });
 
     console.log('📡 Health Check Response Status:', response.status);

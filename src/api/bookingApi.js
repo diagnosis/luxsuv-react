@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080';
+import API_CONFIG, { buildUrl, getAuthHeaders, apiRequest } from '../config/api.js';
 
 export const bookingApi = {
   bookRide: async (bookingData) => {
@@ -9,9 +9,7 @@ export const bookingApi = {
       isAuthenticated: !!bookingData.token
     });
     
-    const headers = {
-      'Content-Type': 'application/json',
-    };
+    const headers = getAuthHeaders();
     
     // Add authorization header if user is authenticated
     if (bookingData.token) {
@@ -40,7 +38,8 @@ export const bookingApi = {
     console.log('📦 Booking Request Body:', requestBody);
     console.log('📋 Request Headers:', headers);
     
-    const response = await fetch(`${API_BASE_URL}/book-ride`, {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.CREATE);
+    const response = await apiRequest(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
@@ -59,12 +58,12 @@ export const bookingApi = {
     console.log('✅ Booking Success:', result);
     return result;
   },
+
   getBookingsByEmail: async (email) => {
-    const response = await fetch(`${API_BASE_URL}/bookings/email/${encodeURIComponent(email)}`, {
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.GET_BY_EMAIL}/${encodeURIComponent(email)}`);
+    const response = await apiRequest(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -75,12 +74,30 @@ export const bookingApi = {
     return response.json();
   },
 
-  updateBooking: async (bookingId, bookingData) => {
-    const response = await fetch(`${API_BASE_URL}/book-ride/${bookingId}`, {
+  getBookingsByUser: async (token) => {
+    if (!token) {
+      throw new Error('Authentication token required');
+    }
+
+    const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.GET_BY_USER);
+    const response = await apiRequest(url, {
+      method: 'GET',
+      headers: getAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  updateBooking: async (bookingId, bookingData, token = null) => {
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}`);
+    const response = await apiRequest(url, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(token),
       body: JSON.stringify({
         your_name: bookingData.name,
         email: bookingData.email,
@@ -94,6 +111,44 @@ export const bookingApi = {
         number_of_luggage: bookingData.luggage || 0,
         additional_notes: bookingData.notes || '',
       }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  acceptBooking: async (bookingId, token) => {
+    if (!token) {
+      throw new Error('Authentication token required');
+    }
+
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.ACCEPT}/${bookingId}/accept`);
+    const response = await apiRequest(url, {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  },
+
+  getAvailableBookings: async (token) => {
+    if (!token) {
+      throw new Error('Authentication token required');
+    }
+
+    const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.AVAILABLE);
+    const response = await apiRequest(url, {
+      method: 'GET',
+      headers: getAuthHeaders(token),
     });
 
     if (!response.ok) {
