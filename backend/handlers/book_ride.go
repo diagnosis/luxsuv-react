@@ -176,11 +176,18 @@ func (h *BookRideHandler) Update(c echo.Context) error {
 		})
 	}
 
+	// Enhanced logging for debugging
+	userID, _ := c.Get("user_id").(int64)
+	userEmail, _ := c.Get("email").(string)
+	h.logger.Info(fmt.Sprintf("Update attempt - User ID: %d, User Email: %s, Booking User ID: %v, Booking Email: %s, Booking Status: %s", 
+		userID, userEmail, existingBooking.UserID, existingBooking.Email, existingBooking.BookStatus))
+
 	// Check authorization
 	if !h.canModifyBooking(c, existingBooking) {
+		h.logger.Warn(fmt.Sprintf("Access denied for user %d (%s) trying to modify booking %d", userID, userEmail, id))
 		return c.JSON(http.StatusForbidden, map[string]interface{}{
 			"error":   "access denied",
-			"message": "You don't have permission to modify this booking",
+			"message": "You don't have permission to modify this booking. Please ensure you're signed in with the correct account or use a secure update link.",
 		})
 	}
 
@@ -405,14 +412,16 @@ func (h *BookRideHandler) canModifyBooking(c echo.Context, booking *models.BookR
 		return true
 	}
 
-	// User can modify their own bookings if not yet accepted
-	if booking.UserID != nil && *booking.UserID == userID && booking.BookStatus == models.BookStatusPending {
+	// User can modify their own bookings (check both UserID and email)
+	userEmail, _ := c.Get("email").(string)
+	
+	// Check if user owns the booking by UserID
+	if booking.UserID != nil && *booking.UserID == userID {
 		return true
 	}
-
-	// Guest users can modify using email (additional security could be added)
-	userEmail, _ := c.Get("email").(string)
-	if booking.UserID == nil && booking.Email == userEmail {
+	
+	// Check if user owns the booking by email (for bookings created as guest)
+	if userEmail != "" && booking.Email == userEmail {
 		return true
 	}
 
