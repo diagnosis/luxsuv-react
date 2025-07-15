@@ -94,6 +94,12 @@ export const bookingApi = {
   },
 
   updateBooking: async (bookingId, bookingData, token = null) => {
+    console.log('📝 Update Booking API Call:', {
+      bookingId,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
+    });
+
     const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}`);
     const response = await apiRequest(url, {
       method: 'PUT',
@@ -113,12 +119,143 @@ export const bookingApi = {
       }),
     });
 
+    console.log('📡 Update Booking Response Status:', response.status);
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Update Booking Error Response:', errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log('✅ Update Booking Success:', result);
+    return result;
+  },
+
+  // Update booking with secure token (for guest users)
+  updateBookingWithToken: async (bookingId, bookingData, secureToken) => {
+    console.log('🔐 Update Booking with Token API Call:', {
+      bookingId,
+      hasToken: !!secureToken,
+      tokenPreview: secureToken ? `${secureToken.substring(0, 20)}...` : 'No token'
+    });
+
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE_WITH_TOKEN}/${bookingId}/update?token=${encodeURIComponent(secureToken)}`);
+    const response = await apiRequest(url, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        your_name: bookingData.name,
+        email: bookingData.email,
+        phone_number: bookingData.phone,
+        ride_type: bookingData.rideType || 'hourly',
+        pickup_location: bookingData.pickupLocation,
+        dropoff_location: bookingData.dropoffLocation,
+        date: bookingData.date,
+        time: bookingData.time,
+        number_of_passengers: bookingData.passengers,
+        number_of_luggage: bookingData.luggage || 0,
+        additional_notes: bookingData.notes || '',
+      }),
+    });
+
+    console.log('📡 Update Booking with Token Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Update Booking with Token Error Response:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Update Booking with Token Success:', result);
+    return result;
+  },
+
+  // Generate secure update link for guest users
+  generateUpdateLink: async (bookingId, email) => {
+    console.log('🔗 Generate Update Link API Call:', { bookingId, email });
+
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE_LINK}/${bookingId}/update-link`);
+    const response = await apiRequest(url, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ email }),
+    });
+
+    console.log('📡 Generate Update Link Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Generate Update Link Error Response:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Generate Update Link Success:', result);
+    return result;
+  },
+
+  // Cancel booking (authenticated users)
+  cancelBooking: async (bookingId, reason, token) => {
+    console.log('❌ Cancel Booking API Call:', {
+      bookingId,
+      reason,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
+    });
+
+    if (!token) {
+      throw new Error('Authentication token required');
+    }
+
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL}/${bookingId}/cancel`);
+    const response = await apiRequest(url, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({ reason }),
+    });
+
+    console.log('📡 Cancel Booking Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Cancel Booking Error Response:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Cancel Booking Success:', result);
+    return result;
+  },
+
+  // Cancel booking with secure token (for guest users)
+  cancelBookingWithToken: async (bookingId, reason, secureToken) => {
+    console.log('🔐 Cancel Booking with Token API Call:', {
+      bookingId,
+      reason,
+      hasToken: !!secureToken,
+      tokenPreview: secureToken ? `${secureToken.substring(0, 20)}...` : 'No token'
+    });
+
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL_WITH_TOKEN}/${bookingId}/cancel?token=${encodeURIComponent(secureToken)}`);
+    const response = await apiRequest(url, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+
+    console.log('📡 Cancel Booking with Token Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Cancel Booking with Token Error Response:', errorData);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Cancel Booking with Token Success:', result);
+    return result;
   },
 
   acceptBooking: async (bookingId, token) => {

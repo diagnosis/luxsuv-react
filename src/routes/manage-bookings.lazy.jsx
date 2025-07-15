@@ -1,6 +1,7 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { Search, Mail, RefreshCw } from 'lucide-react';
+import { Search, Mail, RefreshCw, AlertCircle } from 'lucide-react';
+import { useSearch } from '@tanstack/react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { useGetBookingsByEmail } from '../hooks/useBooking';
 import { queryClient } from '../lib/queryClient';
@@ -8,13 +9,20 @@ import BookingCard from '../components/BookingCard';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 export const Route = createLazyFileRoute('/manage-bookings')({
+  validateSearch: (search) => ({
+    token: search.token || null,
+    id: search.id || null,
+  }),
   component: ManageBookings,
 });
 
 function ManageBookings() {
   const { user, isAuthenticated } = useAuth();
+  const search = useSearch({ from: '/manage-bookings' });
   const [email, setEmail] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
+  const [secureToken, setSecureToken] = useState(search.token || null);
+  const [targetBookingId, setTargetBookingId] = useState(search.id || null);
 
   const {
     data: bookings,
@@ -30,6 +38,15 @@ function ManageBookings() {
     }
   }, [isAuthenticated, user?.email]);
 
+  // Handle secure token from URL
+  useEffect(() => {
+    if (search.token && search.id) {
+      setSecureToken(search.token);
+      setTargetBookingId(search.id);
+      // Auto-search for the booking if we have the token
+      // We'll need to extract email from the booking or show a different flow
+    }
+  }, [search.token, search.id]);
   const handleSearch = (e) => {
     e.preventDefault();
     if (email.trim() && email.includes('@')) {
@@ -60,6 +77,22 @@ function ManageBookings() {
     }
   };
 
+  // Show secure token notice if accessing via secure link
+  const renderSecureTokenNotice = () => {
+    if (!secureToken) return null;
+
+    return (
+      <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-6">
+        <div className="flex items-center space-x-2 mb-2">
+          <AlertCircle className="w-5 h-5 text-blue-400" />
+          <span className="text-blue-400 font-semibold">Secure Access</span>
+        </div>
+        <p className="text-light/80 text-sm">
+          You're accessing this booking via a secure link. You can update or cancel this booking without signing in.
+        </p>
+      </div>
+    );
+  };
   return (
       <ProtectedRoute fallback={
         <div className="w-full h-full bg-dark text-light overflow-y-auto">
@@ -67,6 +100,8 @@ function ManageBookings() {
             <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
               Manage Your Bookings
             </h1>
+
+            {renderSecureTokenNotice()}
 
             <p className="text-light/80 mb-6">
               Enter your email address to view and manage your ride bookings.
@@ -154,6 +189,7 @@ function ManageBookings() {
                                 key={booking.id}
                                 booking={booking}
                                 onUpdate={handleBookingUpdate}
+                                secureToken={secureToken && targetBookingId === booking.id ? secureToken : null}
                             />
                         ))}
                       </div>
@@ -182,6 +218,14 @@ function ManageBookings() {
                       <span className="text-yellow mt-1">•</span>
                       <span>Save your changes or cancel to keep original details</span>
                     </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-yellow mt-1">•</span>
+                      <span>Use the mail icon to get a secure update link sent to your email</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-yellow mt-1">•</span>
+                      <span>Click the trash icon to cancel a booking with a reason</span>
+                    </li>
                   </ul>
                 </div>
             )}
@@ -193,6 +237,8 @@ function ManageBookings() {
             <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
               Manage Your Bookings
             </h1>
+
+            {renderSecureTokenNotice()}
 
             {isAuthenticated && user?.email ? (
                 <div className="mb-6">
@@ -294,6 +340,7 @@ function ManageBookings() {
                                 key={booking.id}
                                 booking={booking}
                                 onUpdate={handleBookingUpdate}
+                                secureToken={secureToken && targetBookingId === booking.id ? secureToken : null}
                             />
                         ))}
                       </div>
@@ -321,6 +368,14 @@ function ManageBookings() {
                     <li className="flex items-start space-x-2">
                       <span className="text-yellow mt-1">•</span>
                       <span>Save your changes or cancel to keep original details</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-yellow mt-1">•</span>
+                      <span>Use the mail icon to get a secure update link sent to your email</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-yellow mt-1">•</span>
+                      <span>Click the trash icon to cancel a booking with a reason</span>
                     </li>
                   </ul>
                 </div>

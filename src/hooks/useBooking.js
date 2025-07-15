@@ -55,13 +55,51 @@ export const useGetBookingsByEmail = (email) => {
 };
 
 export const useUpdateBooking = () => {
+  const { token } = useAuth();
+  
   return useMutation({
-    mutationFn: ({ bookingId, bookingData }) => bookingApi.updateBooking(bookingId, bookingData),
+    mutationFn: ({ bookingId, bookingData, secureToken }) => {
+      if (secureToken) {
+        return bookingApi.updateBookingWithToken(bookingId, bookingData, secureToken);
+      }
+      return bookingApi.updateBooking(bookingId, bookingData, token);
+    },
     onSuccess: (data) => {
       console.log('Booking updated successfully:', data);
     },
     onError: (error) => {
       console.error('Booking update failed:', error);
+    },
+  });
+};
+
+export const useGenerateUpdateLink = () => {
+  return useMutation({
+    mutationFn: ({ bookingId, email }) => bookingApi.generateUpdateLink(bookingId, email),
+    onSuccess: (data) => {
+      console.log('Update link generated successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Update link generation failed:', error);
+    },
+  });
+};
+
+export const useCancelBooking = () => {
+  const { token } = useAuth();
+  
+  return useMutation({
+    mutationFn: ({ bookingId, reason, secureToken }) => {
+      if (secureToken) {
+        return bookingApi.cancelBookingWithToken(bookingId, reason, secureToken);
+      }
+      return bookingApi.cancelBooking(bookingId, reason, token);
+    },
+    onSuccess: (data) => {
+      console.log('Booking cancelled successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Booking cancellation failed:', error);
     },
   });
 };
