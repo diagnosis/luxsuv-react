@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useBookRide = () => {
   return useMutation({
@@ -23,8 +24,10 @@ export const useGetBookingsByEmail = (email) => {
 };
 
 export const useUpdateBooking = () => {
+  const { user } = useAuth();
+  
   return useMutation({
-    mutationFn: ({ bookingId, bookingData }) => bookingApi.updateBooking(bookingId, bookingData),
+    mutationFn: ({ bookingId, bookingData }) => bookingApi.updateBooking(bookingId, bookingData, user?.token),
     onSuccess: (data) => {
       console.log('Booking updated successfully:', data);
     },

@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }) => {
         email: userData.email,
         name: userData.name,
         phone: userData.phone,
+        token: result.token || 'demo-token-' + Date.now(),
         createdAt: new Date().toISOString(),
       };
 
@@ -65,6 +66,7 @@ export const AuthProvider = ({ children }) => {
           email: userData.email,
           name: userData.name,
           phone: userData.phone,
+          token: 'demo-token-' + Date.now(),
           createdAt: new Date().toISOString(),
         };
         setUser(mockUser);
@@ -97,6 +99,7 @@ export const AuthProvider = ({ children }) => {
         email: credentials.email,
         name: result.name || 'User',
         phone: result.phone || '',
+        token: result.token || 'demo-token-' + Date.now(),
         createdAt: result.createdAt || new Date().toISOString(),
       };
 
@@ -111,6 +114,7 @@ export const AuthProvider = ({ children }) => {
           email: credentials.email,
           name: 'Demo User',
           phone: '',
+          token: 'demo-token-' + Date.now(),
           createdAt: new Date().toISOString(),
         };
         setUser(mockUser);

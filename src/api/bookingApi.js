@@ -49,12 +49,18 @@ export const bookingApi = {
   },
 
   // Update booking
-  updateBooking: async (bookingId, bookingData) => {
+  updateBooking: async (bookingId, bookingData, authToken) => {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (authToken) {
+      headers.Authorization = `Bearer ${authToken}`;
+    }
+
     const response = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.UPDATE_BOOKING)}/${bookingId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         your_name: bookingData.name,
         email: bookingData.email,
