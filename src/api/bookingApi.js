@@ -33,7 +33,7 @@ export const bookingApi = {
 
   // Get bookings by email
   getBookingsByEmail: async (email) => {
-    const response = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.GET_BOOKINGS)}?email=${encodeURIComponent(email)}`, {
+    const response = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.GET_BOOKINGS)}/${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

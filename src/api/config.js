@@ -3,13 +3,13 @@ export const API_CONFIG = {
   BASE_URL: 'https://luxsuv-v4.onrender.com',
   ENDPOINTS: {
     // Auth endpoints
-    SIGN_UP: '/auth/signup',
-    SIGN_IN: '/auth/signin',
+    SIGN_UP: '/register',
+    SIGN_IN: '/login',
     
     // Booking endpoints
-    BOOK_RIDE: '/rider/book-ride',
-    GET_BOOKINGS: '/rider/book-rides',
-    UPDATE_BOOKING: '/rider/book-ride',
+    BOOK_RIDE: '/book-ride',
+    GET_BOOKINGS: '/bookings/email',
+    UPDATE_BOOKING: '/bookings',
   }
 };
 
