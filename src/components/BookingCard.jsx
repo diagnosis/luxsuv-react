@@ -443,7 +443,48 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
         {booking.created_at && (
           <div className="pt-2 border-t border-gray-700">
             <p className="text-sm text-gray-400">
-              Booked on: {formatDate(booking.created_at)}
+              Created: {new Date(booking.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+            {booking.updated_at && booking.updated_at !== booking.created_at && (
+              <p className="text-sm text-gray-400 mt-1">
+                Updated: {new Date(booking.updated_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Booking Status Details */}
+        {(booking.book_status || booking.ride_status) && (
+          <div className="pt-2 border-t border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+              {booking.book_status && (
+                <div>
+                  <span className="text-gray-400">Booking Status:</span>
+                  <span className={`ml-2 font-medium ${getStatusColor(booking.book_status).split(' ')[0]}`}>
+                    {booking.book_status}
+                  </span>
+                </div>
+              )}
+              {booking.ride_status && (
+                <div>
+                  <span className="text-gray-400">Ride Status:</span>
+                  <span className={`ml-2 font-medium ${getStatusColor(booking.ride_status).split(' ')[0]}`}>
+                    {booking.ride_status}
+                  </span>
+                </div>
+              )}
             </p>
           </div>
         )}

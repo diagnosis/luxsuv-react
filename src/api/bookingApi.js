@@ -114,16 +114,6 @@ export const bookingApi = {
 
     const result = await response.json();
     console.log('✅ getBookingsByUser Success:', result);
-    
-    // Handle both array response and object with bookings array
-    if (Array.isArray(result)) {
-      return {
-        bookings: result,
-        count: result.length,
-        message: `Found ${result.length} booking(s)`
-      };
-    }
-    
     return result;
   },
 
@@ -361,6 +351,17 @@ export const bookingApi = {
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    
+    // Handle both array response and object with bookings array
+    if (Array.isArray(result)) {
+      return {
+        bookings: result,
+        count: result.length,
+        message: `Found ${result.length} booking(s)`
+      };
+    }
+    
+    return result;
   },
 };
