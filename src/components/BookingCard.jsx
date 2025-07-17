@@ -485,6 +485,7 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
                   </span>
                 </div>
               )}
+            </div>
           </div>
         )}
       </div>
