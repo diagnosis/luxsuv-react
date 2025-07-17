@@ -1,7 +1,7 @@
 // API Configuration
 const API_CONFIG = {
   // Base URL - can be overridden by environment variables
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://luxsuv-v4.onrender.com',
   
   // API Endpoints
   ENDPOINTS: {
