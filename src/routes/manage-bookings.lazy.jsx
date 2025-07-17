@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useGetBookingsByEmail, useGetUserBookings } from '../hooks/useBooking';
 import { queryClient } from '../lib/queryClient';
 import BookingCard from '../components/BookingCard';
+import { authApi } from '../api/authApi';
 
 export const Route = createLazyFileRoute('/manage-bookings')({
   validateSearch: (search) => ({
@@ -23,6 +24,7 @@ function ManageBookings() {
   const [secureToken, setSecureToken] = useState(search.token || undefined);
   const [targetBookingId, setTargetBookingId] = useState(search.id || undefined);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'email'
+  const [debugInfo, setDebugInfo] = useState(null);
 
   console.log('🔍 ManageBookings component state:', {
     isAuthenticated,
@@ -52,6 +54,26 @@ function ManageBookings() {
     error: emailBookingsError,
     refetch: refetchEmailBookings
   } = useGetBookingsByEmail(searchEmail);
+
+  // Debug function to test token
+  const testToken = async () => {
+    if (!user?.token && !localStorage.getItem('luxsuv_token')) {
+      console.log('❌ No token available for testing');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('luxsuv_token');
+      console.log('🔍 Testing token from localStorage:', token ? `${token.substring(0, 20)}...` : 'No token');
+      
+      const result = await authApi.testToken(token);
+      setDebugInfo(result);
+      console.log('✅ Token test successful:', result);
+    } catch (error) {
+      console.error('❌ Token test failed:', error);
+      setDebugInfo({ error: error.message });
+    }
+  };
 
   // Auto-populate email if user is signed in
   useEffect(() => {
@@ -180,6 +202,22 @@ function ManageBookings() {
         {/* View Mode Selector for Authenticated Users */}
         {isAuthenticated && !secureToken && (
           <div className="mb-6">
+            {/* Debug Section - Remove this after fixing */}
+            <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-yellow/30">
+              <h3 className="text-yellow font-semibold mb-2">Debug Information</h3>
+              <button
+                onClick={testToken}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm mb-2"
+              >
+                Test Token
+              </button>
+              {debugInfo && (
+                <div className="mt-2 p-2 bg-gray-700 rounded text-xs">
+                  <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <button
                 onClick={handleViewMyBookings}

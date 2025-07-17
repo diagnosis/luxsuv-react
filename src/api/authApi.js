@@ -263,6 +263,38 @@ export const authApi = {
     return data;
   },
 
+  // Debug endpoint to test token
+  testToken: async (token) => {
+    console.log('🔍 Testing token:', token ? `${token.substring(0, 20)}...` : 'No token');
+    
+    const url = buildUrl('/users/me');
+    const response = await apiRequest(url, {
+      method: 'GET',
+      headers: getAuthHeaders(token),
+    });
+
+    console.log('📡 Test Token Response Status:', response.status);
+    
+    const responseText = await response.text();
+    console.log('📄 Test Token Raw Response:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse test token response as JSON:', e);
+      throw new Error(`Invalid response format: ${responseText}`);
+    }
+    
+    if (!response.ok) {
+      console.error('❌ Test Token Error Response:', data);
+      throw new Error(data.error || data.message || `Token test failed with status ${response.status}`);
+    }
+
+    console.log('✅ Test Token Success:', data);
+    return data;
+  },
+
   // Health check
   healthCheck: async () => {
     console.log('🏥 Health Check API Call');
