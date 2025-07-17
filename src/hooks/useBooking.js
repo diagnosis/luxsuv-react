@@ -6,12 +6,27 @@ import { useAuth } from '../contexts/AuthContext';
 export const useGetUserBookings = () => {
   const { token, isAuthenticated } = useAuth();
   
+  console.log('🔍 useGetUserBookings hook:', {
+    isAuthenticated,
+    hasToken: !!token,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
+  });
+  
   return useQuery({
     queryKey: ['bookings', 'user'],
-    queryFn: () => bookingApi.getBookingsByUser(token),
+    queryFn: () => {
+      console.log('📋 Executing getBookingsByUser query with token:', token ? `${token.substring(0, 20)}...` : 'No token');
+      return bookingApi.getBookingsByUser(token);
+    },
     enabled: isAuthenticated && !!token,
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 3,
+    onError: (error) => {
+      console.error('❌ User bookings query failed:', error);
+    },
+    onSuccess: (data) => {
+      console.log('✅ User bookings query successful:', data);
+    }
   });
 };
 

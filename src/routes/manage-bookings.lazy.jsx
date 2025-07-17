@@ -24,6 +24,13 @@ function ManageBookings() {
   const [targetBookingId, setTargetBookingId] = useState(search.id || null);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'email'
 
+  console.log('🔍 ManageBookings component state:', {
+    isAuthenticated,
+    hasUser: !!user,
+    userEmail: user?.email,
+    viewMode,
+    hasSecureToken: !!secureToken
+  });
   // Query for authenticated user's bookings
   const {
     data: userBookings,
@@ -32,6 +39,12 @@ function ManageBookings() {
     refetch: refetchUserBookings
   } = useGetUserBookings();
 
+  console.log('📊 User bookings query state:', {
+    hasData: !!userBookings,
+    isLoading: userBookingsLoading,
+    hasError: !!userBookingsError,
+    errorMessage: userBookingsError?.message
+  });
   // Query for email-based bookings
   const {
     data: emailBookings,

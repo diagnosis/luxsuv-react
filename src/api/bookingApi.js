@@ -75,22 +75,46 @@ export const bookingApi = {
   },
 
   getBookingsByUser: async (token) => {
+    console.log('👤 getBookingsByUser API Call:', {
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
+    });
+    
     if (!token) {
+      console.error('❌ No token provided to getBookingsByUser');
       throw new Error('Authentication token required');
     }
 
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.GET_BY_USER);
+    console.log('🌐 Request URL:', url);
+    console.log('📋 Request Headers:', getAuthHeaders(token));
+    
     const response = await apiRequest(url, {
       method: 'GET',
       headers: getAuthHeaders(token),
     });
 
+    console.log('📡 getBookingsByUser Response Status:', response.status);
+    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const responseText = await response.text();
+      console.log('📄 Error Response Text:', responseText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(responseText);
+      } catch (e) {
+        errorData = { error: responseText || 'Unknown error' };
+      }
+      
+      console.error('❌ getBookingsByUser Error Response:', errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log('✅ getBookingsByUser Success:', result);
+    return result;
   },
 
   updateBooking: async (bookingId, bookingData, token = null) => {

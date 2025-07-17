@@ -99,6 +99,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('luxsuv_user', JSON.stringify(userData));
       localStorage.setItem('luxsuv_token', authToken);
 
+      // Verify token is properly stored
+      const storedToken = localStorage.getItem('luxsuv_token');
+      console.log('🔍 Token verification after storage:', {
+        tokenSet: !!authToken,
+        tokenStored: !!storedToken,
+        tokensMatch: authToken === storedToken
+      });
       return userData;
     } catch (error) {
       console.error('Sign in failed:', error.message);
