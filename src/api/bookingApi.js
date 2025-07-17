@@ -114,6 +114,16 @@ export const bookingApi = {
 
     const result = await response.json();
     console.log('✅ getBookingsByUser Success:', result);
+    
+    // Handle both array response and object with bookings array
+    if (Array.isArray(result)) {
+      return {
+        bookings: result,
+        count: result.length,
+        message: `Found ${result.length} booking(s)`
+      };
+    }
+    
     return result;
   },
 
