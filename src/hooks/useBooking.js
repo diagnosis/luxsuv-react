@@ -2,6 +2,19 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
 import { useAuth } from '../contexts/AuthContext';
 
+// Hook for getting user's own bookings (authenticated users)
+export const useGetUserBookings = () => {
+  const { token, isAuthenticated } = useAuth();
+  
+  return useQuery({
+    queryKey: ['bookings', 'user'],
+    queryFn: () => bookingApi.getBookingsByUser(token),
+    enabled: isAuthenticated && !!token,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 3,
+  });
+};
+
 export const useBookRide = () => {
   const { user, token, isAuthenticated } = useAuth();
   

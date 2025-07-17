@@ -228,7 +228,7 @@ export const bookingApi = {
       throw new Error('Authentication token required');
     }
 
-    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL}/${bookingId}/cancel`);
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL}/${bookingId}`);
     const response = await apiRequest(url, {
       method: 'DELETE',
       headers: getAuthHeaders(token),
@@ -272,7 +272,7 @@ export const bookingApi = {
       throw new Error('Secure token required for guest booking cancellation');
     }
 
-    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL_WITH_TOKEN}/${bookingId}/cancel?token=${encodeURIComponent(secureToken)}`);
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CANCEL_WITH_TOKEN}/${bookingId}?token=${encodeURIComponent(secureToken)}`);
     const response = await apiRequest(url, {
       method: 'DELETE',
       headers: getAuthHeaders(),
