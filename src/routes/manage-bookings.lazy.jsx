@@ -9,8 +9,8 @@ import BookingCard from '../components/BookingCard';
 
 export const Route = createLazyFileRoute('/manage-bookings')({
   validateSearch: (search) => ({
-    token: search.token || null,
-    id: search.id || null,
+    token: search.token || undefined,
+    id: search.id || undefined,
   }),
   component: ManageBookings,
 });
@@ -20,8 +20,8 @@ function ManageBookings() {
   const search = useSearch({ from: '/manage-bookings' });
   const [email, setEmail] = useState('');
   const [searchEmail, setSearchEmail] = useState('');
-  const [secureToken, setSecureToken] = useState(search.token || null);
-  const [targetBookingId, setTargetBookingId] = useState(search.id || null);
+  const [secureToken, setSecureToken] = useState(search.token || undefined);
+  const [targetBookingId, setTargetBookingId] = useState(search.id || undefined);
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'email'
 
   console.log('🔍 ManageBookings component state:', {
@@ -62,7 +62,7 @@ function ManageBookings() {
 
   // Handle secure token from URL
   useEffect(() => {
-    if (search.token && search.id) {
+    if (search.token && search.token !== 'null' && search.id && search.id !== 'null') {
       setSecureToken(search.token);
       setTargetBookingId(search.id);
       setViewMode('email'); // Switch to email mode for secure token access
@@ -71,6 +71,10 @@ function ManageBookings() {
         tokenPreview: search.token ? `${search.token.substring(0, 20)}...` : 'None',
         bookingId: search.id
       });
+    } else {
+      // Clear any invalid tokens
+      setSecureToken(undefined);
+      setTargetBookingId(undefined);
     }
   }, [search.token, search.id]);
 
