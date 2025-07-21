@@ -9,7 +9,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col overflow-y-hidden">
             {/* Header - 10% on all screens */}
             <div className="h-[10vh] flex-shrink-0">
                 <Header />

@@ -17,7 +17,7 @@ export const Route = createLazyFileRoute('/book')({
 });
 
 function RouteComponent() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
   const search = useSearch({ from: '/book' });
   const [isGuestMode, setIsGuestMode] = useState(search.guest || false);
   const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'success', 'error'
@@ -26,7 +26,7 @@ function RouteComponent() {
   const [error, setError] = useState(null);
   const [pickupLocation, setPickupLocation] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState('');
-  
+
   const bookRideMutation = useBookRide();
 
   // Set guest mode based on URL search params
@@ -49,6 +49,14 @@ function RouteComponent() {
     setError(null);
 
     try {
+      console.log('📋 Booking submission started:', {
+        isAuthenticated,
+        hasUser: !!user,
+        hasToken: !!token,
+        userEmail: user?.email,
+        formEmail: formData.email
+      });
+      
       const bookingData = {
         name: formData.name,
         email: formData.email,
@@ -63,19 +71,59 @@ function RouteComponent() {
         notes: formData.notes || '',
       };
 
+      // Enhanced validation
+      const validationErrors = [];
+      
       // Basic validation
       if (bookingData.passengers < 1 || bookingData.passengers > 8) {
-        throw new Error('Number of passengers must be between 1 and 8.');
+        validationErrors.push('Number of passengers must be between 1 and 8');
       }
 
       if (!pickupLocation.trim()) {
-        throw new Error('Please enter a pickup location.');
+        validationErrors.push('Please enter a pickup location');
       }
 
       if (!dropoffLocation.trim()) {
-        throw new Error('Please enter a drop-off location.');
+        validationErrors.push('Please enter a drop-off location');
+      }
+      
+      if (!bookingData.name?.trim()) {
+        validationErrors.push('Please enter your full name');
+      }
+      
+      if (!bookingData.email?.trim() || !bookingData.email.includes('@')) {
+        validationErrors.push('Please enter a valid email address');
+      }
+      
+      if (!bookingData.phone?.trim()) {
+        validationErrors.push('Please enter your phone number');
+      }
+      
+      if (!bookingData.date) {
+        validationErrors.push('Please select a date');
+      }
+      
+      if (!bookingData.time) {
+        validationErrors.push('Please select a time');
+      }
+      
+      // Validate date is not in the past
+      if (bookingData.date && bookingData.time) {
+        const bookingDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
+        const now = new Date();
+        const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+        
+        if (bookingDateTime < oneHourFromNow) {
+          validationErrors.push('Booking must be at least 1 hour in advance');
+        }
+      }
+      
+      if (validationErrors.length > 0) {
+        throw new Error(validationErrors.join('. '));
       }
 
+      console.log('📋 Final booking data before submission:', bookingData);
+      
       // Store form data for success screen
       setBookingFormData({
         ...bookingData,
@@ -90,7 +138,10 @@ function RouteComponent() {
         status: 'pending' // Set status to pending
       });
 
+      // Submit booking (token and user context handled in useBookRide hook)
       const result = await bookRideMutation.mutateAsync(bookingData);
+
+      console.log('✅ Booking submission successful:', result);
       
       // Combine API result with form data for complete booking info
       setBookingResult({
@@ -99,13 +150,14 @@ function RouteComponent() {
         id: result.id,
         status: 'pending' // Ensure status is pending
       });
-      
+
       setBookingState('success');
-      
+
       // Reset form data
       setPickupLocation('');
       setDropoffLocation('');
     } catch (err) {
+      console.error('❌ Booking submission failed:', err);
       setError(err.message);
       setBookingState('error');
     }
@@ -128,57 +180,57 @@ function RouteComponent() {
   // If user is not authenticated and hasn't chosen to continue as guest, show auth prompt
   if (!isAuthenticated && !isGuestMode) {
     return (
-      <div className="w-full h-full bg-dark text-light overflow-y-auto">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
-              Book Your Luxury SUV
-            </h1>
-            <p className="text-light/80 mb-8">
-              Sign in to your account for a faster booking experience, or continue as a guest.
-            </p>
-            
-            {/* Benefits of signing in */}
-            <div className="bg-gray-800 rounded-lg p-6 mb-6 text-left border border-gray-600">
-              <h3 className="text-lg font-semibold text-yellow mb-4">Benefits of signing in:</h3>
-              <ul className="space-y-2 text-light/90">
-                <li className="flex items-start space-x-2">
-                  <span className="text-yellow mt-1">✓</span>
-                  <span>Auto-fill your contact information</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-yellow mt-1">✓</span>
-                  <span>Easy access to all your bookings</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-yellow mt-1">✓</span>
-                  <span>Faster future bookings</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <span className="text-yellow mt-1">✓</span>
-                  <span>Booking history and preferences</span>
-                </li>
-              </ul>
-            </div>
+        <div className="w-full h-full bg-dark text-light overflow-y-auto">
+          <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
+            <div className="max-w-2xl mx-auto text-center">
+              <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
+                Book Your Luxury SUV
+              </h1>
+              <p className="text-light/80 mb-8">
+                Sign in to your account for a faster booking experience, or continue as a guest.
+              </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/signin"
-                className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
-              >
-                Sign In / Sign Up
-              </Link>
-              <Link
-                to="/book"
-                search={{ guest: true }}
-                className="bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
-              >
-                Continue as Guest
-              </Link>
+              {/* Benefits of signing in */}
+              <div className="bg-gray-800 rounded-lg p-6 mb-6 text-left border border-gray-600">
+                <h3 className="text-lg font-semibold text-yellow mb-4">Benefits of signing in:</h3>
+                <ul className="space-y-2 text-light/90">
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow mt-1">✓</span>
+                    <span>Auto-fill your contact information</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow mt-1">✓</span>
+                    <span>Easy access to all your bookings</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow mt-1">✓</span>
+                    <span>Faster future bookings</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <span className="text-yellow mt-1">✓</span>
+                    <span>Booking history and preferences</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                    to="/signin"
+                    className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
+                >
+                  Sign In / Sign Up
+                </Link>
+                <Link
+                    to="/book"
+                    search={{ guest: true }}
+                    className="bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
+                >
+                  Continue as Guest
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     );
   }
 
@@ -187,45 +239,45 @@ function RouteComponent() {
     switch (bookingState) {
       case 'loading':
         return <BookingLoading />;
-      
+
       case 'success':
         return (
-          <BookingSuccess 
-            bookingResult={bookingResult}
-            onNewBooking={handleNewBooking}
-          />
+            <BookingSuccess
+                bookingResult={bookingResult}
+                onNewBooking={handleNewBooking}
+            />
         );
-      
+
       case 'error':
         return (
-          <BookingError 
-            error={error}
-            onRetry={handleRetry}
-            onNewBooking={handleNewBooking}
-          />
+            <BookingError
+                error={error}
+                onRetry={handleRetry}
+                onNewBooking={handleNewBooking}
+            />
         );
-      
+
       default:
         return (
-          <BookingForm
-            onSubmit={handleSubmit}
-            initialData={getInitialFormData()}
-            isGuestMode={isGuestMode}
-            pickupLocation={pickupLocation}
-            setPickupLocation={setPickupLocation}
-            dropoffLocation={dropoffLocation}
-            setDropoffLocation={setDropoffLocation}
-            isSubmitting={bookingState === 'loading'}
-          />
+            <BookingForm
+                onSubmit={handleSubmit}
+                initialData={getInitialFormData()}
+                isGuestMode={isGuestMode}
+                pickupLocation={pickupLocation}
+                setPickupLocation={setPickupLocation}
+                dropoffLocation={dropoffLocation}
+                setDropoffLocation={setDropoffLocation}
+                isSubmitting={bookingState === 'loading'}
+            />
         );
     }
   };
 
   return (
-    <div className="w-full h-full bg-dark text-light overflow-y-auto">
-      <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
-        {renderContent()}
+      <div className="w-full h-full bg-dark text-light overflow-y-auto">
+        <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
+          {renderContent()}
+        </div>
       </div>
-    </div>
   );
 }

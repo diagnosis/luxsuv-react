@@ -1,3 +1,4 @@
+import { useAuth } from '../contexts/AuthContext';
 import AddressAutocomplete from './AddressAutocomplete';
 
 const BookingForm = ({ 
@@ -10,6 +11,8 @@ const BookingForm = ({
   setDropoffLocation,
   isSubmitting 
 }) => {
+  const { user, isAuthenticated } = useAuth();
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -24,11 +27,55 @@ const BookingForm = ({
       passengers: formData.get('passengers'),
       luggage: formData.get('luggage'),
       notes: formData.get('notes'),
+      pickupLocation: pickupLocation,
+      dropoffLocation: dropoffLocation,
     };
 
+    // Validate required fields
+    if (!data.name?.trim()) {
+      alert('Please enter your full name');
+      return;
+    }
+    
+    if (!data.email?.trim() || !data.email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    if (!data.phone?.trim()) {
+      alert('Please enter your phone number');
+      return;
+    }
+    
+    if (!pickupLocation?.trim()) {
+      alert('Please enter a pickup location');
+      return;
+    }
+    
+    if (!dropoffLocation?.trim()) {
+      alert('Please enter a drop-off location');
+      return;
+    }
+    
+    if (!data.date) {
+      alert('Please select a date');
+      return;
+    }
+    
+    if (!data.time) {
+      alert('Please select a time');
+      return;
+    }
     // Merge with any initial data
     const finalData = { ...initialData, ...data };
 
+    console.log('📋 Submitting booking:', {
+      isAuthenticated,
+      userEmail: user?.email,
+      formEmail: finalData.email,
+      hasPickup: !!pickupLocation,
+      hasDropoff: !!dropoffLocation
+    });
     onSubmit(finalData);
   };
 
@@ -41,6 +88,17 @@ const BookingForm = ({
           </div>
           <p className="text-light/80 text-sm">
             You're booking as a guest. To manage this booking later, you'll need to use the email address you provide below.
+          </p>
+        </div>
+      )}
+      
+      {isAuthenticated && !isGuestMode && (
+        <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-green-400 font-semibold">Signed In</span>
+          </div>
+          <p className="text-light/80 text-sm">
+            Welcome back, {user?.name || user?.email}! Your information has been pre-filled for faster booking.
           </p>
         </div>
       )}
@@ -68,7 +126,13 @@ const BookingForm = ({
               placeholder="Enter your full name"
               required
               disabled={isSubmitting}
+              readOnly={isAuthenticated && !isGuestMode && user?.name}
             />
+            {isAuthenticated && !isGuestMode && user?.name && (
+              <p className="text-xs text-gray-400 mt-1">
+                This field is pre-filled from your account
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -86,7 +150,13 @@ const BookingForm = ({
               placeholder="Enter your email"
               required
               disabled={isSubmitting}
+              readOnly={isAuthenticated && !isGuestMode && user?.email}
             />
+            {isAuthenticated && !isGuestMode && user?.email && (
+              <p className="text-xs text-gray-400 mt-1">
+                This field is pre-filled from your account
+              </p>
+            )}
           </div>
           <div>
             <label

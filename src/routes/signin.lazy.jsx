@@ -1,203 +1,187 @@
-import { createLazyFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { createLazyFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 export const Route = createLazyFileRoute('/signin')({
   component: SignIn,
-});
+})
 
 function SignIn() {
-  const navigate = useNavigate();
-  const { signIn, isAuthenticated } = useAuth();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const navigate = useNavigate()
+  const { signIn, isLoading } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-  });
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate({ to: '/book' });
-    }
-  }, [isAuthenticated, navigate]);
-
-  // Return null if authenticated to prevent rendering
-  if (isAuthenticated) {
-    return null;
-  }
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
+    }))
     // Clear error when user starts typing
-    if (error) setError('');
-  };
-
-  const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      setError('Email and password are required');
-      return false;
-    }
-
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email address');
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
-
-    return true;
-  };
+    if (error) setError('')
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    setError('');
+    e.preventDefault()
+    setError('')
+    setIsSubmitting(true)
 
     try {
-      await signIn({
-        email: formData.email,
-        password: formData.password,
-      });
-      
-      // Redirect to book page after successful sign in
-      navigate({ to: '/book' });
+      console.log('🔐 Attempting sign in with:', { email: formData.email });
+      await signIn(formData)
+      console.log('✅ Sign in successful, redirecting...');
+      navigate({ to: '/' })
     } catch (err) {
-      setError(err.message || 'Sign in failed');
+      console.error('❌ Sign in failed:', err);
+      setError(err.message || 'Failed to sign in. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false)
     }
-  };
+  }
+
+  const handleForgotPassword = () => {
+    navigate({ to: '/forgot-password' })
+  }
+
+  if (isLoading) {
+    return (
+        <div className="h-full bg-dark text-light overflow-y-auto flex items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="w-6 h-6 animate-spin text-yellow" />
+            <span className="text-light">Loading...</span>
+          </div>
+        </div>
+    )
+  }
 
   return (
-    <div className="w-full h-full bg-dark text-light overflow-y-auto">
-      <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
-        <div className="max-w-md mx-auto">
-          {/* Back Button */}
-          <Link
-            to="/book"
-            className="inline-flex items-center space-x-2 text-yellow hover:text-yellow/80 transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Booking</span>
-          </Link>
+      <div className="h-full bg-dark text-light overflow-y-auto flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <div className="bg-gray-800 rounded-2xl shadow-2xl p-8">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-light mb-2">Welcome Back</h1>
+              <p className="text-light/70">Sign in to your LUX SUV account</p>
+            </div>
 
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-light mb-2">Welcome Back</h1>
-            <p className="text-light/80">Sign in to your LUX SUV account</p>
-          </div>
-
-          {/* Sign In Form */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-600">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-600/20 text-red-400 p-3 rounded-lg text-sm">
-                  {error}
+            {/* Error Message */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-900/10 border border-red-700/50 rounded-lg">
+                  <p className="text-red-300 text-sm">{error}</p>
                 </div>
-              )}
+            )}
 
+            {/* Sign In Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-light mb-1">
-                  Email Address *
+                <label htmlFor="email" className="block text-sm font-semibold text-light/80 mb-2">
+                  Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                    placeholder="Enter your email"
-                    disabled={isLoading}
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow focus:border-transparent transition-colors"
                   />
                 </div>
               </div>
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-light mb-1">
-                  Password *
+                <label htmlFor="password" className="block text-sm font-semibold text-light/80 mb-2">
+                  Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                    placeholder="Enter your password"
-                    disabled={isLoading}
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      required
+                      className="w-full pl-10 pr-12 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow focus:border-transparent transition-colors"
                   />
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light transition-colors"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                    ) : (
+                        <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Forgot Password Link */}
+              <div className="text-right">
+                <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-yellow hover:text-yellow/80 font-medium transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {/* Sign In Button */}
               <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-yellow hover:bg-yellow/90 text-dark font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-yellow hover:bg-yellow/90 text-dark font-bold py-3 px-4 rounded-lg border-2 border-yellow shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                <span>Sign In</span>
+                {isSubmitting ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Signing In...</span>
+                    </div>
+                ) : (
+                    'Sign In'
+                )}
               </button>
             </form>
 
-            {/* Links */}
-            <div className="mt-6 text-center space-y-3">
-              <p className="text-light/80 text-sm">
+            {/* Footer Links */}
+            <div className="mt-8 text-center space-y-3">
+              <p className="text-light/70">
                 Don't have an account?{' '}
                 <Link
-                  to="/signup"
-                  className="text-yellow hover:text-yellow/80 font-medium transition-colors"
+                    to="/signup"
+                    className="text-yellow hover:text-yellow/80 font-semibold transition-colors"
                 >
-                  Sign Up
+                  Sign up here
                 </Link>
               </p>
-              
-              <div className="border-t border-gray-600 pt-3">
+              <p className="text-light/50">
+                Or{' '}
                 <Link
-                  to="/book"
-                  search={{ guest: true }}
-                  className="text-gray-400 hover:text-light text-sm transition-colors underline"
+                    to="/"
+                    className="text-yellow hover:text-yellow/80 font-medium transition-colors"
                 >
-                  Continue as Guest
+                  continue as guest
                 </Link>
-                <p className="text-xs text-gray-500 mt-1">
-                  You can book without an account, but you'll need to enter your email to manage bookings later.
-                </p>
-              </div>
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+  )
 }

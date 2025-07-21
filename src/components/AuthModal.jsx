@@ -108,7 +108,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin', showGuestOption = 
         });
       } else {
         await signUp({
-          name: formData.name,
+          username: formData.name, // Backend expects 'username' field
           email: formData.email,
           phone: formData.phone,
           password: formData.password,

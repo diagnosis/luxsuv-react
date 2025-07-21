@@ -83,7 +83,7 @@ const BookingError = ({ error, onRetry, onNewBooking }) => {
               1
             </div>
             <p className="text-light/90">
-              Check your internet connection and try again
+              Ensure all required fields are filled out correctly
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -91,7 +91,7 @@ const BookingError = ({ error, onRetry, onNewBooking }) => {
               2
             </div>
             <p className="text-light/90">
-              Ensure all required fields are filled out correctly
+              Check that your booking date is at least 1 hour in the future
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -99,7 +99,7 @@ const BookingError = ({ error, onRetry, onNewBooking }) => {
               3
             </div>
             <p className="text-light/90">
-              Try refreshing the page and submitting again
+              Verify your internet connection and try again
             </p>
           </div>
           <div className="flex items-start space-x-3">

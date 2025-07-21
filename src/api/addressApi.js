@@ -1,4 +1,5 @@
-const GEOAPIFY_API_KEY = 'd0644b6aa4b34f09a380020e438d19c0';
+// Address API configuration
+const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY || 'd0644b6aa4b34f09a380020e438d19c0';
 const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1';
 
 export const addressApi = {

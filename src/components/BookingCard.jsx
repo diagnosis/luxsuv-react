@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X } from 'lucide-react';
-import { useUpdateBooking } from '../hooks/useBooking';
+import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle } from 'lucide-react';
+import { useUpdateBooking, useCancelBooking, useGenerateUpdateLink } from '../hooks/useBooking';
+import { useAuth } from '../contexts/AuthContext';
 import AddressAutocomplete from './AddressAutocomplete';
 
-const BookingCard = ({ booking, onUpdate }) => {
+const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
+  const { isAuthenticated, user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showUpdateLinkModal, setShowUpdateLinkModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   const [editData, setEditData] = useState({
     name: booking.your_name || '',
     email: booking.email || '',
@@ -20,6 +25,8 @@ const BookingCard = ({ booking, onUpdate }) => {
   });
 
   const updateBookingMutation = useUpdateBooking();
+  const cancelBookingMutation = useCancelBooking();
+  const generateUpdateLinkMutation = useGenerateUpdateLink();
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -48,6 +55,7 @@ const BookingCard = ({ booking, onUpdate }) => {
       await updateBookingMutation.mutateAsync({
         bookingId: booking.id,
         bookingData: editData,
+        secureToken: secureToken,
       });
       setIsEditing(false);
       if (onUpdate) {
@@ -55,9 +63,58 @@ const BookingCard = ({ booking, onUpdate }) => {
       }
     } catch (error) {
       console.error('Failed to update booking:', error);
+      
+      // Show user-friendly error message
+      if (error.message.includes('403') || error.message.includes('permission')) {
+        alert('Permission Error: ' + error.message);
+      } else {
+        alert('Update failed: ' + error.message);
+      }
     }
   };
 
+  const handleCancelBooking = async () => {
+    if (!cancelReason.trim()) {
+      alert('Please provide a reason for cancellation');
+      return;
+    }
+
+    try {
+      await cancelBookingMutation.mutateAsync({
+        bookingId: booking.id,
+        reason: cancelReason,
+        secureToken: secureToken,
+      });
+      setShowCancelModal(false);
+      setCancelReason('');
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Failed to cancel booking:', error);
+      
+      // Show user-friendly error message
+      if (error.message.includes('403') || error.message.includes('permission')) {
+        alert('Permission Error: ' + error.message);
+      } else {
+        alert('Cancellation failed: ' + error.message);
+      }
+    }
+  };
+
+  const handleGenerateUpdateLink = async () => {
+    try {
+      await generateUpdateLinkMutation.mutateAsync({
+        bookingId: booking.id,
+        email: booking.email,
+      });
+      setShowUpdateLinkModal(false);
+      alert('Update link has been sent to your email address!');
+    } catch (error) {
+      console.error('Failed to generate update link:', error);
+      alert('Failed to generate update link: ' + error.message);
+    }
+  };
   const handleInputChange = (field, value) => {
     setEditData(prev => ({
       ...prev,
@@ -86,8 +143,48 @@ const BookingCard = ({ booking, onUpdate }) => {
     }
   };
 
+  // Check if user can edit this booking
+  const canEdit = () => {
+    // Don't show edit button if booking is cancelled
+    if (booking.status?.toLowerCase() === 'cancelled') return false;
+    
+    // If we have a secure token, user can edit
+    if (secureToken) return true;
+    
+    // If authenticated, check if user owns the booking or if booking allows editing
+    if (isAuthenticated && user) {
+      // Check if user email matches booking email
+      if (booking.email === user.email) return true;
+      
+      // Check if user ID matches (for authenticated bookings)
+      if (booking.user_id && user.id && booking.user_id === user.id) return true;
+    }
+    
+    return false;
+  };
+
+  // Check if user can cancel this booking
+  const canCancel = () => {
+    // Can't cancel if already cancelled
+    if (booking.status?.toLowerCase() === 'cancelled') return false;
+    
+    // If we have a secure token, user can cancel
+    if (secureToken) return true;
+    
+    // If authenticated, check if user owns the booking
+    if (isAuthenticated && user) {
+      // Check if user email matches booking email
+      if (booking.email === user.email) return true;
+      
+      // Check if user ID matches (for authenticated bookings)
+      if (booking.user_id && user.id && booking.user_id === user.id) return true;
+    }
+    
+    return false;
+  };
   return (
-    <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-700 hover:border-yellow/30 transition-colors">
+    <>
+      <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-700 hover:border-yellow/30 transition-colors">
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -101,14 +198,46 @@ const BookingCard = ({ booking, onUpdate }) => {
           )}
         </div>
         <div className="flex space-x-2">
-          {!isEditing ? (
-            <button
-              onClick={handleEdit}
-              className="p-2 text-yellow hover:bg-yellow/10 rounded-lg transition-colors"
-              aria-label="Edit booking"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
+          {!isEditing && canEdit() ? (
+            <>
+              <button
+                onClick={handleEdit}
+                className="p-2 text-yellow hover:bg-yellow/10 rounded-lg transition-colors"
+                aria-label="Edit booking"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+              {canCancel() && (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                  aria-label="Cancel booking"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              {!isAuthenticated && !secureToken && (
+                <button
+                  onClick={() => setShowUpdateLinkModal(true)}
+                  className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                  aria-label="Get update link"
+                  title="Get secure update link via email"
+                >
+                  <Mail className="w-4 h-4" />
+                </button>
+              )}
+              
+              {/* Debug info in development */}
+              {import.meta.env.DEV && (
+                <div className="text-xs text-gray-500 mt-2">
+                  <p>Debug: Can edit: {canEdit().toString()}</p>
+                  <p>User email: {user?.email || 'None'}</p>
+                  <p>Booking email: {booking.email}</p>
+                  <p>Has secure token: {!!secureToken}</p>
+                  <p>Is authenticated: {isAuthenticated.toString()}</p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex space-x-2">
               <button
@@ -314,8 +443,49 @@ const BookingCard = ({ booking, onUpdate }) => {
         {booking.created_at && (
           <div className="pt-2 border-t border-gray-700">
             <p className="text-sm text-gray-400">
-              Booked on: {formatDate(booking.created_at)}
+              Created: {new Date(booking.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
             </p>
+            {booking.updated_at && booking.updated_at !== booking.created_at && (
+              <p className="text-sm text-gray-400 mt-1">
+                Updated: {new Date(booking.updated_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Booking Status Details */}
+        {(booking.book_status || booking.ride_status) && (
+          <div className="pt-2 border-t border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+              {booking.book_status && (
+                <div>
+                  <span className="text-gray-400">Booking Status:</span>
+                  <span className={`ml-2 font-medium ${getStatusColor(booking.book_status).split(' ')[0]}`}>
+                    {booking.book_status}
+                  </span>
+                </div>
+              )}
+              {booking.ride_status && (
+                <div>
+                  <span className="text-gray-400">Ride Status:</span>
+                  <span className={`ml-2 font-medium ${getStatusColor(booking.ride_status).split(' ')[0]}`}>
+                    {booking.ride_status}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -326,7 +496,117 @@ const BookingCard = ({ booking, onUpdate }) => {
           Updating booking...
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Cancel Booking Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-600">
+            <div className="flex items-center justify-between p-6 border-b border-gray-600">
+              <h2 className="text-xl font-semibold text-light flex items-center">
+                <AlertTriangle className="w-5 h-5 text-red-400 mr-2" />
+                Cancel Booking
+              </h2>
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="text-gray-400 hover:text-light transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-light/80 mb-4">
+                Are you sure you want to cancel booking #{booking.id}? This action cannot be undone.
+              </p>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-light mb-2">
+                  Reason for cancellation *
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  rows="3"
+                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow resize-none"
+                  placeholder="Please provide a reason for cancellation..."
+                />
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-light font-semibold rounded-lg transition-colors"
+                >
+                  Keep Booking
+                </button>
+                <button
+                  onClick={handleCancelBooking}
+                  disabled={cancelBookingMutation.isPending || !cancelReason.trim()}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelBookingMutation.isPending ? 'Cancelling...' : 'Cancel Booking'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generate Update Link Modal */}
+      {showUpdateLinkModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-600">
+            <div className="flex items-center justify-between p-6 border-b border-gray-600">
+              <h2 className="text-xl font-semibold text-light flex items-center">
+                <Mail className="w-5 h-5 text-blue-400 mr-2" />
+                Get Update Link
+              </h2>
+              <button
+                onClick={() => setShowUpdateLinkModal(false)}
+                className="text-gray-400 hover:text-light transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-light/80 mb-4">
+                We'll send a secure link to your email address that will allow you to update this booking.
+              </p>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-light mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={booking.email}
+                  readOnly
+                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg opacity-75"
+                />
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowUpdateLinkModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-light font-semibold rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleGenerateUpdateLink}
+                  disabled={generateUpdateLinkMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {generateUpdateLinkMutation.isPending ? 'Sending...' : 'Send Link'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
