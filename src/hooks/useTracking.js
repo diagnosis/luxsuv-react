@@ -65,6 +65,7 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
   const [error, setError] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const isConnectingRef = useRef(false);
   const { 
     enabled = true, 
     autoReconnect = true, 
@@ -85,6 +86,16 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
       return;
     }
 
+    // Prevent multiple connection attempts
+    if (wsRef.current?.readyState === WebSocket.CONNECTING || 
+        wsRef.current?.readyState === WebSocket.OPEN ||
+        isConnectingRef.current) {
+      console.log('⚠️ WebSocket connection already exists or in progress');
+      return;
+    }
+
+    isConnectingRef.current = true;
+
     try {
       // Use the API base URL but replace http/https with ws/wss
       const wsUrl = API_CONFIG.BASE_URL
@@ -99,6 +110,7 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
 
       ws.onopen = () => {
         console.log('✅ WebSocket connected for booking:', bookingId);
+        isConnectingRef.current = false;
         setConnectionStatus('connected');
         setError(null);
       };
@@ -155,15 +167,21 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
 
       ws.onerror = (error) => {
         console.error('❌ WebSocket error:', error);
-        setError('WebSocket connection error');
-        setConnectionStatus('error');
+        // Don't update state here - let onclose handle it
       };
 
       ws.onclose = (event) => {
         console.log('🔌 WebSocket disconnected:', event.code, event.reason);
+        isConnectingRef.current = false;
         setConnectionStatus('disconnected');
         wsRef.current = null;
 
+        // Set error state only if it wasn't a manual close
+        if (event.code !== 1000) {
+          setError('Connection lost - attempting to reconnect...');
+        } else {
+          setError(null);
+        }
         // Auto-reconnect if enabled and not a manual close
         if (autoReconnect && event.code !== 1000) {
           console.log('🔄 Attempting to reconnect...');
@@ -175,6 +193,7 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
 
     } catch (error) {
       console.error('❌ Failed to create WebSocket connection:', error);
+      isConnectingRef.current = false;
       setError(error.message);
       setConnectionStatus('error');
     }
@@ -183,6 +202,8 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
   const disconnect = useCallback(() => {
     console.log('🔌 Disconnecting WebSocket...');
     
+    isConnectingRef.current = false;
+
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
@@ -214,6 +235,7 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
+      isConnectingRef.current = false;
     };
   }, []);
 
