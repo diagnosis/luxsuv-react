@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Home, Info, CalendarCheck, Car, Settings } from 'lucide-react';
+import { Home, Info, CalendarCheck, Car, Settings, Navigation2 } from 'lucide-react';
 
 const BottomNav = () => {
     return (
@@ -39,6 +39,13 @@ const BottomNav = () => {
                 >
                     <Settings className="w-5 h-5" />
                     <span className="text-xs mt-1">Manage</span>
+                </Link>
+                <Link
+                    to="/track"
+                    className="flex flex-col items-center text-light hover:text-yellow transition-colors py-2"
+                >
+                    <Navigation2 className="w-5 h-5" />
+                    <span className="text-xs mt-1">Track</span>
                 </Link>
             </div>
         </nav>

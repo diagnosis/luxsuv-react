@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle, Navigation2 } from 'lucide-react';
 import { useUpdateBooking, useCancelBooking, useGenerateUpdateLink } from '../hooks/useBooking';
 import { useAuth } from '../contexts/AuthContext';
 import AddressAutocomplete from './AddressAutocomplete';
+import RiderTracker from './RiderTracker';
 
 const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
   const { isAuthenticated, user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [showTracking, setShowTracking] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpdateLinkModal, setShowUpdateLinkModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -182,6 +184,13 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
     
     return false;
   };
+
+  // Check if tracking is available for this booking
+  const isTrackingAvailable = () => {
+    const status = booking.book_status || booking.status;
+    return status && ['accepted', 'confirmed', 'in_progress'].includes(status.toLowerCase());
+  };
+
   return (
     <>
       <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-700 hover:border-yellow/30 transition-colors">
@@ -200,6 +209,20 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
         <div className="flex space-x-2">
           {!isEditing && canEdit() ? (
             <>
+              {isTrackingAvailable() && (
+                <button
+                  onClick={() => setShowTracking(!showTracking)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    showTracking 
+                      ? 'text-yellow bg-yellow/10' 
+                      : 'text-blue-400 hover:bg-blue-400/10'
+                  }`}
+                  aria-label="Toggle live tracking"
+                  title="Live Tracking"
+                >
+                  <Navigation2 className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={handleEdit}
                 className="p-2 text-yellow hover:bg-yellow/10 rounded-lg transition-colors"
@@ -489,6 +512,16 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
           </div>
         )}
       </div>
+
+      {/* Live Tracking Section */}
+      {showTracking && isTrackingAvailable() && (
+        <div className="mt-4">
+          <RiderTracker 
+            booking={booking} 
+            onClose={() => setShowTracking(false)}
+          />
+        </div>
+      )}
 
       {/* Update Status */}
       {updateBookingMutation.isPending && (

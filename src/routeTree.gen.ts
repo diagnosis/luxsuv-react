@@ -17,6 +17,7 @@ import { Route as IndexImport } from './routes/index'
 
 // Create Virtual Routes
 
+const TrackLazyImport = createFileRoute('/track')()
 const SignupLazyImport = createFileRoute('/signup')()
 const SigninLazyImport = createFileRoute('/signin')()
 const SettingsLazyImport = createFileRoute('/settings')()
@@ -30,6 +31,12 @@ const BookLazyImport = createFileRoute('/book')()
 const AboutLazyImport = createFileRoute('/about')()
 
 // Create/Update Routes
+
+const TrackLazyRoute = TrackLazyImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/track.lazy').then((d) => d.Route))
 
 const SignupLazyRoute = SignupLazyImport.update({
   id: '/signup',
@@ -197,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupLazyImport
       parentRoute: typeof rootRoute
     }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -215,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsLazyRoute
   '/signin': typeof SigninLazyRoute
   '/signup': typeof SignupLazyRoute
+  '/track': typeof TrackLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -230,6 +245,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsLazyRoute
   '/signin': typeof SigninLazyRoute
   '/signup': typeof SignupLazyRoute
+  '/track': typeof TrackLazyRoute
 }
 
 export interface FileRoutesById {
@@ -246,6 +262,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsLazyRoute
   '/signin': typeof SigninLazyRoute
   '/signup': typeof SignupLazyRoute
+  '/track': typeof TrackLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -263,6 +280,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signin'
     | '/signup'
+    | '/track'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -277,6 +295,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signin'
     | '/signup'
+    | '/track'
   id:
     | '__root__'
     | '/'
@@ -291,6 +310,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signin'
     | '/signup'
+    | '/track'
   fileRoutesById: FileRoutesById
 }
 
@@ -307,6 +327,7 @@ export interface RootRouteChildren {
   SettingsLazyRoute: typeof SettingsLazyRoute
   SigninLazyRoute: typeof SigninLazyRoute
   SignupLazyRoute: typeof SignupLazyRoute
+  TrackLazyRoute: typeof TrackLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -322,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsLazyRoute: SettingsLazyRoute,
   SigninLazyRoute: SigninLazyRoute,
   SignupLazyRoute: SignupLazyRoute,
+  TrackLazyRoute: TrackLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -345,7 +367,8 @@ export const routeTree = rootRoute
         "/services",
         "/settings",
         "/signin",
-        "/signup"
+        "/signup",
+        "/track"
       ]
     },
     "/": {
@@ -383,6 +406,9 @@ export const routeTree = rootRoute
     },
     "/signup": {
       "filePath": "signup.lazy.jsx"
+    },
+    "/track": {
+      "filePath": "track.lazy.jsx"
     }
   }
 }
