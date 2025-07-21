@@ -7,6 +7,13 @@ const RiderTracker = ({ booking, onClose = null }) => {
   const [notifications, setNotifications] = useState([]);
   const [isMinimized, setIsMinimized] = useState(false);
   
+  // Add notification helper
+  const addNotification = useCallback((message, type = 'info') => {
+    const id = Date.now();
+    const newNotification = { id, message, type, timestamp: new Date() };
+    setNotifications(prev => [newNotification, ...prev].slice(0, 5)); // Keep only last 5
+  }, []);
+  
   // Get live tracking data with polling
   const {
     data: trackingData,
