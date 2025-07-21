@@ -33,6 +33,10 @@ export const bookingApi = {
 
   // Get bookings by email
   getBookingsByEmail: async (email) => {
+    if (!email || !email.includes('@')) {
+      throw new Error('Valid email address is required');
+    }
+    
     const response = await fetch(`${buildApiUrl(API_CONFIG.ENDPOINTS.GET_BOOKINGS)}/${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {

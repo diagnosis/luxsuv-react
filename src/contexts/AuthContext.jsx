@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (userData) => {
     try {
-      // Simulate API call - replace with actual API endpoint
       const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.SIGN_UP), {
         method: 'POST',
         headers: {
@@ -47,11 +46,11 @@ export const AuthProvider = ({ children }) => {
 
       const result = await response.json();
       const newUser = {
-        id: result.id || Date.now(),
+        id: result.user?.id || result.id || Date.now(),
         email: userData.email,
         name: userData.name,
         phone: userData.phone,
-        token: result.token || 'demo-token-' + Date.now(),
+        token: result.token,
         createdAt: new Date().toISOString(),
       };
 
@@ -59,27 +58,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('luxsuv_user', JSON.stringify(newUser));
       return newUser;
     } catch (error) {
-      // For demo purposes, create a mock user if API fails
-      if (error.message.includes('fetch')) {
-        const mockUser = {
-          id: Date.now(),
-          email: userData.email,
-          name: userData.name,
-          phone: userData.phone,
-          token: 'demo-token-' + Date.now(),
-          createdAt: new Date().toISOString(),
-        };
-        setUser(mockUser);
-        localStorage.setItem('luxsuv_user', JSON.stringify(mockUser));
-        return mockUser;
-      }
+      console.error('Sign up error:', error);
       throw error;
     }
   };
 
   const signIn = async (credentials) => {
     try {
-      // Simulate API call - replace with actual API endpoint
       const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.SIGN_IN), {
         method: 'POST',
         headers: {
@@ -95,32 +80,20 @@ export const AuthProvider = ({ children }) => {
 
       const result = await response.json();
       const userData = {
-        id: result.id || Date.now(),
+        id: result.user?.id || result.id || Date.now(),
         email: credentials.email,
-        name: result.name || 'User',
-        phone: result.phone || '',
-        token: result.token || 'demo-token-' + Date.now(),
-        createdAt: result.createdAt || new Date().toISOString(),
+        name: result.user?.username || result.name || 'User',
+        phone: result.user?.phone || result.phone || '',
+        token: result.token,
+        role: result.user?.role || 'rider',
+        createdAt: result.user?.created_at || result.createdAt || new Date().toISOString(),
       };
 
       setUser(userData);
       localStorage.setItem('luxsuv_user', JSON.stringify(userData));
       return userData;
     } catch (error) {
-      // For demo purposes, create a mock user if API fails
-      if (error.message.includes('fetch')) {
-        const mockUser = {
-          id: Date.now(),
-          email: credentials.email,
-          name: 'Demo User',
-          phone: '',
-          token: 'demo-token-' + Date.now(),
-          createdAt: new Date().toISOString(),
-        };
-        setUser(mockUser);
-        localStorage.setItem('luxsuv_user', JSON.stringify(mockUser));
-        return mockUser;
-      }
+      console.error('Sign in error:', error);
       throw error;
     }
   };

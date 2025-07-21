@@ -23,12 +23,13 @@ function ManageBookings() {
     refetch
   } = useGetBookingsByEmail(searchEmail);
 
-  // Auto-populate email if user is signed in
-  useState(() => {
+  // Auto-populate email and search for logged-in users
+  useEffect(() => {
     if (isAuthenticated && user?.email && !email) {
       setEmail(user.email);
+      setSearchEmail(user.email); // Automatically search for user's bookings
     }
-  }, [isAuthenticated, user?.email]);
+  }, [isAuthenticated, user?.email, email]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -196,15 +197,26 @@ function ManageBookings() {
         
         {isAuthenticated && user?.email ? (
           <div className="mb-6">
-            <p className="text-light/80 mb-3">
-              Welcome back! You can view your bookings or search for bookings with a different email.
-            </p>
-            <button
-              onClick={handleQuickSearch}
-              className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
-            >
-              View My Bookings ({user.email})
-            </button>
+            {!searchEmail || searchEmail !== user.email ? (
+              <>
+                <p className="text-light/80 mb-3">
+                  Welcome back! You can view your bookings or search for bookings with a different email.
+                </p>
+                <button
+                  onClick={handleQuickSearch}
+                  className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
+                >
+                  View My Bookings ({user.email})
+                </button>
+              </>
+            ) : (
+              <div className="bg-yellow/10 border border-yellow/30 rounded-lg p-4">
+                <p className="text-yellow font-medium mb-2">Your Bookings</p>
+                <p className="text-light/80 text-sm">
+                  Showing all bookings for {user.email}. You can search for a different email below if needed.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-light/80 mb-6">

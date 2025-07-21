@@ -18,8 +18,9 @@ export const useGetBookingsByEmail = (email) => {
   return useQuery({
     queryKey: ['bookings', email],
     queryFn: () => bookingApi.getBookingsByEmail(email),
-    enabled: !!email && email.includes('@'), // Only run query if email is valid
+    enabled: !!email && email.includes('@') && email.trim().length > 0, // Only run query if email is valid
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2, // Retry failed requests
   });
 };
 
