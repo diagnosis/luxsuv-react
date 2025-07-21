@@ -166,7 +166,7 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
       };
 
       ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
+        console.error('❌ WebSocket error occurred.');
         // Don't update state here - let onclose handle it
       };
 
