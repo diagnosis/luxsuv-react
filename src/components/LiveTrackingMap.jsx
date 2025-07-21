@@ -1,5 +1,44 @@
 import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { MapPin, Navigation, Clock, Zap, Phone, AlertCircle } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default markers in React Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjUgMEMxOS40MDM2IDAgMjUgNS41OTY0NCAyNSAxMi41QzI1IDE5LjQwMzYgMTkuNDAzNiAyNSAxMi41IDI1QzUuNTk2NDQgMjUgMCAxOS40MDM2IDAgMTIuNUMwIDUuNTk2NDQgNS41OTY0NCAwIDEyLjUgMFoiIGZpbGw9IiNGRkQzNjkiLz4KPHBhdGggZD0iTTEyLjUgNUMxNS44MTM3IDUgMTguNSA3LjY4NjI5IDE4LjUgMTFDMTguNSAxNC4zMTM3IDE1LjgxMzcgMTcgMTIuNSAxN0M5LjE4NjI5IDE3IDYuNSAxNC4zMTM3IDYuNSAxMUM2LjUgNy42ODYyOSA5LjE4NjI5IDUgMTIuNSA1WiIgZmlsbD0iIzIyMjgzMSIvPgo8cGF0aCBkPSJNMTIuNSAyNUwxOS41IDM1SDUuNUwxMi41IDI1WiIgZmlsbD0iI0ZGRDM2OSIvPgo8L3N2Zz4K',
+  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUiIGhlaWdodD0iNDEiIHZpZXdCb3g9IjAgMCAyNSA0MSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyLjUgMEMxOS40MDM2IDAgMjUgNS41OTY0NCAyNSAxMi41QzI1IDE5LjQwMzYgMTkuNDAzNiAyNSAxMi41IDI1QzUuNTk2NDQgMjUgMCAxOS40MDM2IDAgMTIuNUMwIDUuNTk2NDQgNS41OTY0NCAwIDEyLjUgMFoiIGZpbGw9IiNGRkQzNjkiLz4KPHBhdGggZD0iTTEyLjUgNUMxNS44MTM3IDUgMTguNSA3LjY4NjI5IDE4LjUgMTFDMTguNSAxNC4zMTM3IDE1LjgxMzcgMTcgMTIuNSAxN0M5LjE4NjI5IDE3IDYuNSAxNC4zMTM3IDYuNSAxMUM2LjUgNy42ODYyOSA5LjE4NjI5IDUgMTIuNSA1WiIgZmlsbD0iIzIyMjgzMSIvPgo8cGF0aCBkPSJNMTIuNSAyNUwxOS41IDM1SDUuNUwxMi41IDI1WiIgZmlsbD0iI0ZGRDM2OSIvPgo8L3N2Zz4K',
+  shadowUrl: '',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+// Custom driver marker
+const driverIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTUiIGZpbGw9IiMyMkM1NUUiLz4KPHN2ZyB4PSI3IiB5PSI3IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMSA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDMgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4KPC9zdmc+',
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+  popupAnchor: [0, -15],
+});
+
+// Component to update map view when location changes
+const MapController = ({ location, userLocation }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (location) {
+      // Center map on driver location
+      map.setView([location.latitude, location.longitude], 15);
+    } else if (userLocation) {
+      // Center map on user location if no driver location
+      map.setView([userLocation.lat, userLocation.lng], 13);
+    }
+  }, [location, userLocation, map]);
+
+  return null;
+};
 
 const LiveTrackingMap = ({ 
   bookingId, 
@@ -8,7 +47,6 @@ const LiveTrackingMap = ({
   error = null,
   className = "" 
 }) => {
-  const mapRef = useRef(null);
   const [mapError, setMapError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
@@ -24,29 +62,21 @@ const LiveTrackingMap = ({
         },
         (error) => {
           console.warn('Could not get user location:', error);
+          // Default to a central location if geolocation fails
+          setUserLocation({
+            lat: 40.7128, // New York City
+            lng: -74.0060
+          });
         }
       );
+    } else {
+      // Default location if geolocation not supported
+      setUserLocation({
+        lat: 40.7128,
+        lng: -74.0060
+      });
     }
   }, []);
-
-  // Initialize or update map when tracking data changes
-  useEffect(() => {
-    if (!trackingData?.current_location || !mapRef.current) return;
-
-    try {
-      // For this example, I'll create a simple map placeholder
-      // In production, you'd integrate with Google Maps, Mapbox, or similar
-      const location = trackingData.current_location;
-      console.log('📍 Updating map with location:', location);
-      
-      // This is where you'd update your actual map component
-      // Example: map.setCenter({ lat: location.latitude, lng: location.longitude });
-      
-    } catch (error) {
-      console.error('Map update error:', error);
-      setMapError(error.message);
-    }
-  }, [trackingData]);
 
   if (error) {
     return (
@@ -88,38 +118,94 @@ const LiveTrackingMap = ({
   const location = trackingData.current_location;
   const driverInfo = trackingData.driver_info;
 
+  // Default center if no location data
+  const center = location 
+    ? [location.latitude, location.longitude]
+    : userLocation 
+    ? [userLocation.lat, userLocation.lng]
+    : [40.7128, -74.0060]; // Default to NYC
+
   return (
     <div className={`bg-gray-800 rounded-lg border border-gray-600 overflow-hidden ${className}`}>
       {/* Map Container */}
       <div className="relative">
-        {/* Map Placeholder - Replace with actual map component */}
-        <div 
-          ref={mapRef}
-          className="h-64 bg-gray-700 flex items-center justify-center relative"
-        >
-          {mapError ? (
-            <div className="text-red-400 text-center">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-              <p className="text-sm">Map unavailable</p>
-            </div>
-          ) : (
-            <div className="text-light text-center">
-              <MapPin className="w-8 h-8 mx-auto mb-2 text-yellow" />
-              <p className="text-sm mb-1">Live Driver Location</p>
+        <div className="h-64 relative">
+          {userLocation ? (
+            <MapContainer
+              center={center}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+              className="rounded-t-lg"
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              
+              {/* Driver location marker */}
               {location && (
-                <p className="text-xs text-light/60">
-                  {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-                </p>
+                <Marker
+                  position={[location.latitude, location.longitude]}
+                  icon={driverIcon}
+                >
+                  <Popup>
+                    <div className="text-center">
+                      <div className="font-semibold text-green-600 mb-2">
+                        {driverInfo?.name || 'Your Driver'}
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <div>Speed: {location.speed ? `${Math.round(location.speed)} mph` : 'N/A'}</div>
+                        <div>Updated: {new Date(location.timestamp).toLocaleTimeString()}</div>
+                        {driverInfo?.phone && (
+                          <div className="mt-2">
+                            <a 
+                              href={`tel:${driverInfo.phone}`}
+                              className="inline-block bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
+                            >
+                              Call Driver
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
               )}
+
+              {/* User location marker if available */}
+              {userLocation && (
+                <Marker position={[userLocation.lat, userLocation.lng]}>
+                  <Popup>
+                    <div className="text-center">
+                      <div className="font-semibold mb-2">Your Location</div>
+                      <div className="text-sm text-gray-600">
+                        Current position
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+
+              {/* Map controller to update view */}
+              <MapController location={location} userLocation={userLocation} />
+            </MapContainer>
+          ) : (
+            <div className="h-full bg-gray-700 flex items-center justify-center">
+              <div className="text-light text-center">
+                <div className="w-5 h-5 border-2 border-yellow border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p className="text-sm">Loading map...</p>
+              </div>
             </div>
           )}
+        </div>
 
-          {/* Real-time indicator */}
-          <div className="absolute top-3 right-3 flex items-center space-x-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+        {/* Real-time indicator */}
+        {trackingData?.tracking_active && (
+          <div className="absolute top-3 right-3 flex items-center space-x-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow-lg">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             <span>LIVE</span>
           </div>
-        </div>
+        )}
 
         {/* Driver Status Bar */}
         {driverInfo && (
@@ -173,6 +259,16 @@ const LiveTrackingMap = ({
                 </p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Coordinates display */}
+        {location && (
+          <div className="bg-gray-700 rounded-lg p-2">
+            <p className="text-xs text-gray-400 mb-1">Driver Coordinates</p>
+            <p className="text-xs font-mono text-yellow">
+              {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+            </p>
           </div>
         )}
 
