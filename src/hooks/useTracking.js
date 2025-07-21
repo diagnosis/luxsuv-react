@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { trackingApi } from '../api/trackingApi';
 import { useAuth } from '../contexts/AuthContext';
+import API_CONFIG from '../config/api.js';
 
 // Hook for getting live tracking data
 export const useLiveTracking = (bookingId, options = {}) => {
