@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Activity, Eye } from 'lucide-react';
 import { useUpdateBooking } from '../hooks/useBooking';
+import { useTrackingStatus } from '../hooks/useTracking';
 import AddressAutocomplete from './AddressAutocomplete';
+import { Link } from '@tanstack/react-router';
 
 const BookingCard = ({ booking, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
+  
+  const { data: trackingStatus } = useTrackingStatus(booking.id);
+  
   const [editData, setEditData] = useState({
     name: booking.your_name || '',
     email: booking.email || '',
@@ -127,6 +132,39 @@ const BookingCard = ({ booking, onUpdate }) => {
                 <X className="w-4 h-4" />
               </button>
             </div>
+          )}
+        </div>
+        
+        {/* Tracking Status & Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Tracking Status */}
+            {trackingStatus?.tracking_active && (
+              <div className="flex items-center space-x-2 text-green-400">
+                <Activity className="w-4 h-4" />
+                <span className="text-sm font-medium">Live Tracking Active</span>
+              </div>
+            )}
+            
+            {/* Ride Status */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-400">Status:</span>
+              <span className={`text-sm font-medium ${getStatusColor(booking.book_status)}`}>
+                {booking.book_status}
+              </span>
+            </div>
+          </div>
+          
+          {/* Track Ride Button */}
+          {(booking.book_status === 'Accepted' || trackingStatus?.tracking_active) && (
+            <Link
+              to="/track-ride"
+              search={{ bookingId: booking.id }}
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Track Ride</span>
+            </Link>
           )}
         </div>
       </div>

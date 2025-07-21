@@ -1,4 +1,6 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { useTrackingNotifications } from '../hooks/useTrackingNotifications';
+import TrackingNotificationContainer from "../components/TrackingNotificationContainer.jsx";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import BottomNav from "../components/BottomNav.jsx";
@@ -8,6 +10,8 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+    const { notifications, removeNotification } = useTrackingNotifications();
+    
     return (
         <div className="h-screen flex flex-col">
             {/* Header - 10% on all screens */}
@@ -25,6 +29,12 @@ function RootComponent() {
                 <BottomNav />
                 <Footer />
             </div>
+            
+            {/* Global Tracking Notifications */}
+            <TrackingNotificationContainer 
+                notifications={notifications}
+                onRemoveNotification={removeNotification}
+            />
         </div>
     );
 }
