@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Loader2, RefreshCw, AlertTriangle, Wifi, WifiOff, Clock, Navigation2 } from 'lucide-react';
 import { useLiveTracking, useRealtimeTracking } from '../hooks/useTracking';
 import LiveTrackingMap from './LiveTrackingMap';
@@ -7,6 +7,19 @@ const RiderTracker = ({ booking, onClose = null }) => {
   const [notifications, setNotifications] = useState([]);
   const [isMinimized, setIsMinimized] = useState(false);
   
+  // Add notification helper (memoized)
+  const addNotification = useCallback((message, type = 'info') => {
+    const id = Date.now();
+    const newNotification = { id, message, type, timestamp: new Date() };
+    
+    setNotifications(prev => [newNotification, ...prev.slice(0, 4)]); // Keep last 5
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
+  }, []);
+
   // Get live tracking data with polling
   const {
     data: trackingData,
@@ -29,38 +42,25 @@ const RiderTracker = ({ booking, onClose = null }) => {
   } = useRealtimeTracking(booking.id, {
     enabled: true,
     autoReconnect: true,
-    onLocationUpdate: (locationData) => {
+    onLocationUpdate: useCallback((locationData) => {
       console.log('📍 Real-time location update:', locationData);
       // Force refresh of tracking data
       refetchTracking();
       
       addNotification('Driver location updated', 'info');
-    },
-    onRideStatusChange: (statusData) => {
+    }, [refetchTracking, addNotification]),
+    onRideStatusChange: useCallback((statusData) => {
       console.log('🚗 Real-time status change:', statusData);
       addNotification(`Ride status: ${statusData.status}`, 'info');
       
       // Force refresh of tracking data
       refetchTracking();
-    },
-    onDriverUpdate: (driverData) => {
+    }, [refetchTracking, addNotification]),
+    onDriverUpdate: useCallback((driverData) => {
       console.log('👨‍✈️ Driver info update:', driverData);
       addNotification('Driver information updated', 'info');
-    }
+    }, [addNotification])
   });
-
-  // Add notification helper
-  const addNotification = (message, type = 'info') => {
-    const id = Date.now();
-    const newNotification = { id, message, type, timestamp: new Date() };
-    
-    setNotifications(prev => [newNotification, ...prev.slice(0, 4)]); // Keep last 5
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 5000);
-  };
 
   // Handle connection status changes
   useEffect(() => {

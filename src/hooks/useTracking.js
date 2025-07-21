@@ -101,7 +101,7 @@ export const useRealtimeTracking = (bookingId, options = {}) => {
       const wsUrl = API_CONFIG.BASE_URL
         .replace('https://', 'wss://')
         .replace('http://', 'ws://') +
-        `/ws/tracking?user_id=${user.id}&role=rider&booking_id=${bookingId}`;
+        `/ws/tracking?user_id=${user.id}&role=rider&booking_id=${bookingId}&token=${encodeURIComponent(token)}`;
       
       console.log('🔌 Connecting to WebSocket:', wsUrl);
       
