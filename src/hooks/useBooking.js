@@ -36,9 +36,9 @@ export const useRequestAccess = () => {
 // Hook for verifying access code
 export const useVerifyAccessCode = () => {
   return useMutation({
-    mutationFn: ({ email, bookingId, code }) => {
-      console.log('🔍 useVerifyAccessCode:', { email, bookingId, code });
-      return bookingApi.verifyAccessCode(email, bookingId, code);
+    mutationFn: ({ email, code, status }) => {
+      console.log('🔍 useVerifyAccessCode:', { email, code, status });
+      return bookingApi.verifyAccessCode(email, code, status);
     },
     onSuccess: (data) => {
       console.log('Code verification successful:', data);
@@ -50,18 +50,18 @@ export const useVerifyAccessCode = () => {
 };
 
 // Hook for viewing booking via token
-export const useViewBooking = (token) => {
+export const useViewBookings = (token, status = null) => {
   return useQuery({
-    queryKey: ['booking', 'view', token],
-    queryFn: () => bookingApi.viewBooking(token),
+    queryKey: ['bookings', 'view', token, status],
+    queryFn: () => bookingApi.viewBookings(token, status),
     enabled: !!token,
     staleTime: 0, // Don't cache since tokens are single-use
     retry: false, // Don't retry since tokens are single-use
     onSuccess: (data) => {
-      console.log('View booking successful:', data);
+      console.log('View bookings successful:', data);
     },
     onError: (error) => {
-      console.error('View booking failed:', error);
+      console.error('View bookings failed:', error);
     },
   });
 };

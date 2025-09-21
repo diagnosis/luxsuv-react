@@ -72,14 +72,18 @@ export const bookingApi = {
   },
 
   // Verify 6-digit access code
-  verifyAccessCode: async (email, bookingId, code) => {
-    console.log('🔍 Verifying Access Code:', { email, bookingId, code });
+  verifyAccessCode: async (email, code, status = null) => {
+    console.log('🔍 Verifying Access Code:', { email, code, status });
     
     const requestBody = {
       email: email,
-      booking_id: bookingId,
       code: code
     };
+
+    // Add status filter if provided
+    if (status) {
+      requestBody.status = status;
+    }
 
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.ACCESS_VERIFY);
     const response = await apiRequest(url, {
@@ -102,15 +106,22 @@ export const bookingApi = {
   },
 
   // View booking via magic link token
-  viewBooking: async (token) => {
-    console.log('👀 Viewing Booking with Token:', token ? `${token.substring(0, 20)}...` : 'No token');
+  viewBookings: async (token, status = null) => {
+    console.log('👀 Viewing Bookings with Token:', token ? `${token.substring(0, 20)}...` : 'No token', 'Status:', status);
     
     if (!token) {
       throw new Error('Token is required');
     }
 
-    const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.VIEW);
-    const response = await apiRequest(`${url}?token=${encodeURIComponent(token)}`, {
+    let url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.VIEW);
+    const params = new URLSearchParams({ token });
+    
+    // Add status filter if provided
+    if (status) {
+      params.append('status', status);
+    }
+
+    const response = await apiRequest(`${url}?${params.toString()}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -124,7 +135,7 @@ export const bookingApi = {
     }
 
     const result = await response.json();
-    console.log('✅ Booking Retrieved:', result);
+    console.log('✅ Bookings Retrieved:', result);
     return result;
   },
 

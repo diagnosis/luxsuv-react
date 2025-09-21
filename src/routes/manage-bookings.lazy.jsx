@@ -16,10 +16,10 @@ export const Route = createLazyFileRoute('/manage-bookings')({
 function ManageBookings() {
   const search = useSearch({ from: '/manage-bookings' });
   const [email, setEmail] = useState('');
-  const [bookingId, setBookingId] = useState('');
   const [accessCode, setAccessCode] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [viewMode, setViewMode] = useState('request'); // 'request', 'verify', or 'view'
-  const [currentBooking, setCurrentBooking] = useState(null);
+  const [currentBookings, setCurrentBookings] = useState([]);
   const [guestToken, setGuestToken] = useState(null);
 
   const requestAccessMutation = useRequestAccess();
@@ -27,10 +27,10 @@ function ManageBookings() {
   
   // Handle magic link token from URL
   const {
-    data: tokenBooking,
-    isLoading: tokenBookingLoading,
-    error: tokenBookingError
-  } = useViewBooking(search.token);
+    data: tokenBookings,
+    isLoading: tokenBookingsLoading,
+    error: tokenBookingsError
+  } = useViewBookings(search.token, statusFilter);
 
   useEffect(() => {
     if (search.token) {
@@ -40,10 +40,10 @@ function ManageBookings() {
   }, [search.token]);
 
   useEffect(() => {
-    if (tokenBooking) {
-      setCurrentBooking(tokenBooking.booking);
+    if (tokenBookings) {
+      setCurrentBookings(tokenBookings.bookings || []);
     }
-  }, [tokenBooking]);
+  }, [tokenBookings]);
 
   const handleRequestAccess = async (e) => {
     e.preventDefault();
@@ -59,7 +59,7 @@ function ManageBookings() {
       });
       
       setViewMode('verify');
-      alert('Access codes sent to your email! Please check your inbox for your booking ID and 6-digit access code.');
+      alert('Access codes sent to your email! Please check your inbox for your 6-digit access code.');
     } catch (error) {
       console.error('Request access failed:', error);
       alert('Failed to send access code: ' + error.message);
@@ -74,11 +74,6 @@ function ManageBookings() {
       return;
     }
     
-    if (!bookingId.trim()) {
-      alert('Please enter your booking ID (from the verification email)');
-      return;
-    }
-    
     if (!accessCode.trim() || accessCode.trim().length !== 6) {
       alert('Please enter a valid 6-digit access code');
       return;
@@ -87,11 +82,11 @@ function ManageBookings() {
     try {
       const result = await verifyCodeMutation.mutateAsync({
         email: email.trim(),
-        bookingId: bookingId.trim(),
-        code: accessCode.trim()
+        code: accessCode.trim(),
+        status: statusFilter || undefined
       });
       
-      setCurrentBooking(result.booking);
+      setCurrentBookings(result.bookings || []);
       setGuestToken(result.token);
       setViewMode('view');
     } catch (error) {
@@ -102,9 +97,9 @@ function ManageBookings() {
 
   const handleStartOver = () => {
     setEmail('');
-    setBookingId('');
     setAccessCode('');
-    setCurrentBooking(null);
+    setStatusFilter('');
+    setCurrentBookings([]);
     setGuestToken(null);
     setViewMode('request');
   };
@@ -180,26 +175,10 @@ function ManageBookings() {
         {viewMode === 'verify' && (
           <>
             <p className="text-light/80 mb-6">
-              We've sent access details to {email}. Please enter your booking ID and 6-digit code from the email.
+              We've sent your 6-digit access code to {email}. Enter the code below to access your bookings.
             </p>
 
             <form onSubmit={handleVerifyCode} className="mb-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-light mb-2">
-                  Booking ID *
-                </label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    value={bookingId}
-                    onChange={(e) => setBookingId(e.target.value)}
-                    placeholder="Enter booking ID from email"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                    required
-                  />
-                </div>
-              </div>
               
               <div>
                 <label className="block text-sm font-medium text-light mb-2">
@@ -218,6 +197,23 @@ function ManageBookings() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-light mb-2">
+                  Filter by Status (Optional)
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                >
+                  <option value="">All Bookings</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
               
               <div className="flex justify-center space-x-4">
                 <button
@@ -229,7 +225,7 @@ function ManageBookings() {
                 </button>
                 <button
                   type="submit"
-                  disabled={verifyCodeMutation.isPending || !bookingId.trim() || accessCode.length !== 6}
+                  disabled={verifyCodeMutation.isPending || accessCode.length !== 6}
                   className="px-6 py-3 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   <Eye className="w-5 h-5" />
@@ -244,18 +240,18 @@ function ManageBookings() {
         {viewMode === 'view' && (
           <div>
             {/* Loading State */}
-            {tokenBookingLoading && (
+            {tokenBookingsLoading && (
               <div className="text-center py-8">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow"></div>
-                <p className="mt-2 text-light/80">Loading your booking...</p>
+                <p className="mt-2 text-light/80">Loading your bookings...</p>
               </div>
             )}
 
             {/* Error State */}
-            {tokenBookingError && (
+            {tokenBookingsError && (
               <div className="bg-red-600/20 text-red-400 p-4 rounded-lg mb-4">
-                <p className="font-medium">Error loading booking</p>
-                <p className="text-sm mt-1">{tokenBookingError.message}</p>
+                <p className="font-medium">Error loading bookings</p>
+                <p className="text-sm mt-1">{tokenBookingsError.message}</p>
                 <button
                   onClick={handleStartOver}
                   className="mt-2 px-4 py-2 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors"
@@ -265,31 +261,68 @@ function ManageBookings() {
               </div>
             )}
 
-            {/* Booking Details */}
-            {currentBooking && (
+            {/* Status Filter for Magic Links */}
+            {search.token && !tokenBookingsLoading && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-light mb-2">
+                  Filter by Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full max-w-xs px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                >
+                  <option value="">All Bookings</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            )}
+
+            {/* Bookings List */}
+            {currentBookings.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">
-                    Your Booking Details
+                    Your Bookings ({currentBookings.length})
                   </h2>
                   <button
                     onClick={handleStartOver}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-light font-semibold rounded-lg transition-colors"
                   >
-                    Access Another Booking
+                    Access Other Bookings
                   </button>
                 </div>
                 
-                <BookingCard
-                  booking={currentBooking}
-                  guestToken={guestToken}
-                  showCancelOption={!!guestToken}
-                />
+                <div className="space-y-4">
+                  {currentBookings.map((booking) => (
+                    <BookingCard
+                      key={booking.id}
+                      booking={booking}
+                      guestToken={guestToken}
+                      showCancelOption={!!guestToken}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
         )}
 
+            {/* No Bookings Found */}
+            {!tokenBookingsLoading && !tokenBookingsError && currentBookings.length === 0 && viewMode === 'view' && (
+              <div className="text-center py-8">
+                <p className="text-light/80">No bookings found{statusFilter && ` with status "${statusFilter}"`}.</p>
+                <button
+                  onClick={handleStartOver}
+                  className="mt-4 px-4 py-2 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors"
+                >
+                  Try Different Email
+                </button>
+              </div>
+            )}
         {/* Help Section - Show only on access screen */}
         {viewMode === 'request' && (
           <div className="mt-8 bg-gray-800 rounded-lg p-6">
@@ -301,15 +334,19 @@ function ManageBookings() {
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>We'll send you your booking ID, a fresh 6-digit access code, and magic link via email</span>
+                <span>We'll send you a fresh 6-digit access code and magic link via email</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>Enter the booking ID and 6-digit code from the email to access your booking</span>
+                <span>Enter the 6-digit code from the email to access your bookings</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>Use the access code to view and cancel your booking if needed</span>
+                <span>You can filter bookings by status (pending, approved, completed, cancelled)</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <span className="text-yellow mt-1">•</span>
+                <span>Use the guest token to cancel bookings if needed</span>
               </li>
             </ul>
           </div>
