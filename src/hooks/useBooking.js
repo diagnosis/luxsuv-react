@@ -20,9 +20,9 @@ export const useCreateGuestBooking = () => {
 // Hook for requesting access tokens
 export const useRequestAccess = () => {
   return useMutation({
-    mutationFn: ({ email }) => {
-      console.log('🔑 useRequestAccess:', { email });
-      return bookingApi.requestAccess(email);
+    mutationFn: ({ email, bookingId }) => {
+      console.log('🔑 useRequestAccess:', { email, bookingId });
+      return bookingApi.requestAccess(email, bookingId);
     },
     onSuccess: (data) => {
       console.log('Access request successful:', data);
