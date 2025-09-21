@@ -45,11 +45,10 @@ export const bookingApi = {
 
   // Request access tokens for an existing booking
   requestAccess: async (email) => {
-    console.log('🔑 Requesting Access:', { email, bookingId });
+    console.log('🔑 Requesting Access:', { email });
     
     const requestBody = {
-      email: email,
-      booking_id: bookingId
+      email: email
     };
 
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.ACCESS_REQUEST);
