@@ -2,13 +2,10 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faXTwitter, faInstagram, faTiktok} from '@fortawesome/free-brands-svg-icons';
-import {ChevronUp, Menu, LogIn} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import UserMenu from './UserMenu';
+import {ChevronUp, Menu} from 'lucide-react';
 
 const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { isAuthenticated } = useAuth();
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -30,22 +27,6 @@ const Header = () => {
 
                 {/* Buttons and Mobile Toggle */}
                 <div className="flex space-x-3 md:order-2 relative z-50">
-                    {/* Authentication Buttons */}
-                    {!isAuthenticated ? (
-                        <>
-                            <Link
-                                to="/signin"
-                                className="hidden md:flex items-center space-x-2 text-light hover:text-yellow transition-colors px-3 py-2 rounded-lg"
-                                onClick={closeMobileMenu}
-                            >
-                                <LogIn className="w-4 h-4" />
-                                <span>Sign In</span>
-                            </Link>
-                        </>
-                    ) : (
-                        <UserMenu />
-                    )}
-
                     <Link
                         to="/book"
                         className="text-dark bg-yellow hover:bg-yellow-400 focus:ring-4 focus:outline-none focus:ring-yellow/50 font-medium rounded-lg text-sm px-4 py-2 text-center transition-colors"
@@ -123,21 +104,6 @@ const Header = () => {
                                 </li>
                             </ul>
                         </div>
-
-                        {/* Mobile Authentication */}
-                        {!isAuthenticated && (
-                            <div className="mb-6 md:hidden">
-                                <h3 className="text-xl font-semibold text-yellow mb-4 text-center">Account</h3>
-                                <div className="flex flex-col space-y-3">
-                                    <Link to="/signin" onClick={closeMobileMenu} className="bg-yellow hover:bg-yellow/90 text-dark font-semibold py-2 px-4 rounded-lg transition-colors text-center">
-                                        Sign In
-                                    </Link>
-                                    <Link to="/signup" onClick={closeMobileMenu} className="bg-gray-700 hover:bg-gray-600 text-light font-semibold py-2 px-4 rounded-lg transition-colors text-center">
-                                        Create Account
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
 
                         {/* Social Links */}
                         <div className="mb-6 md:hidden">

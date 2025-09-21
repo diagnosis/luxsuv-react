@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle } from 'lucide-react';
 import { useCancelBooking } from '../hooks/useBooking';
-import { useAuth } from '../contexts/AuthContext';
 
 const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
