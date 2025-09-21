@@ -1,125 +1,32 @@
 import { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle } from 'lucide-react';
-import { useUpdateBooking, useCancelBooking, useGenerateUpdateLink } from '../hooks/useBooking';
+import { useCancelBooking } from '../hooks/useBooking';
 import { useAuth } from '../contexts/AuthContext';
-import AddressAutocomplete from './AddressAutocomplete';
 
-const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
-  const { isAuthenticated, user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
+const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showUpdateLinkModal, setShowUpdateLinkModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
-  const [editData, setEditData] = useState({
-    name: booking.your_name || '',
-    email: booking.email || '',
-    phone: booking.phone_number || '',
-    rideType: booking.ride_type || 'hourly',
-    pickupLocation: booking.pickup_location || '',
-    dropoffLocation: booking.dropoff_location || '',
-    date: booking.date || '',
-    time: booking.time || '',
-    passengers: booking.number_of_passengers || 1,
-    luggage: booking.number_of_luggage || 0,
-    notes: booking.additional_notes || '',
-  });
 
-  const updateBookingMutation = useUpdateBooking();
   const cancelBookingMutation = useCancelBooking();
-  const generateUpdateLinkMutation = useGenerateUpdateLink();
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    // Reset edit data to original booking data
-    setEditData({
-      name: booking.your_name || '',
-      email: booking.email || '',
-      phone: booking.phone_number || '',
-      rideType: booking.ride_type || 'hourly',
-      pickupLocation: booking.pickup_location || '',
-      dropoffLocation: booking.dropoff_location || '',
-      date: booking.date || '',
-      time: booking.time || '',
-      passengers: booking.number_of_passengers || 1,
-      luggage: booking.number_of_luggage || 0,
-      notes: booking.additional_notes || '',
-    });
-  };
-
-  const handleSave = async () => {
-    try {
-      await updateBookingMutation.mutateAsync({
-        bookingId: booking.id,
-        bookingData: editData,
-        secureToken: secureToken,
-      });
-      setIsEditing(false);
-      if (onUpdate) {
-        onUpdate();
-      }
-    } catch (error) {
-      console.error('Failed to update booking:', error);
-      
-      // Show user-friendly error message
-      if (error.message.includes('403') || error.message.includes('permission')) {
-        alert('Permission Error: ' + error.message);
-      } else {
-        alert('Update failed: ' + error.message);
-      }
-    }
-  };
 
   const handleCancelBooking = async () => {
-    if (!cancelReason.trim()) {
-      alert('Please provide a reason for cancellation');
+    if (!guestToken) {
+      alert('Guest token required for cancellation');
       return;
     }
 
     try {
       await cancelBookingMutation.mutateAsync({
         bookingId: booking.id,
-        reason: cancelReason,
-        secureToken: secureToken,
+        guestToken: guestToken,
       });
       setShowCancelModal(false);
       setCancelReason('');
-      if (onUpdate) {
-        onUpdate();
-      }
+      alert('Booking cancelled successfully');
     } catch (error) {
       console.error('Failed to cancel booking:', error);
-      
-      // Show user-friendly error message
-      if (error.message.includes('403') || error.message.includes('permission')) {
-        alert('Permission Error: ' + error.message);
-      } else {
-        alert('Cancellation failed: ' + error.message);
-      }
+      alert('Cancellation failed: ' + error.message);
     }
-  };
-
-  const handleGenerateUpdateLink = async () => {
-    try {
-      await generateUpdateLinkMutation.mutateAsync({
-        bookingId: booking.id,
-        email: booking.email,
-      });
-      setShowUpdateLinkModal(false);
-      alert('Update link has been sent to your email address!');
-    } catch (error) {
-      console.error('Failed to generate update link:', error);
-      alert('Failed to generate update link: ' + error.message);
-    }
-  };
-  const handleInputChange = (field, value) => {
-    setEditData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   const formatDate = (dateString) => {
@@ -132,56 +39,29 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'confirmed':
+      case 'approved':
         return 'text-green-400 bg-green-400/20';
       case 'pending':
         return 'text-yellow-400 bg-yellow-400/20';
       case 'cancelled':
         return 'text-red-400 bg-red-400/20';
+      case 'completed':
+        return 'text-blue-400 bg-blue-400/20';
       default:
         return 'text-gray-400 bg-gray-400/20';
     }
-  };
-
-  // Check if user can edit this booking
-  const canEdit = () => {
-    // Don't show edit button if booking is cancelled
-    if (booking.status?.toLowerCase() === 'cancelled') return false;
-    
-    // If we have a secure token, user can edit
-    if (secureToken) return true;
-    
-    // If authenticated, check if user owns the booking or if booking allows editing
-    if (isAuthenticated && user) {
-      // Check if user email matches booking email
-      if (booking.email === user.email) return true;
-      
-      // Check if user ID matches (for authenticated bookings)
-      if (booking.user_id && user.id && booking.user_id === user.id) return true;
-    }
-    
-    return false;
   };
 
   // Check if user can cancel this booking
   const canCancel = () => {
     // Can't cancel if already cancelled
     if (booking.status?.toLowerCase() === 'cancelled') return false;
+    if (booking.status?.toLowerCase() === 'completed') return false;
     
-    // If we have a secure token, user can cancel
-    if (secureToken) return true;
-    
-    // If authenticated, check if user owns the booking
-    if (isAuthenticated && user) {
-      // Check if user email matches booking email
-      if (booking.email === user.email) return true;
-      
-      // Check if user ID matches (for authenticated bookings)
-      if (booking.user_id && user.id && booking.user_id === user.id) return true;
-    }
-    
-    return false;
+    // Can cancel if we have a guest token and cancellation is allowed
+    return showCancelOption && !!guestToken;
   };
+  
   return (
     <>
       <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-700 hover:border-yellow/30 transition-colors">
@@ -198,64 +78,16 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
           )}
         </div>
         <div className="flex space-x-2">
-          {!isEditing && canEdit() ? (
+          {canCancel() && (
             <>
               <button
-                onClick={handleEdit}
-                className="p-2 text-yellow hover:bg-yellow/10 rounded-lg transition-colors"
-                aria-label="Edit booking"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-              {canCancel() && (
-                <button
-                  onClick={() => setShowCancelModal(true)}
-                  className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                  aria-label="Cancel booking"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-              {!isAuthenticated && !secureToken && (
-                <button
-                  onClick={() => setShowUpdateLinkModal(true)}
-                  className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                  aria-label="Get update link"
-                  title="Get secure update link via email"
-                >
-                  <Mail className="w-4 h-4" />
-                </button>
-              )}
-              
-              {/* Debug info in development */}
-              {import.meta.env.DEV && (
-                <div className="text-xs text-gray-500 mt-2">
-                  <p>Debug: Can edit: {canEdit().toString()}</p>
-                  <p>User email: {user?.email || 'None'}</p>
-                  <p>Booking email: {booking.email}</p>
-                  <p>Has secure token: {!!secureToken}</p>
-                  <p>Is authenticated: {isAuthenticated.toString()}</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex space-x-2">
-              <button
-                onClick={handleSave}
-                disabled={updateBookingMutation.isPending}
-                className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition-colors disabled:opacity-50"
-                aria-label="Save changes"
-              >
-                <Save className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleCancel}
+                onClick={() => setShowCancelModal(true)}
                 className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                aria-label="Cancel editing"
+                aria-label="Cancel booking"
               >
-                <X className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" />
               </button>
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -266,29 +98,11 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Name</label>
-            {isEditing ? (
-              <input
-                type="text"
-                value={editData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-              />
-            ) : (
-              <p className="text-light">{booking.your_name}</p>
-            )}
+            <p className="text-light">{booking.name}</p>
           </div>
           <div>
             <label className="block text-sm text-gray-400 mb-1">Phone</label>
-            {isEditing ? (
-              <input
-                type="tel"
-                value={editData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-              />
-            ) : (
-              <p className="text-light">{booking.phone_number}</p>
-            )}
+            <p className="text-light">{booking.phone}</p>
           </div>
         </div>
 
@@ -298,146 +112,28 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
             <MapPin className="w-4 h-4 text-green-400 mt-1 flex-shrink-0" />
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-1">Pickup Location</label>
-              {isEditing ? (
-                <AddressAutocomplete
-                  value={editData.pickupLocation}
-                  onChange={(value) => handleInputChange('pickupLocation', value)}
-                  placeholder="Enter pickup location"
-                  className="text-sm"
-                />
-              ) : (
-                <p className="text-light">{booking.pickup_location}</p>
-              )}
+              <p className="text-light">{booking.pickup}</p>
             </div>
           </div>
           <div className="flex items-start space-x-2">
             <MapPin className="w-4 h-4 text-red-400 mt-1 flex-shrink-0" />
             <div className="flex-1">
               <label className="block text-sm text-gray-400 mb-1">Drop-off Location</label>
-              {isEditing ? (
-                <AddressAutocomplete
-                  value={editData.dropoffLocation}
-                  onChange={(value) => handleInputChange('dropoffLocation', value)}
-                  placeholder="Enter drop-off location"
-                  className="text-sm"
-                />
-              ) : (
-                <p className="text-light">{booking.dropoff_location}</p>
-              )}
+              <p className="text-light">{booking.dropoff}</p>
             </div>
           </div>
         </div>
 
-        {/* Date and Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-yellow" />
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Date</label>
-              {isEditing ? (
-                <input
-                  type="date"
-                  value={editData.date}
-                  onChange={(e) => handleInputChange('date', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-                />
-              ) : (
-                <p className="text-light">{formatDate(booking.date)}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-yellow" />
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Time</label>
-              {isEditing ? (
-                <input
-                  type="time"
-                  value={editData.time}
-                  onChange={(e) => handleInputChange('time', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-                />
-              ) : (
-                <p className="text-light">{booking.time}</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Passengers and Luggage */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-yellow" />
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Passengers</label>
-              {isEditing ? (
-                <input
-                  type="number"
-                  min="1"
-                  max="8"
-                  value={editData.passengers}
-                  onChange={(e) => handleInputChange('passengers', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-                />
-              ) : (
-                <p className="text-light">{booking.number_of_passengers}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Luggage className="w-4 h-4 text-yellow" />
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Luggage</label>
-              {isEditing ? (
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={editData.luggage}
-                  onChange={(e) => handleInputChange('luggage', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-                />
-              ) : (
-                <p className="text-light">{booking.number_of_luggage || 0}</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Ride Type */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Ride Type</label>
-          {isEditing ? (
-            <select
-              value={editData.rideType}
-              onChange={(e) => handleInputChange('rideType', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm"
-            >
-              <option value="hourly">Hourly</option>
-              <option value="per_ride">Per Ride</option>
-            </select>
-          ) : (
-            <p className="text-light capitalize">{booking.ride_type?.replace('_', ' ')}</p>
-          )}
-        </div>
-
-        {/* Additional Notes */}
-        {(booking.additional_notes || isEditing) && (
+        {/* Scheduled Time */}
+        <div className="flex items-center space-x-2">
+          <Calendar className="w-4 h-4 text-yellow" />
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Additional Notes</label>
-            {isEditing ? (
-              <textarea
-                value={editData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                rows="3"
-                className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow text-sm resize-none"
-                placeholder="Any special requests or additional information..."
-              />
-            ) : (
-              <p className="text-light">{booking.additional_notes}</p>
-            )}
+            <label className="block text-sm text-gray-400 mb-1">Scheduled Time</label>
+            <p className="text-light">
+              {booking.scheduled_at ? new Date(booking.scheduled_at).toLocaleString() : 'Not specified'}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Created Date */}
         {booking.created_at && (
@@ -464,39 +160,15 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
             )}
           </div>
         )}
-
-        {/* Booking Status Details */}
-        {(booking.book_status || booking.ride_status) && (
-          <div className="pt-2 border-t border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-              {booking.book_status && (
-                <div>
-                  <span className="text-gray-400">Booking Status:</span>
-                  <span className={`ml-2 font-medium ${getStatusColor(booking.book_status).split(' ')[0]}`}>
-                    {booking.book_status}
-                  </span>
-                </div>
-              )}
-              {booking.ride_status && (
-                <div>
-                  <span className="text-gray-400">Ride Status:</span>
-                  <span className={`ml-2 font-medium ${getStatusColor(booking.ride_status).split(' ')[0]}`}>
-                    {booking.ride_status}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Update Status */}
-      {updateBookingMutation.isPending && (
-        <div className="mt-3 p-2 bg-yellow/10 text-yellow rounded-lg text-sm">
-          Updating booking...
+      {/* Cancel Status */}
+      {cancelBookingMutation.isPending && (
+        <div className="mt-3 p-2 bg-red-400/10 text-red-400 rounded-lg text-sm">
+          Cancelling booking...
         </div>
       )}
-      </div>
+    </div>
 
       {/* Cancel Booking Modal */}
       {showCancelModal && (
@@ -517,21 +189,8 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
             
             <div className="p-6">
               <p className="text-light/80 mb-4">
-                Are you sure you want to cancel booking #{booking.id}? This action cannot be undone.
+                Are you sure you want to cancel this booking? This action cannot be undone.
               </p>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-light mb-2">
-                  Reason for cancellation *
-                </label>
-                <textarea
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  rows="3"
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow resize-none"
-                  placeholder="Please provide a reason for cancellation..."
-                />
-              </div>
               
               <div className="flex space-x-3">
                 <button
@@ -542,7 +201,7 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
                 </button>
                 <button
                   onClick={handleCancelBooking}
-                  disabled={cancelBookingMutation.isPending || !cancelReason.trim()}
+                  disabled={cancelBookingMutation.isPending}
                   className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {cancelBookingMutation.isPending ? 'Cancelling...' : 'Cancel Booking'}
@@ -553,59 +212,6 @@ const BookingCard = ({ booking, onUpdate, secureToken = null }) => {
         </div>
       )}
 
-      {/* Generate Update Link Modal */}
-      {showUpdateLinkModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-600">
-            <div className="flex items-center justify-between p-6 border-b border-gray-600">
-              <h2 className="text-xl font-semibold text-light flex items-center">
-                <Mail className="w-5 h-5 text-blue-400 mr-2" />
-                Get Update Link
-              </h2>
-              <button
-                onClick={() => setShowUpdateLinkModal(false)}
-                className="text-gray-400 hover:text-light transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <p className="text-light/80 mb-4">
-                We'll send a secure link to your email address that will allow you to update this booking.
-              </p>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-light mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={booking.email}
-                  readOnly
-                  className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg opacity-75"
-                />
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowUpdateLinkModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-light font-semibold rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleGenerateUpdateLink}
-                  disabled={generateUpdateLinkMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {generateUpdateLinkMutation.isPending ? 'Sending...' : 'Send Link'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

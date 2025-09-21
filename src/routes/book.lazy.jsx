@@ -2,7 +2,7 @@ import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { useAuth } from '../contexts/AuthContext';
-import { useBookRide } from '../hooks/useBooking';
+import { useCreateGuestBooking } from '../hooks/useBooking';
 import BookingForm from '../components/BookingForm';
 import BookingSuccess from '../components/BookingSuccess';
 import BookingError from '../components/BookingError';
@@ -27,7 +27,7 @@ function RouteComponent() {
   const [pickupLocation, setPickupLocation] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState('');
 
-  const bookRideMutation = useBookRide();
+  const createGuestBookingMutation = useCreateGuestBooking();
 
   // Set guest mode based on URL search params
   useEffect(() => {
@@ -61,29 +61,20 @@ function RouteComponent() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        rideType: formData.rideType,
-        pickupLocation: pickupLocation,
-        dropoffLocation: dropoffLocation,
-        date: formData.date,
-        time: formData.time,
-        passengers: parseInt(formData.passengers),
-        luggage: parseInt(formData.luggage) || 0,
-        notes: formData.notes || '',
+        pickup: formData.pickup,
+        dropoff: formData.dropoff,
+        scheduled_at: formData.scheduled_at,
       };
 
       // Enhanced validation
       const validationErrors = [];
       
       // Basic validation
-      if (bookingData.passengers < 1 || bookingData.passengers > 8) {
-        validationErrors.push('Number of passengers must be between 1 and 8');
-      }
-
-      if (!pickupLocation.trim()) {
+      if (!bookingData.pickup?.trim()) {
         validationErrors.push('Please enter a pickup location');
       }
 
-      if (!dropoffLocation.trim()) {
+      if (!bookingData.dropoff?.trim()) {
         validationErrors.push('Please enter a drop-off location');
       }
       
@@ -99,17 +90,13 @@ function RouteComponent() {
         validationErrors.push('Please enter your phone number');
       }
       
-      if (!bookingData.date) {
+      if (!bookingData.scheduled_at) {
         validationErrors.push('Please select a date');
       }
       
-      if (!bookingData.time) {
-        validationErrors.push('Please select a time');
-      }
-      
       // Validate date is not in the past
-      if (bookingData.date && bookingData.time) {
-        const bookingDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
+      if (bookingData.scheduled_at) {
+        const bookingDateTime = new Date(bookingData.scheduled_at);
         const now = new Date();
         const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
         
@@ -127,19 +114,13 @@ function RouteComponent() {
       // Store form data for success screen
       setBookingFormData({
         ...bookingData,
-        pickup_location: pickupLocation,
-        dropoff_location: dropoffLocation,
         your_name: bookingData.name,
         phone_number: bookingData.phone,
-        number_of_passengers: bookingData.passengers,
-        number_of_luggage: bookingData.luggage,
-        ride_type: bookingData.rideType,
-        additional_notes: bookingData.notes,
         status: 'pending' // Set status to pending
       });
 
-      // Submit booking (token and user context handled in useBookRide hook)
-      const result = await bookRideMutation.mutateAsync(bookingData);
+      // Submit guest booking
+      const result = await createGuestBookingMutation.mutateAsync(bookingData);
 
       console.log('✅ Booking submission successful:', result);
       
@@ -225,7 +206,7 @@ function RouteComponent() {
                     search={{ guest: true }}
                     className="bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
                 >
-                  Continue as Guest
+                  Book as Guest
                 </Link>
               </div>
             </div>

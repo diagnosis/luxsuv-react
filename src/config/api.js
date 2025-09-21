@@ -1,33 +1,30 @@
-// API Configuration
+// API Configuration for LuxSUV Backend
 const API_CONFIG = {
   // Base URL - can be overridden by environment variables
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://luxsuv-v4.onrender.com',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   
   // API Endpoints
   ENDPOINTS: {
-    // Authentication endpoints
-    AUTH: {
-      REGISTER: '/register',
-      LOGIN: '/login',
-      PROFILE: '/users/me',
-      UPDATE_PASSWORD: '/users/me/password',
-      FORGOT_PASSWORD: '/auth/forgot-password',
-      RESET_PASSWORD: '/auth/reset-password',
-      HEALTH: '/health'
+    // Guest booking endpoints
+    BOOKING: {
+      CREATE_GUEST: '/api/v1/bookings/guest',
+      ACCESS_REQUEST: '/api/v1/bookings/access/request',
+      ACCESS_VERIFY: '/api/v1/bookings/access/verify',
+      VIEW: '/api/v1/bookings/view',
+      CANCEL: '/api/v1/bookings/{id}/cancel',
     },
     
-    // Booking endpoints
-    BOOKING: {
-      CREATE: '/book-ride',
-      GET_BY_EMAIL: '/bookings/email',
-      GET_BY_USER: '/bookings/my',
-      UPDATE: '/bookings',
-      UPDATE_WITH_TOKEN: '/bookings',
-      CANCEL: '/bookings',
-      CANCEL_WITH_TOKEN: '/bookings',
-      GENERATE_UPDATE_LINK: '/bookings',
-      ACCEPT: '/book-ride',
-      AVAILABLE: '/bookings/available'
+    // Admin endpoints (for future admin app)
+    ADMIN: {
+      LOGIN: '/api/v1/admin/login',
+      BOOKINGS: '/api/v1/admin/bookings',
+      UPDATE_STATUS: '/api/v1/admin/bookings/{id}/status',
+    },
+    
+    // Development endpoints
+    DEV: {
+      OUTBOX: '/dev/outbox',
+      EMAIL: '/dev/outbox/email',
     }
   },
   
@@ -48,9 +45,9 @@ const API_CONFIG = {
 export const buildUrl = (endpoint, params = {}) => {
   let url = `${API_CONFIG.BASE_URL}${endpoint}`;
   
-  // Replace path parameters
+  // Replace path parameters like {id}
   Object.keys(params).forEach(key => {
-    url = url.replace(`:${key}`, params[key]);
+    url = url.replace(`{${key}}`, params[key]);
   });
   
   return url;

@@ -33,6 +33,21 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
   // Get booking data from the result or use stored form data
   const bookingData = bookingResult?.booking || bookingResult || {};
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'approved':
+        return 'text-green-400 bg-green-400/20';
+      case 'pending':
+        return 'text-yellow-400 bg-yellow-400/20';
+      case 'cancelled':
+        return 'text-red-400 bg-red-400/20';
+      case 'completed':
+        return 'text-blue-400 bg-blue-400/20';
+      default:
+        return 'text-gray-400 bg-gray-400/20';
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto text-center">
       {/* Success Icon and Header */}
@@ -58,11 +73,14 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
       {/* Status Notice */}
       <div className="bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-400/30">
         <div className="flex items-center justify-center space-x-2 mb-2">
-          <AlertTriangle className="w-5 h-5 text-blue-400" />
-          <span className="text-blue-400 font-semibold">Booking Submitted</span>
+          {bookingData.status && (
+            <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(bookingData.status)}`}>
+              {bookingData.status.charAt(0).toUpperCase() + bookingData.status.slice(1)}
+            </span>
+          )}
         </div>
         <p className="text-light/80 text-sm">
-          Your booking has been submitted successfully. Our team will review and confirm your reservation shortly.
+          Your booking has been submitted successfully. Check your email for access code and booking details.
         </p>
       </div>
 
@@ -98,24 +116,15 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
           </div>
 
           {/* Date and Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5 text-yellow flex-shrink-0" />
-              <div>
-                <p className="text-sm text-gray-400">Date</p>
-                <p className="text-light font-medium">
-                  {bookingData.date ? formatDate(bookingData.date) : 'Not specified'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Clock className="w-5 h-5 text-yellow flex-shrink-0" />
-              <div>
-                <p className="text-sm text-gray-400">Time</p>
-                <p className="text-light font-medium">
-                  {bookingData.time ? formatTime(bookingData.time) : 'Not specified'}
-                </p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <Calendar className="w-5 h-5 text-yellow flex-shrink-0" />
+            <div>
+              <p className="text-sm text-gray-400">Scheduled Date & Time</p>
+              <p className="text-light font-medium">
+                {bookingData.scheduled_at 
+                  ? new Date(bookingData.scheduled_at).toLocaleString()
+                  : 'Not specified'}
+              </p>
             </div>
           </div>
 
@@ -125,47 +134,18 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               <MapPin className="w-5 h-5 text-green-400 mt-1 flex-shrink-0" />
               <div>
                 <p className="text-sm text-gray-400">Pickup Location</p>
-                <p className="text-light">{bookingData.pickup_location || 'Not specified'}</p>
+                <p className="text-light">{bookingData.pickup || 'Not specified'}</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
               <div>
                 <p className="text-sm text-gray-400">Drop-off Location</p>
-                <p className="text-light">{bookingData.dropoff_location || 'Not specified'}</p>
+                <p className="text-light">{bookingData.dropoff || 'Not specified'}</p>
               </div>
             </div>
           </div>
 
-          {/* Passengers and Service Type */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3">
-              <Users className="w-5 h-5 text-yellow flex-shrink-0" />
-              <div>
-                <p className="text-sm text-gray-400">Passengers</p>
-                <p className="text-light font-medium">
-                  {bookingData.number_of_passengers || bookingData.passengers || 1} passenger{(bookingData.number_of_passengers || bookingData.passengers || 1) !== 1 ? 's' : ''}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Car className="w-5 h-5 text-yellow flex-shrink-0" />
-              <div>
-                <p className="text-sm text-gray-400">Service Type</p>
-                <p className="text-light font-medium capitalize">
-                  {(bookingData.ride_type || bookingData.rideType || 'hourly').replace('_', ' ')}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Notes */}
-          {(bookingData.additional_notes || bookingData.notes) && (
-            <div>
-              <p className="text-sm text-gray-400">Additional Notes</p>
-              <p className="text-light">{bookingData.additional_notes || bookingData.notes}</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -178,7 +158,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               1
             </div>
             <p className="text-light/90">
-              You'll receive a confirmation email with all booking details within the next few minutes.
+              Check your email for a 6-digit access code and magic link to manage your booking.
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -186,7 +166,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               2
             </div>
             <p className="text-light/90">
-              Our drivers will review your booking request and approve it within 24 hours.
+              Use either the access code or magic link to view and manage your booking anytime.
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -194,7 +174,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               3
             </div>
             <p className="text-light/90">
-              Once approved, we'll contact you to confirm final details before your scheduled pickup.
+              Our team will review and confirm your reservation within 24 hours.
             </p>
           </div>
         </div>
@@ -206,7 +186,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
           to="/manage-bookings"
           className="inline-flex items-center justify-center bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
         >
-          Manage Bookings
+          Access My Booking
           <ArrowRight className="w-4 h-4 ml-2" />
         </Link>
         <button
