@@ -52,20 +52,14 @@ function ManageBookings() {
       alert('Please enter a valid email address');
       return;
     }
-    
-    if (!bookingId.trim()) {
-      alert('Please enter your booking ID');
-      return;
-    }
 
     try {
       const result = await requestAccessMutation.mutateAsync({
-        email: email.trim(),
-        bookingId: bookingId.trim()
+        email: email.trim()
       });
       
       setViewMode('verify');
-      alert('Access code sent to your email! Please check your inbox.');
+      alert('Access codes sent to your email! Please check your inbox and use the 6-digit code with your booking ID.');
     } catch (error) {
       console.error('Request access failed:', error);
       alert('Failed to send access code: ' + error.message);
@@ -74,6 +68,16 @@ function ManageBookings() {
 
   const handleVerifyCode = async (e) => {
     e.preventDefault();
+    
+    if (!email.trim() || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    if (!bookingId.trim()) {
+      alert('Please enter your booking ID (from the verification email)');
+      return;
+    }
     
     if (!accessCode.trim() || accessCode.trim().length !== 6) {
       alert('Please enter a valid 6-digit access code');
@@ -137,7 +141,7 @@ function ManageBookings() {
         {viewMode === 'access' && (
           <>
             <p className="text-light/80 mb-6">
-              Enter your email address and booking ID to request access to your booking.
+              Enter your email address to request access codes for your bookings. You'll receive an email with booking details and access codes.
             </p>
 
             <form onSubmit={handleRequestAccess} className="mb-6 space-y-4">
@@ -158,27 +162,10 @@ function ManageBookings() {
                 </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-light mb-2">
-                  Booking ID *
-                </label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    value={bookingId}
-                    onChange={(e) => setBookingId(e.target.value)}
-                    placeholder="Enter booking ID"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                    required
-                  />
-                </div>
-              </div>
-              
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  disabled={requestAccessMutation.isPending || !email.trim() || !bookingId.trim()}
+                  disabled={requestAccessMutation.isPending || !email.trim()}
                   className="px-6 py-3 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   <Mail className="w-5 h-5" />
@@ -193,10 +180,27 @@ function ManageBookings() {
         {viewMode === 'verify' && (
           <>
             <p className="text-light/80 mb-6">
-              We've sent a 6-digit access code to {email}. Please enter the code below.
+              We've sent access details to {email}. Please enter your booking ID and the 6-digit access code below.
             </p>
 
             <form onSubmit={handleVerifyCode} className="mb-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-light mb-2">
+                  Booking ID *
+                </label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    value={bookingId}
+                    onChange={(e) => setBookingId(e.target.value)}
+                    placeholder="Enter booking ID (from email)"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    required
+                  />
+                </div>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-light mb-2">
                   6-Digit Access Code *
@@ -225,7 +229,7 @@ function ManageBookings() {
                 </button>
                 <button
                   type="submit"
-                  disabled={verifyCodeMutation.isPending || accessCode.length !== 6}
+                  disabled={verifyCodeMutation.isPending || accessCode.length !== 6 || !bookingId.trim()}
                   className="px-6 py-3 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   <Eye className="w-5 h-5" />
@@ -293,15 +297,15 @@ function ManageBookings() {
             <ul className="space-y-2 text-light/80">
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>Enter the email address and booking ID from your confirmation</span>
+                <span>Enter just your email address to request access</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>We'll send you a 6-digit access code via email</span>
+                <span>We'll send you booking details and 6-digit access codes via email</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>Enter the code to access your booking details</span>
+                <span>Enter your booking ID and access code to view your booking</span>
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
