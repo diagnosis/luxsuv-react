@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { Search, Mail, RefreshCw, AlertCircle, User, Key, Eye } from 'lucide-react';
+import { Search, Mail, RefreshCw, AlertCircle, User, Key, Eye, ArrowRight } from 'lucide-react';
 import { useSearch } from '@tanstack/react-router';
 import { useRequestAccess, useVerifyAccessCode, useViewBookings } from '../hooks/useBooking';
 import { queryClient } from '../lib/queryClient';
@@ -18,7 +18,8 @@ function ManageBookings() {
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [viewMode, setViewMode] = useState('request'); // 'request', 'verify', or 'view'
+  const [viewMode, setViewMode] = useState('request'); // 'request', 'verify', 'direct-code', or 'view'
+  const [accessMethod, setAccessMethod] = useState('request'); // 'request' or 'direct-code'
   const [currentBookings, setCurrentBookings] = useState([]);
   const [guestToken, setGuestToken] = useState(null);
 
@@ -99,11 +100,50 @@ function ManageBookings() {
     setEmail('');
     setAccessCode('');
     setStatusFilter('');
+    setAccessMethod('request');
     setCurrentBookings([]);
     setGuestToken(null);
     setViewMode('request');
   };
 
+  const handleDirectCodeAccess = () => {
+    setAccessMethod('direct-code');
+    setViewMode('direct-code');
+  };
+
+  const handleRequestNewAccess = () => {
+    setAccessMethod('request');
+    setViewMode('request');
+  };
+
+  const handleDirectCodeSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!email.trim() || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    if (!accessCode.trim() || accessCode.trim().length !== 6) {
+      alert('Please enter a valid 6-digit access code');
+      return;
+    }
+
+    try {
+      const result = await verifyCodeMutation.mutateAsync({
+        email: email.trim(),
+        code: accessCode.trim(),
+        status: statusFilter || undefined
+      });
+      
+      setCurrentBookings(result.bookings || []);
+      setGuestToken(result.token);
+      setViewMode('view');
+    } catch (error) {
+      console.error('Code verification failed:', error);
+      alert('Code verification failed: ' + error.message);
+    }
+  };
   const renderMagicLinkNotice = () => {
     if (!search.token) return null;
 
@@ -145,11 +185,76 @@ function ManageBookings() {
         {/* Access Request Form */}
         {viewMode === 'request' && (
           <>
-            <p className="text-light/80 mb-6">
-              Enter your email address to request new access codes. You'll receive an email with your booking ID, a fresh 6-digit code, and magic link.
-            </p>
+            {accessMethod === 'request' ? (
+              <>
+                <div className="mb-6">
+                  <p className="text-light/80 mb-4">
+                    Enter your email address to request new access codes. You'll receive an email with your booking ID, a fresh 6-digit code, and magic link.
+                  </p>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={handleDirectCodeAccess}
+                      className="text-yellow hover:text-yellow/80 text-sm underline"
+                    >
+                      Already have a code? Click here
+                    </button>
+                  </div>
+                </div>
 
-            <form onSubmit={handleRequestAccess} className="mb-6 space-y-4">
+                <form onSubmit={handleRequestAccess} className="mb-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-light mb-2">
+                      Email Address *
+                    </label>
+                    <div className="flex-1 relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter email address"
+                        className="w-full pl-10 pr-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      disabled={requestAccessMutation.isPending || !email.trim()}
+                      className="px-6 py-3 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      <Mail className="w-5 h-5" />
+                      <span>{requestAccessMutation.isPending ? 'Sending...' : 'Send Access Codes'}</span>
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : null}
+          </>
+        )}
+
+        {/* Direct Code Access Form */}
+        {viewMode === 'direct-code' && (
+          <>
+            <div className="mb-6">
+              <p className="text-light/80 mb-4">
+                Enter your email address and the 6-digit access code from your previous email to access your bookings.
+              </p>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleRequestNewAccess}
+                  className="text-yellow hover:text-yellow/80 text-sm underline"
+                >
+                  Don't have a code? Request new access codes
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleDirectCodeSubmit} className="mb-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-light mb-2">
                   Email Address *
@@ -166,15 +271,50 @@ function ManageBookings() {
                   />
                 </div>
               </div>
-              
+
+              <div>
+                <label className="block text-sm font-medium text-light mb-2">
+                  6-Digit Access Code *
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value)}
+                    placeholder="Enter 6-digit code"
+                    className="w-full px-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-center text-2xl tracking-wider"
+                    maxLength="6"
+                    pattern="[0-9]{6}"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-light mb-2">
+                  Filter by Status (Optional)
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                >
+                  <option value="">All Bookings</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  disabled={requestAccessMutation.isPending || !email.trim()}
+                  disabled={verifyCodeMutation.isPending || !email.trim() || accessCode.length !== 6}
                   className="px-6 py-3 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  <Mail className="w-5 h-5" />
-                  <span>{requestAccessMutation.isPending ? 'Sending...' : 'Send Access Codes'}</span>
+                  <Key className="w-5 h-5" />
+                  <span>{verifyCodeMutation.isPending ? 'Verifying...' : 'Access Bookings'}</span>
                 </button>
               </div>
             </form>
@@ -334,10 +474,14 @@ function ManageBookings() {
               </div>
             )}
         {/* Help Section - Show only on access screen */}
-        {viewMode === 'request' && (
+        {(viewMode === 'request' || viewMode === 'direct-code') && (
           <div className="mt-8 bg-gray-800 rounded-lg p-6">
             <h3 className="text-lg font-medium text-yellow mb-3">How it works</h3>
             <ul className="space-y-2 text-light/80">
+              <li className="flex items-start space-x-2">
+                <span className="text-yellow mt-1">•</span>
+                <span>If you already have a 6-digit code from a previous email, use "Already have a code?" option</span>
+              </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
                 <span>Enter your email address to request new access codes</span>
