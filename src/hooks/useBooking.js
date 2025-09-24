@@ -1,6 +1,26 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
 
+// Helper function to detect expired token errors
+const isTokenExpiredError = (error) => {
+  const message = error?.message?.toLowerCase() || '';
+  return (
+    message.includes('token_expired') ||
+    message.includes('token expired') ||
+    message.includes('access token has expired') ||
+    message.includes('invalid token') ||
+    message.includes('token not found')
+  );
+};
+
+// Helper function to get user-friendly error message
+const getTokenErrorMessage = (error) => {
+  if (isTokenExpiredError(error)) {
+    return 'Your access has expired. Please request a new access code to view your bookings.';
+  }
+  return error?.message || 'An unexpected error occurred';
+};
+
 // Hook for creating guest booking
 export const useCreateGuestBooking = () => {
   return useMutation({
@@ -45,6 +65,9 @@ export const useVerifyAccessCode = () => {
     },
     onError: (error) => {
       console.error('Code verification failed:', error);
+      // Add specific handling for expired tokens
+      error.isTokenExpired = isTokenExpiredError(error);
+      error.userFriendlyMessage = getTokenErrorMessage(error);
     },
   });
 };
@@ -62,6 +85,9 @@ export const useViewBookings = (token, status = null) => {
     },
     onError: (error) => {
       console.error('View bookings failed:', error);
+      // Add specific handling for expired tokens
+      error.isTokenExpired = isTokenExpiredError(error);
+      error.userFriendlyMessage = getTokenErrorMessage(error);
     },
   });
 };
@@ -78,6 +104,9 @@ export const useCancelBooking = () => {
     },
     onError: (error) => {
       console.error('Booking cancellation failed:', error);
+      // Add specific handling for expired tokens
+      error.isTokenExpired = isTokenExpiredError(error);
+      error.userFriendlyMessage = getTokenErrorMessage(error);
     },
   });
 };
