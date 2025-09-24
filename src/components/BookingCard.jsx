@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle, Car, User } from 'lucide-react';
 import { useCancelBooking, useUpdateBooking } from '../hooks/useBooking';
 import BookingForm from './BookingForm';
+import AlertModal from './AlertModal';
 import AddressAutocomplete from './AddressAutocomplete';
 
 const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onBookingUpdated = null }) => {
@@ -10,13 +11,31 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   const [cancelReason, setCancelReason] = useState('');
   const [editPickupLocation, setEditPickupLocation] = useState(booking.pickup || '');
   const [editDropoffLocation, setEditDropoffLocation] = useState(booking.dropoff || '');
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+    details: null,
+    onConfirm: null
+  });
 
   const cancelBookingMutation = useCancelBooking();
   const updateBookingMutation = useUpdateBooking();
 
   const handleCancelBooking = async () => {
     if (!guestToken) {
-      alert('Guest token required for cancellation');
+    title: '',
+    message: '',
+    details: null
+  });
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Authentication Required',
+        message: 'Guest token required for cancellation. Please access your bookings using your 6-digit access code.',
+        details: null
+      });
       return;
     }
 
@@ -27,19 +46,43 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
       });
       setShowCancelModal(false);
       setCancelReason('');
-      alert('Booking cancelled successfully');
+      setAlertModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Booking Cancelled',
+        message: 'Your booking has been cancelled successfully. You will receive a confirmation email shortly.',
+        details: null
+      });
     } catch (error) {
       console.error('Failed to cancel booking:', error);
       
       if (error.isTokenExpired || error.isRateLimit) {
-        alert(error.userFriendlyMessage + ' Please access your bookings again with a new code.');
+        setAlertModal({
+          isOpen: true,
+          type: 'warning',
+          title: 'Access Expired',
+          message: error.userFriendlyMessage + ' Please access your bookings again with a new code.',
+          details: null
+        });
         setShowCancelModal(false);
         // You might want to emit an event here to trigger parent component to reset
       } else if (error.isTokenInvalid) {
-        alert(error.userFriendlyMessage + ' Please try accessing your bookings again.');
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Invalid Access',
+          message: error.userFriendlyMessage + ' Please try accessing your bookings again.',
+          details: null
+        });
         setShowCancelModal(false);
       } else {
-        alert('Cancellation failed: ' + (error.userFriendlyMessage || error.message));
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Cancellation Failed',
+          message: error.userFriendlyMessage || error.message,
+          details: ['Please try again in a few moments', 'Contact support if the problem persists']
+        });
       }
     }
   };
@@ -111,7 +154,13 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         guestToken: guestToken,
       });
       setIsEditing(false);
-      alert('Booking updated successfully');
+      setAlertModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Booking Updated',
+        message: 'Your booking has been updated successfully. You will receive a confirmation email with the updated details.',
+        details: null
+      });
       
       // Notify parent component to refresh data
       if (onBookingUpdated) {
@@ -121,16 +170,40 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
       console.error('Failed to update booking:', error);
       
       if (error.isTokenExpired || error.isRateLimit) {
-        alert(error.userFriendlyMessage + ' Please access your bookings again with a new code.');
+        setAlertModal({
+          isOpen: true,
+          type: 'warning',
+          title: 'Access Expired',
+          message: error.userFriendlyMessage + ' Please access your bookings again with a new code.',
+          details: null
+        });
         setIsEditing(false);
       } else if (error.isTokenInvalid) {
-        alert(error.userFriendlyMessage + ' Please try accessing your bookings again.');
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Invalid Access',
+          message: error.userFriendlyMessage + ' Please try accessing your bookings again.',
+          details: null
+        });
         setIsEditing(false);
       } else if (error.isMagicLinkToken) {
-        alert(error.userFriendlyMessage);
+        setAlertModal({
+          isOpen: true,
+          type: 'info',
+          title: 'Magic Link Limitation',
+          message: error.userFriendlyMessage,
+          details: ['Magic links are for viewing only', 'Use your 6-digit access code to edit bookings']
+        });
         setIsEditing(false);
       } else {
-        alert('Update failed: ' + (error.userFriendlyMessage || error.message));
+        setAlertModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Update Failed',
+          message: error.userFriendlyMessage || error.message,
+          details: ['Please check your connection and try again', 'Contact support if the problem persists']
+        });
       }
     }
   };
@@ -231,7 +304,13 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                 if (canActuallyCancel()) {
                   setShowCancelModal(true);
                 } else {
-                  alert('Unable to cancel booking. Please try accessing via your 6-digit access code.');
+                  setAlertModal({
+                    isOpen: true,
+                    type: 'info',
+                    title: 'Access Required',
+                    message: 'Unable to cancel booking. Please try accessing via your 6-digit access code to enable editing and cancellation features.',
+                    details: ['Magic links are for viewing only', '6-digit codes provide full access']
+                  });
                 }
               }}
               className="p-2 rounded-lg transition-colors bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300"
@@ -372,6 +451,16 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
           </div>
         </div>
       )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false })}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        details={alertModal.details}
+      />
 
     </>
   );
