@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import AddressAutocomplete from './AddressAutocomplete';
+import AlertModal from './AlertModal';
 
 const formatDateTimeForAPI = (date, time) => {
   // Convert form date/time to ISO 8601 format for API
@@ -16,6 +18,14 @@ const BookingForm = ({
   setDropoffLocation,
   isSubmitting 
 }) => {
+  const [alertModal, setAlertModal] = useState({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+    details: null
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -36,48 +46,95 @@ const BookingForm = ({
 
     // Validate required fields
     if (!data.name?.trim()) {
-      alert('Please enter your full name');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please enter your full name to continue with your booking.'
+      });
       return;
     }
     
     // Only validate email for new bookings, not updates
     if (!isUpdate && (!data.email?.trim() || !data.email.includes('@'))) {
-      alert('Please enter a valid email address');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Invalid Email',
+        message: 'Please enter a valid email address to receive booking confirmations and updates.'
+      });
       return;
     }
     
     if (!data.phone?.trim()) {
-      alert('Please enter your phone number');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please enter your phone number so we can contact you about your booking.'
+      });
       return;
     }
     
     if (!pickupLocation?.trim()) {
-      alert('Please enter a pickup location');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please enter a pickup location for your ride.'
+      });
       return;
     }
     
     if (!dropoffLocation?.trim()) {
-      alert('Please enter a drop-off location');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please enter a drop-off location for your ride.'
+      });
       return;
     }
     
     if (!data.date) {
-      alert('Please select a date');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please select a date for your ride.'
+      });
       return;
     }
     
     if (!data.time) {
-      alert('Please select a time');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please select a time for your ride.'
+      });
       return;
     }
     
     if (data.passenger_count < 1 || data.passenger_count > 8) {
-      alert('Passenger count must be between 1 and 8');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Invalid Passenger Count',
+        message: 'Passenger count must be between 1 and 8 passengers.',
+        details: ['Our luxury SUVs accommodate up to 8 passengers comfortably']
+      });
       return;
     }
     
     if (data.luggage_count < 0 || data.luggage_count > 20) {
-      alert('Luggage count must be between 0 and 20');
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Invalid Luggage Count',
+        message: 'Luggage count must be between 0 and 20 bags.',
+        details: ['Please contact us for special luggage requirements']
+      });
       return;
     }
 
@@ -318,6 +375,16 @@ const BookingForm = ({
           </button>
         </div>
       </form>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ isOpen: false })}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        details={alertModal.details}
+      />
     </>
   );
 };
