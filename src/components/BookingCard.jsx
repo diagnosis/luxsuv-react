@@ -164,6 +164,13 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
         {booking.created_at && (
           <div className="pt-2 border-t border-gray-700">
             <p className="text-sm text-gray-400">
+              Created: {formatDate(booking.created_at)}
+            </p>
+          </div>
+        )}
+
+        {/* Cancel Button */}
+        {canCancel() && (
           <button
             onClick={() => {
               if (canActuallyCancel()) {
