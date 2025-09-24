@@ -91,7 +91,10 @@ export const bookingApi = {
       requestBody.status = status;
     }
 
+    console.log('📦 Verify Code Request Body:', requestBody);
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.ACCESS_VERIFY);
+    console.log('📡 Verify Code URL:', url);
+    
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -99,10 +102,12 @@ export const bookingApi = {
     });
 
     console.log('📡 Verify Code Response Status:', response.status);
+    console.log('📋 Verify Code Response Headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Verify Code Error:', errorData);
+      console.error('❌ Response Status:', response.status, response.statusText);
       const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
       error.status = response.status;
       error.response = { status: response.status };

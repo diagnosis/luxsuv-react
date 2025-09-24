@@ -80,6 +80,11 @@ function ManageBookings() {
       return;
     }
 
+    console.log('🔍 Verifying access code:', {
+      email: email.trim(),
+      code: accessCode.trim(),
+      statusFilter: statusFilter || 'none'
+    });
     try {
       const result = await verifyCodeMutation.mutateAsync({
         email: email.trim(),
@@ -92,6 +97,15 @@ function ManageBookings() {
       setViewMode('view');
     } catch (error) {
       console.error('Code verification failed:', error);
+      console.error('Direct code error details:', {
+        message: error.message,
+        status: error.status,
+        statusCode: error.statusCode,
+        isTokenExpired: error.isTokenExpired,
+        isTokenInvalid: error.isTokenInvalid,
+        isRateLimit: error.isRateLimit,
+        userFriendlyMessage: error.userFriendlyMessage
+      });
       
       if (error.isTokenExpired || error.isRateLimit) {
         alert(error.userFriendlyMessage);
@@ -148,11 +162,26 @@ function ManageBookings() {
         status: statusFilter || undefined
       });
       
+      console.log('✅ Verification successful:', {
+        bookingsCount: result.bookings?.length || 0,
+        hasToken: !!result.token,
+        result
+      });
+      
       setCurrentBookings(result.bookings || []);
       setGuestToken(result.token);
       setViewMode('view');
     } catch (error) {
       console.error('Code verification failed:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        statusCode: error.statusCode,
+        isTokenExpired: error.isTokenExpired,
+        isTokenInvalid: error.isTokenInvalid,
+        isRateLimit: error.isRateLimit,
+        userFriendlyMessage: error.userFriendlyMessage
+      });
       
       if (error.isTokenExpired || error.isRateLimit) {
         alert(error.userFriendlyMessage);
@@ -182,6 +211,11 @@ function ManageBookings() {
         </p>
         <p className="text-light/60 text-xs mt-2">
           This link expires after use for security purposes.
+    console.log('🔍 Direct code verification:', {
+      email: email.trim(),
+      code: accessCode.trim(),
+      statusFilter: statusFilter || 'none'
+    });
         </p>
       </div>
     );
@@ -197,6 +231,12 @@ function ManageBookings() {
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-dark/60"></div>
+      
+      console.log('✅ Direct verification successful:', {
+        bookingsCount: result.bookings?.length || 0,
+        hasToken: !!result.token,
+        result
+      });
       
       {/* Content */}
       <div className="relative max-w-screen-xl mx-auto px-4 py-4 md:py-8">

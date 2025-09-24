@@ -110,9 +110,22 @@ export const useVerifyAccessCode = () => {
     },
     onSuccess: (data) => {
       console.log('Code verification successful:', data);
+      console.log('Success data details:', {
+        hasBookings: !!data.bookings,
+        bookingsCount: data.bookings?.length || 0,
+        hasToken: !!data.token,
+        tokenPreview: data.token ? `${data.token.substring(0, 20)}...` : 'No token'
+      });
     },
     onError: (error) => {
       console.error('Code verification failed:', error);
+      console.error('Full error object:', {
+        name: error.name,
+        message: error.message,
+        status: error.status,
+        response: error.response,
+        stack: error.stack
+      });
       // Add specific handling for different error types
       const statusCode = error?.status || error?.response?.status;
       error.isTokenExpired = isTokenExpiredError(error, statusCode);
@@ -121,6 +134,14 @@ export const useVerifyAccessCode = () => {
       error.isNotFound = isNotFoundError(error, statusCode);
       error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
       error.statusCode = statusCode;
+      console.error('Error categorization:', {
+        isTokenExpired: error.isTokenExpired,
+        isTokenInvalid: error.isTokenInvalid,
+        isRateLimit: error.isRateLimit,
+        isNotFound: error.isNotFound,
+        userFriendlyMessage: error.userFriendlyMessage,
+        statusCode: error.statusCode
+      });
     },
   });
 };
