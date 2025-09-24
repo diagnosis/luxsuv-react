@@ -681,6 +681,25 @@ function ManageBookings() {
             {/* Bookings List */}
             {currentBookings.length > 0 && (
               <div>
+                {/* Magic Link Limitation Notice */}
+                {search.token && (
+                  <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <AlertCircle className="w-5 h-5 text-blue-400" />
+                      <span className="text-blue-400 font-semibold">Magic Link Access</span>
+                    </div>
+                    <p className="text-light/80 text-sm mb-2">
+                      You're viewing bookings via magic link. To edit or cancel bookings, please use your 6-digit access code.
+                    </p>
+                    <button
+                      onClick={handleStartOver}
+                      className="text-yellow hover:text-yellow/80 text-sm underline"
+                    >
+                      Use Access Code Instead
+                    </button>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">
                     Your Bookings ({currentBookings.length})
@@ -698,8 +717,8 @@ function ManageBookings() {
                     <BookingCard
                       key={booking.id}
                       booking={booking}
-                      guestToken={search.token || guestToken}
-                      showCancelOption={true}
+                      guestToken={guestToken} // Only use guest JWT, not magic link token
+                      showCancelOption={!!guestToken} // Only show cancel if we have guest JWT
                     />
                   ))}
                 </div>

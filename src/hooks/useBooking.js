@@ -125,6 +125,14 @@ export const useUpdateBooking = () => {
       console.error('Booking update failed:', error);
       // Add specific handling for different error types
       const statusCode = error?.status || error?.response?.status;
+      
+      // Handle magic link token being used for updates
+      if (statusCode === 404 && error?.message?.includes('not found')) {
+        error.isMagicLinkToken = true;
+        error.userFriendlyMessage = 'Magic links are for viewing only. To update bookings, please use your 6-digit access code.';
+        return;
+      }
+      
       error.isTokenExpired = isTokenExpiredError(error, statusCode);
       error.isTokenInvalid = isTokenInvalidError(error, statusCode);
       error.isRateLimit = isRateLimitError(error, statusCode);
@@ -134,6 +142,7 @@ export const useUpdateBooking = () => {
     },
   });
 };
+
 // Hook for requesting access tokens
 export const useRequestAccess = () => {
   return useMutation({

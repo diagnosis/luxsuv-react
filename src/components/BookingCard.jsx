@@ -86,7 +86,9 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
   const canEdit = () => {
     if (booking.status?.toLowerCase() === 'cancelled') return false;
     if (booking.status?.toLowerCase() === 'completed') return false;
-    return !!guestToken;
+    // Only allow editing if we have a guest JWT token (not magic link token)
+    // Magic link tokens are for viewing only
+    return !!guestToken && !guestToken.includes('magic');
   };
 
   const handleStartEdit = () => {
@@ -119,6 +121,9 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
         setIsEditing(false);
       } else if (error.isTokenInvalid) {
         alert(error.userFriendlyMessage + ' Please try accessing your bookings again.');
+        setIsEditing(false);
+      } else if (error.isMagicLinkToken) {
+        alert(error.userFriendlyMessage);
         setIsEditing(false);
       } else {
         alert('Update failed: ' + (error.userFriendlyMessage || error.message));
