@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle } from 'lucide-react';
-import { useCancelBooking } from '../hooks/useBooking';
+import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle, Car, User } from 'lucide-react';
+import { useCancelBooking, useUpdateBooking } from '../hooks/useBooking';
+import BookingForm from './BookingForm';
+import AddressAutocomplete from './AddressAutocomplete';
 
 const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [editPickupLocation, setEditPickupLocation] = useState(booking.pickup || '');
+  const [editDropoffLocation, setEditDropoffLocation] = useState(booking.dropoff || '');
 
   const cancelBookingMutation = useCancelBooking();
+  const updateBookingMutation = useUpdateBooking();
 
   const handleCancelBooking = async () => {
     if (!guestToken) {
@@ -76,6 +82,114 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
     return canCancel() && !!guestToken;
   };
 
+  // Check if user can edit this booking
+  const canEdit = () => {
+    if (booking.status?.toLowerCase() === 'cancelled') return false;
+    if (booking.status?.toLowerCase() === 'completed') return false;
+    return !!guestToken;
+  };
+
+  const handleStartEdit = () => {
+    setIsEditing(true);
+    setEditPickupLocation(booking.pickup || '');
+    setEditDropoffLocation(booking.dropoff || '');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditPickupLocation(booking.pickup || '');
+    setEditDropoffLocation(booking.dropoff || '');
+  };
+
+  const handleUpdateBooking = async (formData) => {
+    try {
+      await updateBookingMutation.mutateAsync({
+        bookingId: booking.id,
+        bookingData: formData,
+        guestToken: guestToken,
+      });
+      setIsEditing(false);
+      alert('Booking updated successfully');
+      // You might want to emit an event here to refresh the parent component
+    } catch (error) {
+      console.error('Failed to update booking:', error);
+      
+      if (error.isTokenExpired || error.isRateLimit) {
+        alert(error.userFriendlyMessage + ' Please access your bookings again with a new code.');
+        setIsEditing(false);
+      } else if (error.isTokenInvalid) {
+        alert(error.userFriendlyMessage + ' Please try accessing your bookings again.');
+        setIsEditing(false);
+      } else {
+        alert('Update failed: ' + (error.userFriendlyMessage || error.message));
+      }
+    }
+  };
+
+  // Helper function to format date for input
+  const formatDateForInput = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0]; // YYYY-MM-DD
+    } catch {
+      return '';
+    }
+  };
+
+  // Helper function to format time for input
+  const formatTimeForInput = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toTimeString().slice(0, 5); // HH:MM
+    } catch {
+      return '';
+    }
+  };
+
+  // Prepare initial data for edit form
+  const getEditFormData = () => {
+    return {
+      name: booking.name,
+      email: booking.email,
+      phone: booking.phone,
+      date: formatDateForInput(booking.scheduled_at),
+      time: formatTimeForInput(booking.scheduled_at),
+      luggage_count: booking.luggage_count || 0,
+      passenger_count: booking.passenger_count || 1,
+      trip_type: booking.trip_type || 'per_ride',
+    };
+  };
+
+  if (isEditing) {
+    return (
+      <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-yellow/30">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-light">
+            Edit Booking #{booking.id}
+          </h3>
+          <button
+            onClick={handleCancelEdit}
+            className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-light transition-colors"
+            aria-label="Cancel edit"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <BookingForm
+          onSubmit={handleUpdateBooking}
+          initialData={getEditFormData()}
+          isUpdate={true}
+          pickupLocation={editPickupLocation}
+          setPickupLocation={setEditPickupLocation}
+          dropoffLocation={editDropoffLocation}
+          setDropoffLocation={setEditDropoffLocation}
+          isSubmitting={updateBookingMutation.isPending}
+        />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-700 hover:border-yellow/30 transition-colors">
@@ -89,6 +203,34 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
             <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
               {booking.status}
             </span>
+          )}
+        </div>
+        <div className="flex space-x-2">
+          {canEdit() && (
+            <button
+              onClick={handleStartEdit}
+              className="p-2 rounded-lg transition-colors bg-yellow/10 hover:bg-yellow/20 border border-yellow/30 text-yellow hover:text-yellow/80"
+              aria-label="Edit booking"
+              title="Edit booking"
+            >
+              <Edit3 className="w-5 h-5" />
+            </button>
+          )}
+          {canCancel() && (
+            <button
+              onClick={() => {
+                if (canActuallyCancel()) {
+                  setShowCancelModal(true);
+                } else {
+                  alert('Unable to cancel booking. Please try accessing via your 6-digit access code.');
+                }
+              }}
+              className="p-2 rounded-lg transition-colors bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300"
+              aria-label="Cancel booking"
+              title="Cancel booking"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
           )}
         </div>
       </div>
@@ -125,6 +267,31 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
           </div>
         </div>
 
+        {/* Trip Details */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="flex items-center space-x-2">
+            <User className="w-4 h-4 text-blue-400" />
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Passengers</label>
+              <p className="text-light">{booking.passenger_count || 1}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Luggage className="w-4 h-4 text-purple-400" />
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Luggage</label>
+              <p className="text-light">{booking.luggage_count || 0} bag{(booking.luggage_count || 0) !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Car className="w-4 h-4 text-green-400" />
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Trip Type</label>
+              <p className="text-light capitalize">{(booking.trip_type || 'per_ride').replace('_', ' ')}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Scheduled Time */}
         <div className="flex items-center space-x-2">
           <Calendar className="w-4 h-4 text-yellow" />
@@ -145,23 +312,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
           </div>
         )}
 
-        {/* Cancel Button */}
-        {canCancel() && (
-          <button
-            onClick={() => {
-              if (canActuallyCancel()) {
-                setShowCancelModal(true);
-              } else {
-                alert('Unable to cancel booking. Please try accessing via your 6-digit access code.');
-              }
-            }}
-            className="p-2 rounded-lg transition-colors bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300"
-            aria-label="Cancel booking"
-            title="Cancel booking"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-        )}
       </div>
 
       {/* Cancel Status */}
