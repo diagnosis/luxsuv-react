@@ -1,7 +1,7 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { Search, Mail, RefreshCw, AlertCircle, User, Key, Eye, ArrowRight } from 'lucide-react';
-import { useSearch } from '@tanstack/react-router';
+import { useSearch, useNavigate } from '@tanstack/react-router';
 import { useRequestAccess, useVerifyAccessCode, useViewBookings } from '../hooks/useBooking';
 import { queryClient } from '../lib/queryClient';
 import BookingCard from '../components/BookingCard';
@@ -16,6 +16,7 @@ export const Route = createLazyFileRoute('/manage-bookings')({
 
 function ManageBookings() {
   const search = useSearch({ from: '/manage-bookings' });
+  const navigate = useNavigate({ from: '/manage-bookings' });
   const [email, setEmail] = useState('');
   const [accessCode, setAccessCode] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -176,6 +177,12 @@ function ManageBookings() {
   };
 
   const handleStartOver = () => {
+    // Clear URL token parameter first
+    if (search.token) {
+      navigate({ search: {} });
+    }
+    
+    // Reset all state
     setEmail('');
     setAccessCode('');
     setStatusFilter('');
@@ -185,6 +192,12 @@ function ManageBookings() {
     setViewMode('request');
     setRequestError(null);
     setVerifyError(null);
+    setErrorModal({ isOpen: false });
+    
+    // Clear any cached token bookings
+    if (search.token) {
+      queryClient.invalidateQueries(['bookings', 'view', search.token]);
+    }
   };
 
   const handleDirectCodeAccess = () => {
