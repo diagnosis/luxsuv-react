@@ -22,6 +22,8 @@ function ManageBookings() {
   const [accessMethod, setAccessMethod] = useState('request'); // 'request' or 'direct-code'
   const [currentBookings, setCurrentBookings] = useState([]);
   const [guestToken, setGuestToken] = useState(null);
+  const [requestError, setRequestError] = useState(null);
+  const [verifyError, setVerifyError] = useState(null);
 
   const requestAccessMutation = useRequestAccess();
   const verifyCodeMutation = useVerifyAccessCode();
@@ -48,9 +50,10 @@ function ManageBookings() {
 
   const handleRequestAccess = async (e) => {
     e.preventDefault();
+    setRequestError(null);
     
     if (!email.trim() || !email.includes('@')) {
-      alert('Please enter a valid email address');
+      setRequestError('Please enter a valid email address');
       return;
     }
 
@@ -60,23 +63,23 @@ function ManageBookings() {
       });
       
       setViewMode('verify');
-      alert('Access codes sent to your email! Please check your inbox for your 6-digit access code.');
     } catch (error) {
       console.error('Request access failed:', error);
-      alert('Failed to send access code: ' + error.message);
+      setRequestError(error.userFriendlyMessage || error.message);
     }
   };
 
   const handleVerifyCode = async (e) => {
     e.preventDefault();
+    setVerifyError(null);
     
     if (!email.trim() || !email.includes('@')) {
-      alert('Please enter a valid email address');
+      setVerifyError('Please enter a valid email address');
       return;
     }
     
     if (!accessCode.trim() || accessCode.trim().length !== 6) {
-      alert('Please enter a valid 6-digit access code');
+      setVerifyError('Please enter a valid 6-digit access code');
       return;
     }
 
@@ -108,16 +111,16 @@ function ManageBookings() {
       });
       
       if (error.isTokenExpired || error.isRateLimit) {
-        alert(error.userFriendlyMessage);
         // Reset to request new access
         setAccessCode('');
         setViewMode('request');
+        setRequestError(error.userFriendlyMessage);
       } else if (error.isTokenInvalid) {
-        alert(error.userFriendlyMessage);
         // Clear the invalid code but stay on same screen
         setAccessCode('');
+        setVerifyError(error.userFriendlyMessage);
       } else {
-        alert('Code verification failed: ' + (error.userFriendlyMessage || error.message));
+        setVerifyError(error.userFriendlyMessage || error.message);
       }
     }
   };
@@ -130,6 +133,8 @@ function ManageBookings() {
     setCurrentBookings([]);
     setGuestToken(null);
     setViewMode('request');
+    setRequestError(null);
+    setVerifyError(null);
   };
 
   const handleDirectCodeAccess = () => {
@@ -140,10 +145,13 @@ function ManageBookings() {
   const handleRequestNewAccess = () => {
     setAccessMethod('request');
     setViewMode('request');
+    setRequestError(null);
+    setVerifyError(null);
   };
 
   const handleDirectCodeSubmit = async (e) => {
     e.preventDefault();
+    setVerifyError(null);
     
     console.log('🔍 Direct code verification:', {
       email: email.trim(),
@@ -152,12 +160,12 @@ function ManageBookings() {
     });
     
     if (!email.trim() || !email.includes('@')) {
-      alert('Please enter a valid email address');
+      setVerifyError('Please enter a valid email address');
       return;
     }
     
     if (!accessCode.trim() || accessCode.trim().length !== 6) {
-      alert('Please enter a valid 6-digit access code');
+      setVerifyError('Please enter a valid 6-digit access code');
       return;
     }
 
@@ -190,16 +198,16 @@ function ManageBookings() {
       });
       
       if (error.isTokenExpired || error.isRateLimit) {
-        alert(error.userFriendlyMessage);
         // Reset to request new access
         setAccessCode('');
         setViewMode('request');
+        setRequestError(error.userFriendlyMessage);
       } else if (error.isTokenInvalid) {
-        alert(error.userFriendlyMessage);
         // Clear the invalid code but stay on same screen
         setAccessCode('');
+        setVerifyError(error.userFriendlyMessage);
       } else {
-        alert('Code verification failed: ' + (error.userFriendlyMessage || error.message));
+        setVerifyError(error.userFriendlyMessage || error.message);
       }
     }
   };
@@ -292,6 +300,56 @@ function ManageBookings() {
                 </form>
               </>
             ) : null}
+            
+            {/* Success Message for Access Request */}
+            {requestAccessMutation.isSuccess && viewMode === 'request' && !requestError && (
+              <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4 mb-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+                    <span className="text-dark text-xs font-bold">✓</span>
+                  </div>
+                  <span className="text-green-400 font-semibold">Access Codes Sent!</span>
+                </div>
+                <p className="text-light/80 text-sm">
+                  Check your email inbox for your 6-digit access code and magic link. If you don't see it, please check your spam folder.
+                </p>
+              </div>
+            )}
+
+            {/* Error Message for Access Request */}
+            {requestError && (
+              <div className={`p-4 rounded-lg mb-6 border ${
+                requestError.includes('No bookings found') || requestError.includes('double-check')
+                  ? 'bg-orange-900/20 text-orange-400 border-orange-400/30'
+                  : 'bg-red-900/20 text-red-400 border-red-400/30'
+              }`}>
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">
+                      {requestError.includes('No bookings found') ? 'Email Not Found' : 'Request Failed'}
+                    </p>
+                    <p className="text-sm mt-1">{requestError}</p>
+                    {requestError.includes('No bookings found') && (
+                      <div className="mt-3 text-sm">
+                        <p className="font-medium mb-2">Possible reasons:</p>
+                        <ul className="list-disc pl-5 space-y-1 text-xs">
+                          <li>Email address was typed incorrectly</li>
+                          <li>You used a different email when booking</li>
+                          <li>No bookings have been made with this email</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setRequestError(null)}
+                  className="mt-3 text-sm px-3 py-1 bg-orange-600/20 hover:bg-orange-600/30 rounded transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
           </>
         )}
 
@@ -366,6 +424,22 @@ function ManageBookings() {
                 </select>
               </div>
 
+              {/* Error Message for Direct Code Access */}
+              {verifyError && (
+                <div className={`p-3 rounded-lg border ${
+                  verifyError.includes('expired') || verifyError.includes('used')
+                    ? 'bg-yellow-900/20 text-yellow-400 border-yellow-400/30'
+                    : verifyError.includes('invalid') || verifyError.includes('check your code')
+                    ? 'bg-orange-900/20 text-orange-400 border-orange-400/30'
+                    : 'bg-red-900/20 text-red-400 border-red-400/30'
+                }`}>
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm">{verifyError}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-center">
                 <button
                   type="submit"
@@ -424,6 +498,22 @@ function ManageBookings() {
                 </select>
               </div>
               
+              {/* Error Message for Code Verification */}
+              {verifyError && (
+                <div className={`p-3 rounded-lg border ${
+                  verifyError.includes('expired') || verifyError.includes('used')
+                    ? 'bg-yellow-900/20 text-yellow-400 border-yellow-400/30'
+                    : verifyError.includes('invalid') || verifyError.includes('check your code')
+                    ? 'bg-orange-900/20 text-orange-400 border-orange-400/30'
+                    : 'bg-red-900/20 text-red-400 border-red-400/30'
+                }`}>
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm">{verifyError}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-center space-x-4">
                 <button
                   type="button"

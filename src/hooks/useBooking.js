@@ -40,6 +40,19 @@ const isNotFoundError = (error, statusCode) => {
   return statusCode === 404;
 };
 
+// Helper function to detect email not found specifically
+const isEmailNotFoundError = (error, statusCode) => {
+  if (statusCode !== 404) return false;
+  
+  const message = error?.message?.toLowerCase() || '';
+  return (
+    message.includes('not found') ||
+    message.includes('email not found') ||
+    message.includes('no bookings found') ||
+    statusCode === 404
+  );
+};
+
 // Helper function to get user-friendly error message with status context
 const getTokenErrorMessage = (error, statusCode) => {
   if (isTokenExpiredError(error, statusCode)) {
@@ -67,7 +80,20 @@ const getTokenErrorMessage = (error, statusCode) => {
   }
   
   return error?.message || 'An unexpected error occurred';
-}
+};
+
+// Helper function for email-specific errors
+const getEmailErrorMessage = (error, statusCode) => {
+  if (isEmailNotFoundError(error, statusCode)) {
+    return 'No bookings found for this email address. Please double-check your email and try again, or contact support if you believe this is an error.';
+  }
+  
+  if (isRateLimitError(error, statusCode)) {
+    return 'Too many requests. Please wait a moment before trying again.';
+  }
+  
+  return error?.message || 'An unexpected error occurred while requesting access codes.';
+};
 
 // Hook for creating guest booking
 export const useCreateGuestBooking = () => {
@@ -97,6 +123,12 @@ export const useRequestAccess = () => {
     },
     onError: (error) => {
       console.error('Access request failed:', error);
+      // Add specific handling for different error types
+      const statusCode = error?.status || error?.response?.status;
+      error.isEmailNotFound = isEmailNotFoundError(error, statusCode);
+      error.isRateLimit = isRateLimitError(error, statusCode);
+      error.userFriendlyMessage = getEmailErrorMessage(error, statusCode);
+      error.statusCode = statusCode;
     },
   });
 };
