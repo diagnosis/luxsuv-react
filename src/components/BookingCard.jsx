@@ -120,14 +120,14 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
       const destination = extractDestinationName(dropoffLocation);
       
       if (pickup && destination) {
-        return `${dateStr} / from ${pickup} to ${destination}`;
+        return { dateStr, pickup, destination, hasFullTrip: true };
       } else if (destination) {
-        return `${dateStr} to ${destination}`;
+        return { dateStr, destination, hasFullTrip: false };
       } else {
-        return dateStr;
+        return { dateStr, hasFullTrip: false };
       }
     } catch {
-      return 'Recent Booking';
+      return { dateStr: 'Recent Booking', hasFullTrip: false };
     }
   };
 
@@ -318,9 +318,27 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-light mb-1">
-              {booking.created_at ? formatBookingTitle(booking.created_at, booking.pickup, booking.dropoff) : 'Recent Booking'}
-            </h3>
+            {(() => {
+              const titleData = booking.created_at 
+                ? formatBookingTitle(booking.created_at, booking.pickup, booking.dropoff) 
+                : { dateStr: 'Recent Booking', hasFullTrip: false };
+              
+              return (
+                <h3 className="text-lg font-semibold text-light mb-2">
+                  {titleData.hasFullTrip ? (
+                    <>
+                      {titleData.dateStr} - from <em className="text-yellow/90">{titleData.pickup}</em> to <em className="text-yellow/90">{titleData.destination}</em>
+                    </>
+                  ) : titleData.destination ? (
+                    <>
+                      {titleData.dateStr} to <em className="text-yellow/90">{titleData.destination}</em>
+                    </>
+                  ) : (
+                    titleData.dateStr
+                  )}
+                </h3>
+              );
+            })()}
             {booking.status && (
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}>
                 {booking.status}
