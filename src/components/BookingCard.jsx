@@ -106,6 +106,19 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
     }
   };
 
+  // Format created date as "Month Day" format
+  const formatBookingTitle = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Recent Booking';
+    }
+  };
+
   // Check if user can cancel this booking
   const canCancel = () => {
     // Can't cancel if already cancelled
@@ -273,7 +286,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-lg font-semibold text-light mb-1">
-              Booking #{booking.id}
+              {booking.created_at ? formatBookingTitle(booking.created_at) : 'Recent Booking'}
             </h3>
             {booking.status && (
               <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
@@ -386,13 +399,11 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
           </div>
 
           {/* Created Date */}
-          {booking.created_at && (
-            <div className="pt-2 border-t border-gray-700">
-              <p className="text-sm text-gray-400">
-                Created: {formatDate(booking.created_at)}
-              </p>
-            </div>
-          )}
+          <div className="pt-2 border-t border-gray-700">
+            <p className="text-sm text-gray-400">
+              Booking ID: {booking.id}
+            </p>
+          </div>
 
         </div>
 
