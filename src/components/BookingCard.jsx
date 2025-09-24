@@ -107,7 +107,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   };
 
   // Format created date as "Month Day" format
-  const formatBookingTitle = (dateString, dropoffLocation) => {
+  const formatBookingTitle = (dateString, pickupLocation, dropoffLocation) => {
     try {
       const date = new Date(dateString);
       const dateStr = date.toLocaleDateString('en-US', {
@@ -115,9 +115,17 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         day: 'numeric'
       });
       
-      // Extract destination name (first part before comma or full if short)
+      // Extract pickup and destination names
+      const pickup = extractDestinationName(pickupLocation);
       const destination = extractDestinationName(dropoffLocation);
-      return destination ? `${dateStr} to ${destination}` : dateStr;
+      
+      if (pickup && destination) {
+        return `${dateStr} / from ${pickup} to ${destination}`;
+      } else if (destination) {
+        return `${dateStr} to ${destination}`;
+      } else {
+        return dateStr;
+      }
     } catch {
       return 'Recent Booking';
     }
@@ -311,7 +319,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-lg font-semibold text-light mb-1">
-              {booking.created_at ? formatBookingTitle(booking.created_at, booking.dropoff) : 'Recent Booking'}
+              {booking.created_at ? formatBookingTitle(booking.created_at, booking.pickup, booking.dropoff) : 'Recent Booking'}
             </h3>
             {booking.status && (
               <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
