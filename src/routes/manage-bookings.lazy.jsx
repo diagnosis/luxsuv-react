@@ -279,6 +279,17 @@ function ManageBookings() {
     }
   };
 
+  const handleBookingUpdated = async (updatedBooking) => {
+    // Update the local bookings state with the updated booking
+    setCurrentBookings(prevBookings => 
+      prevBookings.map(booking => 
+        booking.id === updatedBooking.booking?.id 
+          ? { ...booking, ...updatedBooking.booking }
+          : booking
+      )
+    );
+  };
+
   const renderMagicLinkNotice = () => {
     if (!search.token) return null;
 
@@ -719,6 +730,7 @@ function ManageBookings() {
                       booking={booking}
                       guestToken={guestToken} // Only use guest JWT, not magic link token
                       showCancelOption={!!guestToken} // Only show cancel if we have guest JWT
+                      onBookingUpdated={handleBookingUpdated}
                     />
                   ))}
                 </div>

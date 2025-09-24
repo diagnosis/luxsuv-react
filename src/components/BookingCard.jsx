@@ -4,7 +4,7 @@ import { useCancelBooking, useUpdateBooking } from '../hooks/useBooking';
 import BookingForm from './BookingForm';
 import AddressAutocomplete from './AddressAutocomplete';
 
-const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) => {
+const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onBookingUpdated = null }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -105,14 +105,18 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
 
   const handleUpdateBooking = async (formData) => {
     try {
-      await updateBookingMutation.mutateAsync({
+      const updatedBooking = await updateBookingMutation.mutateAsync({
         bookingId: booking.id,
         bookingData: formData,
         guestToken: guestToken,
       });
       setIsEditing(false);
       alert('Booking updated successfully');
-      // You might want to emit an event here to refresh the parent component
+      
+      // Notify parent component to refresh data
+      if (onBookingUpdated) {
+        onBookingUpdated(updatedBooking);
+      }
     } catch (error) {
       console.error('Failed to update booking:', error);
       
