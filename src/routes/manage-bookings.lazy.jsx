@@ -194,7 +194,8 @@ function ManageBookings() {
     setAccessMethod('request');
     setViewMode('request');
     setErrorModal({ isOpen: false });
-    setErrorModal({ isOpen: false });
+  };
+
   const handleDirectCodeSubmit = async (e) => {
     e.preventDefault();
     setVerifyError(null);
@@ -257,6 +258,7 @@ function ManageBookings() {
       }
     }
   };
+
   const renderMagicLinkNotice = () => {
     if (!search.token) return null;
 
@@ -618,8 +620,6 @@ function ManageBookings() {
                 </div>
               </div>
             )}
-          </div>
-        )}
 
             {/* No Bookings Found */}
             {!tokenBookingsLoading && !tokenBookingsError && currentBookings.length === 0 && viewMode === 'view' && (
@@ -633,6 +633,9 @@ function ManageBookings() {
                 </button>
               </div>
             )}
+          </div>
+        )}
+
         {/* Help Section - Show only on access screen */}
         {(viewMode === 'request' || viewMode === 'direct-code') && (
           <div className="mt-8 bg-gray-800 rounded-lg p-6">
