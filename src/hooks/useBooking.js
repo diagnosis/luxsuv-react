@@ -1,25 +1,72 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
 
-// Helper function to detect expired token errors
-const isTokenExpiredError = (error) => {
+// Helper function to detect expired/used token errors
+const isTokenExpiredError = (error, statusCode) => {
+  // Check for 410 Gone status (expired or already used)
+  if (statusCode === 410) return true;
+  
   const message = error?.message?.toLowerCase() || '';
   return (
+    message.includes('expired') ||
+    message.includes('already been used') ||
     message.includes('token_expired') ||
     message.includes('token expired') ||
-    message.includes('access token has expired') ||
-    message.includes('invalid token') ||
-    message.includes('token not found')
+    message.includes('access token has expired')
   );
 };
 
-// Helper function to get user-friendly error message
-const getTokenErrorMessage = (error) => {
-  if (isTokenExpiredError(error)) {
+// Helper function to detect invalid token format
+const isTokenInvalidError = (error, statusCode) => {
+  // Check for 400 Bad Request status
+  if (statusCode === 400) return true;
+  
+  const message = error?.message?.toLowerCase() || '';
+  return (
+    message.includes('invalid access') ||
+    message.includes('check your code') ||
+    message.includes('invalid token') ||
+    message.includes('malformed')
+  );
+};
+
+// Helper function to detect rate limiting
+const isRateLimitError = (error, statusCode) => {
+  return statusCode === 429;
+};
+
+// Helper function to detect not found
+const isNotFoundError = (error, statusCode) => {
+  return statusCode === 404;
+};
+
+// Helper function to get user-friendly error message with status context
+const getTokenErrorMessage = (error, statusCode) => {
+  if (isTokenExpiredError(error, statusCode)) {
+    const message = error?.message || '';
+    if (message.includes('already been used')) {
+      return 'This access link or code has already been used. Please request a new one.';
+    }
     return 'Your access has expired. Please request a new access code to view your bookings.';
   }
+  
+  if (isTokenInvalidError(error, statusCode)) {
+    const message = error?.message || '';
+    if (message.includes('access code')) {
+      return 'Invalid access code format. Please check your 6-digit code and try again.';
+    }
+    return 'Invalid access link. Please check the link or request a new one.';
+  }
+  
+  if (isRateLimitError(error, statusCode)) {
+    return 'Too many failed attempts. Please wait a moment and request a new access code.';
+  }
+  
+  if (isNotFoundError(error, statusCode)) {
+    return 'Access link not found. Please request a new one.';
+  }
+  
   return error?.message || 'An unexpected error occurred';
-};
 
 // Hook for creating guest booking
 export const useCreateGuestBooking = () => {
@@ -65,9 +112,14 @@ export const useVerifyAccessCode = () => {
     },
     onError: (error) => {
       console.error('Code verification failed:', error);
-      // Add specific handling for expired tokens
-      error.isTokenExpired = isTokenExpiredError(error);
-      error.userFriendlyMessage = getTokenErrorMessage(error);
+      // Add specific handling for different error types
+      const statusCode = error?.status || error?.response?.status;
+      error.isTokenExpired = isTokenExpiredError(error, statusCode);
+      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
+      error.isRateLimit = isRateLimitError(error, statusCode);
+      error.isNotFound = isNotFoundError(error, statusCode);
+      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
+      error.statusCode = statusCode;
     },
   });
 };
@@ -85,9 +137,14 @@ export const useViewBookings = (token, status = null) => {
     },
     onError: (error) => {
       console.error('View bookings failed:', error);
-      // Add specific handling for expired tokens
-      error.isTokenExpired = isTokenExpiredError(error);
-      error.userFriendlyMessage = getTokenErrorMessage(error);
+      // Add specific handling for different error types
+      const statusCode = error?.status || error?.response?.status;
+      error.isTokenExpired = isTokenExpiredError(error, statusCode);
+      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
+      error.isRateLimit = isRateLimitError(error, statusCode);
+      error.isNotFound = isNotFoundError(error, statusCode);
+      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
+      error.statusCode = statusCode;
     },
   });
 };
@@ -104,9 +161,14 @@ export const useCancelBooking = () => {
     },
     onError: (error) => {
       console.error('Booking cancellation failed:', error);
-      // Add specific handling for expired tokens
-      error.isTokenExpired = isTokenExpiredError(error);
-      error.userFriendlyMessage = getTokenErrorMessage(error);
+      // Add specific handling for different error types
+      const statusCode = error?.status || error?.response?.status;
+      error.isTokenExpired = isTokenExpiredError(error, statusCode);
+      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
+      error.isRateLimit = isRateLimitError(error, statusCode);
+      error.isNotFound = isNotFoundError(error, statusCode);
+      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
+      error.statusCode = statusCode;
     },
   });
 };
