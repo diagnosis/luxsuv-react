@@ -107,16 +107,41 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   };
 
   // Format created date as "Month Day" format
-  const formatBookingTitle = (dateString) => {
+  const formatBookingTitle = (dateString, dropoffLocation) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
+      const dateStr = date.toLocaleDateString('en-US', {
         month: 'long',
         day: 'numeric'
       });
+      
+      // Extract destination name (first part before comma or full if short)
+      const destination = extractDestinationName(dropoffLocation);
+      return destination ? `${dateStr} to ${destination}` : dateStr;
     } catch {
       return 'Recent Booking';
     }
+  };
+
+  // Helper function to extract destination name from full address
+  const extractDestinationName = (fullAddress) => {
+    if (!fullAddress) return '';
+    
+    // Split by comma and take the first meaningful part
+    const parts = fullAddress.split(',');
+    let destination = parts[0].trim();
+    
+    // If first part is just a number/street address, try second part
+    if (/^\d+/.test(destination) && parts[1]) {
+      destination = parts[1].trim();
+    }
+    
+    // Limit length to keep title readable
+    if (destination.length > 25) {
+      destination = destination.substring(0, 25) + '...';
+    }
+    
+    return destination;
   };
 
   // Check if user can cancel this booking
@@ -286,7 +311,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-lg font-semibold text-light mb-1">
-              {booking.created_at ? formatBookingTitle(booking.created_at) : 'Recent Booking'}
+              {booking.created_at ? formatBookingTitle(booking.created_at, booking.dropoff) : 'Recent Booking'}
             </h3>
             {booking.status && (
               <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
