@@ -5,6 +5,7 @@ import { useSearch } from '@tanstack/react-router';
 import { useRequestAccess, useVerifyAccessCode, useViewBookings } from '../hooks/useBooking';
 import { queryClient } from '../lib/queryClient';
 import BookingCard from '../components/BookingCard';
+import ErrorModal from '../components/ErrorModal';
 
 export const Route = createLazyFileRoute('/manage-bookings')({
   validateSearch: (search) => ({
@@ -22,8 +23,14 @@ function ManageBookings() {
   const [accessMethod, setAccessMethod] = useState('request'); // 'request' or 'direct-code'
   const [currentBookings, setCurrentBookings] = useState([]);
   const [guestToken, setGuestToken] = useState(null);
-  const [requestError, setRequestError] = useState(null);
-  const [verifyError, setVerifyError] = useState(null);
+  const [errorModal, setErrorModal] = useState({
+    isOpen: false,
+    type: 'error',
+    title: '',
+    message: '',
+    details: null,
+    onRetry: null
+  });
 
   const requestAccessMutation = useRequestAccess();
   const verifyCodeMutation = useVerifyAccessCode();
@@ -50,10 +57,17 @@ function ManageBookings() {
 
   const handleRequestAccess = async (e) => {
     e.preventDefault();
-    setRequestError(null);
+    setErrorModal({ isOpen: false });
     
     if (!email.trim() || !email.includes('@')) {
-      setRequestError('Please enter a valid email address');
+      setErrorModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Invalid Email',
+        message: 'Please enter a valid email address to request access codes.',
+        details: null,
+        onRetry: null
+      });
       return;
     }
 
@@ -65,7 +79,41 @@ function ManageBookings() {
       setViewMode('verify');
     } catch (error) {
       console.error('Request access failed:', error);
-      setRequestError(error.userFriendlyMessage || error.message);
+      
+      if (error.isEmailNotFound) {
+        setErrorModal({
+          isOpen: true,
+          type: 'email',
+          title: 'Email Not Found',
+          message: 'No bookings found for this email address. Please double-check your email and try again.',
+          details: [
+            'Email address was typed incorrectly',
+            'You used a different email when booking',
+            'No bookings have been made with this email'
+          ],
+          onRetry: () => {
+            setEmail('');
+          }
+        });
+      } else if (error.isRateLimit) {
+        setErrorModal({
+          isOpen: true,
+          type: 'warning',
+          title: 'Too Many Requests',
+          message: 'Too many requests have been made. Please wait a moment before trying again.',
+          details: null,
+          onRetry: null
+        });
+      } else {
+        setErrorModal({
+          isOpen: true,
+          type: 'error',
+          title: 'Request Failed',
+          message: error.userFriendlyMessage || error.message || 'Failed to send access codes. Please try again.',
+          details: null,
+          onRetry: null
+        });
+      }
     }
   };
 
@@ -145,10 +193,8 @@ function ManageBookings() {
   const handleRequestNewAccess = () => {
     setAccessMethod('request');
     setViewMode('request');
-    setRequestError(null);
-    setVerifyError(null);
-  };
-
+    setErrorModal({ isOpen: false });
+    setErrorModal({ isOpen: false });
   const handleDirectCodeSubmit = async (e) => {
     e.preventDefault();
     setVerifyError(null);
