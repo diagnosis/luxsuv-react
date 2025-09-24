@@ -94,15 +94,15 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'approved':
-        return 'text-green-400 bg-green-400/20';
+        return 'text-green-400 bg-green-400/20 border border-green-400/30';
       case 'pending':
-        return 'text-yellow-400 bg-yellow-400/20';
+        return 'text-yellow-300 bg-yellow-400/20 border border-yellow-400/40';
       case 'cancelled':
-        return 'text-red-400 bg-red-400/20';
+        return 'text-red-400 bg-red-400/20 border border-red-400/30';
       case 'completed':
-        return 'text-blue-400 bg-blue-400/20';
+        return 'text-blue-400 bg-blue-400/20 border border-blue-400/30';
       default:
-        return 'text-gray-400 bg-gray-400/20';
+        return 'text-gray-400 bg-gray-400/20 border border-gray-400/30';
     }
   };
 
@@ -322,7 +322,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
               {booking.created_at ? formatBookingTitle(booking.created_at, booking.pickup, booking.dropoff) : 'Recent Booking'}
             </h3>
             {booking.status && (
-              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}>
                 {booking.status}
               </span>
             )}
