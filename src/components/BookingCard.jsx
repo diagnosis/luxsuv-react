@@ -67,10 +67,15 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
     if (booking.status?.toLowerCase() === 'cancelled') return false;
     if (booking.status?.toLowerCase() === 'completed') return false;
     
-    // Can cancel if we have a guest token and cancellation is allowed
-    return showCancelOption && !!guestToken;
+    // Show cancel option if cancellation is enabled
+    return showCancelOption;
   };
   
+  // Check if cancellation is actually available
+  const canActuallyCancel = () => {
+    return canCancel() && !!guestToken;
+  };
+
   return (
     <>
       <div className="bg-gray-800 rounded-lg p-4 md:p-6 border border-gray-700 hover:border-yellow/30 transition-colors">
@@ -90,9 +95,20 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
           {canCancel() && (
             <>
               <button
-                onClick={() => setShowCancelModal(true)}
-                className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                onClick={() => {
+                  if (canActuallyCancel()) {
+                    setShowCancelModal(true);
+                  } else {
+                    alert('Cancellation is not available with magic link access. Please use your 6-digit access code to cancel bookings.');
+                  }
+                }}
+                className={`p-2 rounded-lg transition-colors ${
+                  canActuallyCancel() 
+                    ? 'text-red-400 hover:bg-red-400/10' 
+                    : 'text-gray-500 hover:bg-gray-600/10 cursor-not-allowed'
+                }`}
                 aria-label="Cancel booking"
+                title={canActuallyCancel() ? 'Cancel booking' : 'Use 6-digit code access to cancel'}
               >
                 <Trash2 className="w-4 h-4" />
               </button>

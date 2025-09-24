@@ -681,7 +681,7 @@ function ManageBookings() {
                       key={booking.id}
                       booking={booking}
                       guestToken={guestToken}
-                      showCancelOption={!!guestToken}
+                      showCancelOption={true}
                     />
                   ))}
                 </div>
