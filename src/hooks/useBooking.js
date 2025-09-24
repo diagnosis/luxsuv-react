@@ -294,15 +294,6 @@ export const useGetBookingsByEmail = () => {
   };
 };
 
-export const useUpdateBooking = () => {
-  console.warn('useUpdateBooking is not available in guest-only mode');
-  return useMutation({
-    mutationFn: () => {
-      throw new Error('Booking updates not available in guest-only mode');
-    },
-  });
-};
-
 export const useGenerateUpdateLink = () => {
   console.warn('useGenerateUpdateLink is not available - use access request instead');
   return useRequestAccess();
