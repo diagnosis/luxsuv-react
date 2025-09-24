@@ -145,6 +145,12 @@ function ManageBookings() {
   const handleDirectCodeSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🔍 Direct code verification:', {
+      email: email.trim(),
+      code: accessCode.trim(),
+      statusFilter: statusFilter || 'none'
+    });
+    
     if (!email.trim() || !email.includes('@')) {
       alert('Please enter a valid email address');
       return;
@@ -162,7 +168,7 @@ function ManageBookings() {
         status: statusFilter || undefined
       });
       
-      console.log('✅ Verification successful:', {
+      console.log('✅ Direct verification successful:', {
         bookingsCount: result.bookings?.length || 0,
         hasToken: !!result.token,
         result
@@ -211,11 +217,6 @@ function ManageBookings() {
         </p>
         <p className="text-light/60 text-xs mt-2">
           This link expires after use for security purposes.
-    console.log('🔍 Direct code verification:', {
-      email: email.trim(),
-      code: accessCode.trim(),
-      statusFilter: statusFilter || 'none'
-    });
         </p>
       </div>
     );
@@ -231,12 +232,6 @@ function ManageBookings() {
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-dark/60"></div>
-      
-      console.log('✅ Direct verification successful:', {
-        bookingsCount: result.bookings?.length || 0,
-        hasToken: !!result.token,
-        result
-      });
       
       {/* Content */}
       <div className="relative max-w-screen-xl mx-auto px-4 py-4 md:py-8">
