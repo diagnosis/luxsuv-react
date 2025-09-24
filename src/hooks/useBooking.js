@@ -67,6 +67,7 @@ const getTokenErrorMessage = (error, statusCode) => {
   }
   
   return error?.message || 'An unexpected error occurred';
+}
 
 // Hook for creating guest booking
 export const useCreateGuestBooking = () => {

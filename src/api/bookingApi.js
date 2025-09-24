@@ -35,7 +35,10 @@ export const bookingApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Create Booking Error:', errorData);
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
     }
 
     const result = await response.json();
@@ -63,7 +66,10 @@ export const bookingApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Request Access Error:', errorData);
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
     }
 
     const result = await response.json();
@@ -97,7 +103,10 @@ export const bookingApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Verify Code Error:', errorData);
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
     }
 
     const result = await response.json();
@@ -131,7 +140,10 @@ export const bookingApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ View Booking Error:', errorData);
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
     }
 
     const result = await response.json();
@@ -162,7 +174,10 @@ export const bookingApi = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Cancel Booking Error:', errorData);
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
     }
 
     const result = await response.json();
