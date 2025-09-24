@@ -348,7 +348,7 @@ function ManageBookings() {
             ) : null}
             
             {/* Success Message for Access Request */}
-            {requestAccessMutation.isSuccess && viewMode === 'request' && !requestError && (
+            {requestAccessMutation.isSuccess && viewMode === 'request' && !errorModal.isOpen && (
               <div className="bg-green-900/20 border border-green-400/30 rounded-lg p-4 mb-6">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
@@ -362,40 +362,6 @@ function ManageBookings() {
               </div>
             )}
 
-            {/* Error Message for Access Request */}
-            {requestError && (
-              <div className={`p-4 rounded-lg mb-6 border ${
-                requestError.includes('No bookings found') || requestError.includes('double-check')
-                  ? 'bg-orange-900/20 text-orange-400 border-orange-400/30'
-                  : 'bg-red-900/20 text-red-400 border-red-400/30'
-              }`}>
-                <div className="flex items-start space-x-2">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">
-                      {requestError.includes('No bookings found') ? 'Email Not Found' : 'Request Failed'}
-                    </p>
-                    <p className="text-sm mt-1">{requestError}</p>
-                    {requestError.includes('No bookings found') && (
-                      <div className="mt-3 text-sm">
-                        <p className="font-medium mb-2">Possible reasons:</p>
-                        <ul className="list-disc pl-5 space-y-1 text-xs">
-                          <li>Email address was typed incorrectly</li>
-                          <li>You used a different email when booking</li>
-                          <li>No bookings have been made with this email</li>
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setRequestError(null)}
-                  className="mt-3 text-sm px-3 py-1 bg-orange-600/20 hover:bg-orange-600/30 rounded transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
           </>
         )}
 
@@ -470,22 +436,6 @@ function ManageBookings() {
                 </select>
               </div>
 
-              {/* Error Message for Direct Code Access */}
-              {verifyError && (
-                <div className={`p-3 rounded-lg border ${
-                  verifyError.includes('expired') || verifyError.includes('used')
-                    ? 'bg-yellow-900/20 text-yellow-400 border-yellow-400/30'
-                    : verifyError.includes('invalid') || verifyError.includes('check your code')
-                    ? 'bg-orange-900/20 text-orange-400 border-orange-400/30'
-                    : 'bg-red-900/20 text-red-400 border-red-400/30'
-                }`}>
-                  <div className="flex items-start space-x-2">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm">{verifyError}</p>
-                  </div>
-                </div>
-              )}
-
               <div className="flex justify-center">
                 <button
                   type="submit"
@@ -544,21 +494,6 @@ function ManageBookings() {
                 </select>
               </div>
               
-              {/* Error Message for Code Verification */}
-              {verifyError && (
-                <div className={`p-3 rounded-lg border ${
-                  verifyError.includes('expired') || verifyError.includes('used')
-                    ? 'bg-yellow-900/20 text-yellow-400 border-yellow-400/30'
-                    : verifyError.includes('invalid') || verifyError.includes('check your code')
-                    ? 'bg-orange-900/20 text-orange-400 border-orange-400/30'
-                    : 'bg-red-900/20 text-red-400 border-red-400/30'
-                }`}>
-                  <div className="flex items-start space-x-2">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm">{verifyError}</p>
-                  </div>
-                </div>
-              )}
 
               <div className="flex justify-center space-x-4">
                 <button
@@ -730,6 +665,17 @@ function ManageBookings() {
             </ul>
           </div>
         )}
+
+        {/* Error Modal */}
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          onClose={() => setErrorModal({ isOpen: false })}
+          title={errorModal.title}
+          message={errorModal.message}
+          type={errorModal.type}
+          details={errorModal.details}
+          onRetry={errorModal.onRetry}
+        />
       </div>
     </div>
   );
