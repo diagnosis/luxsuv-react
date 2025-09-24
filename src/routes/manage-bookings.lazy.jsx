@@ -669,8 +669,8 @@ function ManageBookings() {
               </div>
             )}
 
-            {/* Status Filter for Magic Links */}
-            {search.token && !tokenBookingsLoading && (
+            {/* Status Filter - Show for all users in view mode */}
+            {!tokenBookingsLoading && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-light mb-2">
                   Filter by Status
@@ -693,7 +693,7 @@ function ManageBookings() {
             {currentBookings.length > 0 && (
               <div>
                 {/* Magic Link Limitation Notice */}
-                {search.token && (
+                {search.token && !guestToken && (
                   <div className="bg-blue-900/20 border border-blue-400/30 rounded-lg p-4 mb-6">
                     <div className="flex items-center space-x-2 mb-2">
                       <AlertCircle className="w-5 h-5 text-blue-400" />
@@ -728,8 +728,9 @@ function ManageBookings() {
                     <BookingCard
                       key={booking.id}
                       booking={booking}
-                      guestToken={guestToken} // Only use guest JWT, not magic link token
-                      showCancelOption={!!guestToken} // Only show cancel if we have guest JWT
+                      guestToken={guestToken || search.token} // Pass available token
+                      showCancelOption={true} // Always show options, let BookingCard handle limitations
+                      isMagicLinkAccess={!!search.token && !guestToken} // Flag for magic link access
                       onBookingUpdated={handleBookingUpdated}
                     />
                   ))}

@@ -5,7 +5,7 @@ import BookingForm from './BookingForm';
 import AlertModal from './AlertModal';
 import AddressAutocomplete from './AddressAutocomplete';
 
-const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onBookingUpdated = null }) => {
+const BookingCard = ({ booking, guestToken = null, showCancelOption = false, isMagicLinkAccess = false, onBookingUpdated = null }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -24,6 +24,17 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   const updateBookingMutation = useUpdateBooking();
 
   const handleCancelBooking = async () => {
+    if (isMagicLinkAccess) {
+      setAlertModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Magic Link Limitation',
+        message: 'Magic links are for viewing only. To cancel bookings, please use your 6-digit access code.',
+        details: ['Magic links are single-use and expire after viewing', 'Use your 6-digit access code to get full editing access']
+      });
+      return;
+    }
+    
     if (!guestToken) {
       setAlertModal({
         isOpen: true,
@@ -125,12 +136,21 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   const canEdit = () => {
     if (booking.status?.toLowerCase() === 'cancelled') return false;
     if (booking.status?.toLowerCase() === 'completed') return false;
-    // Only allow editing if we have a guest JWT token (not magic link token)
-    // Magic link tokens are for viewing only
-    return !!guestToken && !guestToken.includes('magic');
+    return true; // Always show edit button, handle limitations in click handler
   };
 
   const handleStartEdit = () => {
+    if (isMagicLinkAccess) {
+      setAlertModal({
+        isOpen: true,
+        type: 'info',
+        title: 'Magic Link Limitation',
+        message: 'Magic links are for viewing only. To edit bookings, please use your 6-digit access code.',
+        details: ['Magic links are single-use and expire after viewing', 'Use your 6-digit access code to get full editing access']
+      });
+      return;
+    }
+    
     setIsEditing(true);
     setEditPickupLocation(booking.pickup || '');
     setEditDropoffLocation(booking.dropoff || '');
@@ -300,13 +320,23 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                   if (canActuallyCancel()) {
                     setShowCancelModal(true);
                   } else {
-                    setAlertModal({
-                      isOpen: true,
-                      type: 'info',
-                      title: 'Access Required',
-                      message: 'Unable to cancel booking. Please try accessing via your 6-digit access code to enable editing and cancellation features.',
-                      details: ['Magic links are for viewing only', '6-digit codes provide full access']
-                    });
+                    if (isMagicLinkAccess) {
+                      setAlertModal({
+                        isOpen: true,
+                        type: 'info',
+                        title: 'Magic Link Limitation',
+                        message: 'Magic links are for viewing only. To cancel bookings, please use your 6-digit access code.',
+                        details: ['Magic links are single-use and expire after viewing', 'Use your 6-digit access code to get full editing access']
+                      });
+                    } else {
+                      setAlertModal({
+                        isOpen: true,
+                        type: 'info',
+                        title: 'Access Required',
+                        message: 'Unable to cancel booking. Please try accessing via your 6-digit access code to enable editing and cancellation features.',
+                        details: ['Magic links are for viewing only', '6-digit codes provide full access']
+                      });
+                    }
                   }
                 }}
                 className="p-2 rounded-lg transition-colors bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300"
