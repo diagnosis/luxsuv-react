@@ -23,6 +23,8 @@ function ManageBookings() {
   const [accessMethod, setAccessMethod] = useState('request'); // 'request' or 'direct-code'
   const [currentBookings, setCurrentBookings] = useState([]);
   const [guestToken, setGuestToken] = useState(null);
+  const [requestError, setRequestError] = useState(null);
+  const [verifyError, setVerifyError] = useState(null);
   const [errorModal, setErrorModal] = useState({
     isOpen: false,
     type: 'error',
