@@ -734,6 +734,17 @@ function ManageBookings() {
           </div>
         )}
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false })}
+        type={errorModal.type}
+        title={errorModal.title}
+        message={errorModal.message}
+        details={errorModal.details}
+        onRetry={errorModal.onRetry}
+      />
     </div>
   );
 }
