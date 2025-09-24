@@ -11,6 +11,7 @@ const API_CONFIG = {
       ACCESS_REQUEST: '/api/v1/bookings/access/request',
       ACCESS_VERIFY: '/api/v1/bookings/access/verify',
       VIEW: '/api/v1/bookings/view',
+      UPDATE: '/api/v1/bookings',
       CANCEL: '/api/v1/bookings/{id}/cancel',
     },
     

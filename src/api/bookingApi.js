@@ -81,7 +81,7 @@ export const bookingApi = {
 
     console.log('📦 Update Request Body:', requestBody);
     
-    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CREATE_GUEST}/${bookingId}`);
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}`);
     const response = await apiRequest(url, {
       method: 'PATCH',
       headers: getAuthHeaders(guestToken),
