@@ -698,7 +698,7 @@ function ManageBookings() {
                     <BookingCard
                       key={booking.id}
                       booking={booking}
-                      guestToken={search.token}
+                      guestToken={search.token || guestToken}
                       showCancelOption={true}
                     />
                   ))}

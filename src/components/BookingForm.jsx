@@ -40,7 +40,8 @@ const BookingForm = ({
       return;
     }
     
-    if (!data.email?.trim() || !data.email.includes('@')) {
+    // Only validate email for new bookings, not updates
+    if (!isUpdate && (!data.email?.trim() || !data.email.includes('@'))) {
       alert('Please enter a valid email address');
       return;
     }
