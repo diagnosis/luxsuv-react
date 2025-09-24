@@ -24,7 +24,14 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
       alert('Booking cancelled successfully');
     } catch (error) {
       console.error('Failed to cancel booking:', error);
-      alert('Cancellation failed: ' + error.message);
+      
+      if (error.isTokenExpired) {
+        alert(error.userFriendlyMessage + ' Please access your bookings again with a new code.');
+        setShowCancelModal(false);
+        // You might want to emit an event here to trigger parent component to reset
+      } else {
+        alert('Cancellation failed: ' + (error.userFriendlyMessage || error.message));
+      }
     }
   };
 

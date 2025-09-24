@@ -92,7 +92,15 @@ function ManageBookings() {
       setViewMode('view');
     } catch (error) {
       console.error('Code verification failed:', error);
-      alert('Code verification failed: ' + error.message);
+      
+      if (error.isTokenExpired) {
+        alert(error.userFriendlyMessage);
+        // Reset to request new access
+        setAccessCode('');
+        setViewMode('request');
+      } else {
+        alert('Code verification failed: ' + (error.userFriendlyMessage || error.message));
+      }
     }
   };
 
@@ -141,7 +149,15 @@ function ManageBookings() {
       setViewMode('view');
     } catch (error) {
       console.error('Code verification failed:', error);
-      alert('Code verification failed: ' + error.message);
+      
+      if (error.isTokenExpired) {
+        alert(error.userFriendlyMessage);
+        // Reset to request new access
+        setAccessCode('');
+        setViewMode('request');
+      } else {
+        alert('Code verification failed: ' + (error.userFriendlyMessage || error.message));
+      }
     }
   };
   const renderMagicLinkNotice = () => {
@@ -399,15 +415,32 @@ function ManageBookings() {
 
             {/* Error State */}
             {tokenBookingsError && (
-              <div className="bg-red-600/20 text-red-400 p-4 rounded-lg mb-4">
-                <p className="font-medium">Error loading bookings</p>
-                <p className="text-sm mt-1">{tokenBookingsError.message}</p>
-                <button
-                  onClick={handleStartOver}
-                  className="mt-2 px-4 py-2 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors"
-                >
-                  Try Another Method
-                </button>
+              <div className={`p-4 rounded-lg mb-4 ${
+                tokenBookingsError.isTokenExpired 
+                  ? 'bg-yellow-600/20 text-yellow-400' 
+                  : 'bg-red-600/20 text-red-400'
+              }`}>
+                <p className="font-medium">
+                  {tokenBookingsError.isTokenExpired ? 'Access Expired' : 'Error loading bookings'}
+                </p>
+                <p className="text-sm mt-1">
+                  {tokenBookingsError.userFriendlyMessage || tokenBookingsError.message}
+                </p>
+                {tokenBookingsError.isTokenExpired ? (
+                  <button
+                    onClick={handleStartOver}
+                    className="mt-2 px-4 py-2 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors"
+                  >
+                    Request New Access
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleStartOver}
+                    className="mt-2 px-4 py-2 bg-yellow hover:bg-yellow/90 text-dark font-semibold rounded-lg transition-colors"
+                  >
+                    Try Another Method
+                  </button>
+                )}
               </div>
             )}
 
