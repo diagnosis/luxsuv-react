@@ -91,30 +91,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
             </span>
           )}
         </div>
-        <div className="flex space-x-2">
-          {canCancel() && (
-            <>
-              <button
-                onClick={() => {
-                  if (canActuallyCancel()) {
-                    setShowCancelModal(true);
-                  } else {
-                    alert('Cancellation is not available with magic link access. Please use your 6-digit access code to cancel bookings.');
-                  }
-                }}
-                className={`p-2 rounded-lg transition-colors ${
-                  canActuallyCancel() 
-                    ? 'text-red-400 hover:bg-red-400/10' 
-                    : 'text-gray-500 hover:bg-gray-600/10 cursor-not-allowed'
-                }`}
-                aria-label="Cancel booking"
-                title={canActuallyCancel() ? 'Cancel booking' : 'Use 6-digit code access to cancel'}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </>
-          )}
-        </div>
       </div>
 
       {/* Content */}

@@ -61,6 +61,7 @@ function ManageBookings() {
         : allBookings;
       setCurrentBookings(filteredBookings);
     }
+  }, [tokenBookings, statusFilter]);
 
   const handleRequestAccess = async (e) => {
     e.preventDefault();
