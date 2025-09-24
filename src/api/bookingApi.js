@@ -18,6 +18,9 @@ export const bookingApi = {
       pickup: bookingData.pickup,
       dropoff: bookingData.dropoff,
       scheduled_at: bookingData.scheduled_at, // ISO 8601 format
+      luggage_count: bookingData.luggage_count || 0,
+      passenger_count: bookingData.passenger_count || 1,
+      trip_type: bookingData.trip_type || 'per_ride',
     };
 
     console.log('📦 Request Body:', requestBody);
@@ -43,6 +46,61 @@ export const bookingApi = {
 
     const result = await response.json();
     console.log('✅ Booking Created:', result);
+    return result;
+  },
+
+  // Update booking with guest JWT token
+  updateBooking: async (bookingId, bookingData, guestToken) => {
+    console.log('📝 Updating Booking:', {
+      bookingId,
+      name: bookingData.name,
+      phone: bookingData.phone,
+      pickup: bookingData.pickup,
+      dropoff: bookingData.dropoff,
+      scheduled_at: bookingData.scheduled_at,
+      luggage_count: bookingData.luggage_count,
+      passenger_count: bookingData.passenger_count,
+      trip_type: bookingData.trip_type,
+      hasToken: !!guestToken
+    });
+    
+    if (!guestToken) {
+      throw new Error('Guest token required for booking updates');
+    }
+
+    const requestBody = {
+      name: bookingData.name,
+      phone: bookingData.phone,
+      pickup: bookingData.pickup,
+      dropoff: bookingData.dropoff,
+      scheduled_at: bookingData.scheduled_at,
+      luggage_count: bookingData.luggage_count || 0,
+      passenger_count: bookingData.passenger_count || 1,
+      trip_type: bookingData.trip_type || 'per_ride',
+    };
+
+    console.log('📦 Update Request Body:', requestBody);
+    
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.CREATE_GUEST}/${bookingId}`);
+    const response = await apiRequest(url, {
+      method: 'PATCH',
+      headers: getAuthHeaders(guestToken),
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log('📡 Update Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Update Booking Error:', errorData);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
+    }
+
+    const result = await response.json();
+    console.log('✅ Booking Updated:', result);
     return result;
   },
 

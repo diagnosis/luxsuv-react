@@ -111,6 +111,29 @@ export const useCreateGuestBooking = () => {
   });
 };
 
+// Hook for updating booking
+export const useUpdateBooking = () => {
+  return useMutation({
+    mutationFn: ({ bookingId, bookingData, guestToken }) => {
+      console.log('📝 useUpdateBooking:', { bookingId, hasToken: !!guestToken });
+      return bookingApi.updateBooking(bookingId, bookingData, guestToken);
+    },
+    onSuccess: (data) => {
+      console.log('Booking update successful:', data);
+    },
+    onError: (error) => {
+      console.error('Booking update failed:', error);
+      // Add specific handling for different error types
+      const statusCode = error?.status || error?.response?.status;
+      error.isTokenExpired = isTokenExpiredError(error, statusCode);
+      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
+      error.isRateLimit = isRateLimitError(error, statusCode);
+      error.isNotFound = isNotFoundError(error, statusCode);
+      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
+      error.statusCode = statusCode;
+    },
+  });
+};
 // Hook for requesting access tokens
 export const useRequestAccess = () => {
   return useMutation({

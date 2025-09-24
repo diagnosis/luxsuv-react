@@ -9,6 +9,7 @@ const formatDateTimeForAPI = (date, time) => {
 const BookingForm = ({ 
   onSubmit, 
   initialData = {},
+  isUpdate = false,
   pickupLocation, 
   setPickupLocation, 
   dropoffLocation, 
@@ -27,6 +28,9 @@ const BookingForm = ({
       time: formData.get('time'),
       pickup: pickupLocation,
       dropoff: dropoffLocation,
+      luggage_count: parseInt(formData.get('luggage_count')) || 0,
+      passenger_count: parseInt(formData.get('passenger_count')) || 1,
+      trip_type: formData.get('trip_type') || 'per_ride',
       scheduled_at: formatDateTimeForAPI(formData.get('date'), formData.get('time')),
     };
 
@@ -65,6 +69,16 @@ const BookingForm = ({
       alert('Please select a time');
       return;
     }
+    
+    if (data.passenger_count < 1 || data.passenger_count > 8) {
+      alert('Passenger count must be between 1 and 8');
+      return;
+    }
+    
+    if (data.luggage_count < 0 || data.luggage_count > 20) {
+      alert('Luggage count must be between 0 and 20');
+      return;
+    }
 
     console.log('📋 Submitting guest booking:', data);
     onSubmit(data);
@@ -72,17 +86,19 @@ const BookingForm = ({
 
   return (
     <>
-      <div className="bg-yellow/10 border border-yellow/30 rounded-lg p-4 mb-6">
-        <div className="flex items-center space-x-2 mb-2">
-          <span className="text-yellow font-semibold">Guest Booking</span>
+      {!isUpdate && (
+        <div className="bg-yellow/10 border border-yellow/30 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-yellow font-semibold">Guest Booking</span>
+          </div>
+          <p className="text-light/80 text-sm">
+            You're booking as a guest. To manage this booking later, you'll need to use the email address you provide below.
+          </p>
         </div>
-        <p className="text-light/80 text-sm">
-          You're booking as a guest. To manage this booking later, you'll need to use the email address you provide below.
-        </p>
-      </div>
+      )}
       
       <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
-        Book Your Luxury SUV
+        {isUpdate ? 'Update Your Booking' : 'Book Your Luxury SUV'}
       </h1>
       
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
@@ -118,11 +134,16 @@ const BookingForm = ({
               id="email"
               name="email"
               defaultValue={initialData.email || ''}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4 disabled:opacity-50"
               placeholder="Enter your email"
               required
-              disabled={isSubmitting}
+              disabled={isUpdate || isSubmitting} // Disable email editing for updates
             />
+            {isUpdate && (
+              <p className="text-xs text-gray-400 mt-1">
+                Email cannot be changed for security reasons
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -141,6 +162,68 @@ const BookingForm = ({
               required
               disabled={isSubmitting}
             />
+          </div>
+        </div>
+
+        {/* Trip Details */}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
+          <div>
+            <label
+              htmlFor="passenger_count"
+              className="block text-sm font-medium mb-1 md:text-base"
+            >
+              Passengers *
+            </label>
+            <select
+              id="passenger_count"
+              name="passenger_count"
+              defaultValue={initialData.passenger_count || 1}
+              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+              required
+              disabled={isSubmitting}
+            >
+              {[1,2,3,4,5,6,7,8].map(count => (
+                <option key={count} value={count}>{count} passenger{count > 1 ? 's' : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="luggage_count"
+              className="block text-sm font-medium mb-1 md:text-base"
+            >
+              Luggage Count
+            </label>
+            <select
+              id="luggage_count"
+              name="luggage_count"
+              defaultValue={initialData.luggage_count || 0}
+              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+              disabled={isSubmitting}
+            >
+              {Array.from({length: 21}, (_, i) => i).map(count => (
+                <option key={count} value={count}>{count} bag{count !== 1 ? 's' : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="trip_type"
+              className="block text-sm font-medium mb-1 md:text-base"
+            >
+              Trip Type *
+            </label>
+            <select
+              id="trip_type"
+              name="trip_type"
+              defaultValue={initialData.trip_type || 'per_ride'}
+              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+              required
+              disabled={isSubmitting}
+            >
+              <option value="per_ride">Per Ride</option>
+              <option value="hourly">Hourly</option>
+            </select>
           </div>
         </div>
 
@@ -197,6 +280,7 @@ const BookingForm = ({
               type="date"
               id="date"
               name="date"
+              defaultValue={initialData.date || ''}
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               min="2025-05-31"
               required
@@ -214,6 +298,7 @@ const BookingForm = ({
               type="time"
               id="time"
               name="time"
+              defaultValue={initialData.time || ''}
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               required
               disabled={isSubmitting}
@@ -228,7 +313,7 @@ const BookingForm = ({
             className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-2 rounded-lg transition-colors text-sm md:px-10 md:py-4 md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Booking'}
+            {isSubmitting ? (isUpdate ? 'Updating...' : 'Submitting...') : (isUpdate ? 'Update Booking' : 'Submit Booking')}
           </button>
         </div>
       </form>
