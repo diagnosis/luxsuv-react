@@ -43,7 +43,7 @@ function ManageBookings() {
     data: tokenBookings,
     isLoading: tokenBookingsLoading,
     error: tokenBookingsError
-  } = useViewBookings(search.token, statusFilter);
+  } = useViewBookings(search.token); // Remove statusFilter to prevent re-fetching with consumed token
 
   useEffect(() => {
     if (search.token) {
@@ -54,9 +54,13 @@ function ManageBookings() {
 
   useEffect(() => {
     if (tokenBookings) {
-      setCurrentBookings(tokenBookings.bookings || []);
+      // Filter bookings client-side for magic link access to avoid re-fetching with consumed token
+      const allBookings = tokenBookings.bookings || [];
+      const filteredBookings = statusFilter 
+        ? allBookings.filter(booking => booking.status?.toLowerCase() === statusFilter.toLowerCase())
+        : allBookings;
+      setCurrentBookings(filteredBookings);
     }
-  }, [tokenBookings]);
 
   const handleRequestAccess = async (e) => {
     e.preventDefault();
