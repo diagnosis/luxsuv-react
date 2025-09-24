@@ -164,26 +164,20 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false }) =
         {booking.created_at && (
           <div className="pt-2 border-t border-gray-700">
             <p className="text-sm text-gray-400">
-              Created: {new Date(booking.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
-            {booking.updated_at && booking.updated_at !== booking.created_at && (
-              <p className="text-sm text-gray-400 mt-1">
-                Updated: {new Date(booking.updated_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            )}
-          </div>
+          <button
+            onClick={() => {
+              if (canActuallyCancel()) {
+                setShowCancelModal(true);
+              } else {
+                alert('Unable to cancel booking. Please try accessing via your 6-digit access code.');
+              }
+            }}
+            className="p-2 rounded-lg transition-colors bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300"
+            aria-label="Cancel booking"
+            title="Cancel booking"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
         )}
       </div>
 

@@ -693,7 +693,7 @@ function ManageBookings() {
                     <BookingCard
                       key={booking.id}
                       booking={booking}
-                      guestToken={guestToken}
+                      guestToken={search.token}
                       showCancelOption={true}
                     />
                   ))}
