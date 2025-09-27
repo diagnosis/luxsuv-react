@@ -1,4 +1,4 @@
-import { CheckCircle, Calendar, MapPin, Users, Clock, Car, ArrowRight, AlertTriangle } from 'lucide-react';
+import { CircleCheck as CheckCircle, Calendar, MapPin, Users, Clock, Car, ArrowRight, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 const BookingSuccess = ({ bookingResult, onNewBooking }) => {

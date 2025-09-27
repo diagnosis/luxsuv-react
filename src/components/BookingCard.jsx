@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Luggage, Edit3, Save, X, Trash2, Mail, AlertTriangle, Car, User, CreditCard, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Luggage, LocationEdit as Edit3, Save, X, Trash2, Mail, TriangleAlert as AlertTriangle, Car, User, CreditCard, ExternalLink } from 'lucide-react';
 import { useCancelBooking, useUpdateBooking, useStartPayment } from '../hooks/useBooking';
 import BookingForm from './BookingForm';
 import AlertModal from './AlertModal';
@@ -176,32 +176,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
     return true; // Always show edit button, handle limitations in click handler
   };
 
-  // Check if user can pay for this booking
-  const canPay = () => {
-    const status = booking.status?.toLowerCase();
-    return status === 'approved' && !booking.paid;
-  };
-
-  // Check if booking has been paid
-  const isPaid = () => {
-    return booking.paid === true || booking.payment_status === 'paid';
-  };
-
-  const handleStartPayment = async () => {
-    try {
-      await startPaymentMutation.mutateAsync(booking.id);
-    } catch (error) {
-      console.error('Failed to start payment:', error);
-      setAlertModal({
-        isOpen: true,
-        type: 'error',
-        title: 'Payment Failed',
-        message: error.userFriendlyMessage || 'Failed to start payment process. Please try again.',
-        details: ['Please check your internet connection', 'Contact support if the problem persists']
-      });
-    }
-  };
-
   const handleStartEdit = () => {
     setIsEditing(true);
     setEditPickupLocation(booking.pickup || '');
@@ -372,16 +346,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                 {booking.status}
               </span>
             )}
-            {isPaid() && (
-              <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold text-green-400 bg-green-400/20 border border-green-400/30 ml-2">
-                Paid
-              </span>
-            )}
-            {canPay() && (
-              <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold text-orange-400 bg-orange-400/20 border border-orange-400/30 ml-2">
-                Payment Required
-              </span>
-            )}
           </div>
           <div className="flex space-x-2">
             {canEdit() && (
@@ -392,21 +356,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                 title="Edit booking"
               >
                 <Edit3 className="w-5 h-5" />
-              </button>
-            )}
-            {canPay() && (
-              <button
-                onClick={handleStartPayment}
-                disabled={startPaymentMutation.isPending}
-                className="p-2 rounded-lg transition-colors bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 hover:text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Pay now"
-                title="Pay for booking"
-              >
-                {startPaymentMutation.isPending ? (
-                  <div className="w-5 h-5 animate-spin rounded-full border-2 border-green-400 border-t-transparent"></div>
-                ) : (
-                  <CreditCard className="w-5 h-5" />
-                )}
               </button>
             )}
             {canCancel() && (
@@ -507,62 +456,9 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
             <p className="text-sm text-gray-400">
               Booking ID: {booking.id}
             </p>
-            {booking.amount && (
-              <p className="text-sm text-gray-400 mt-1">
-                Amount: ${booking.amount}
-              </p>
-            )}
           </div>
 
         </div>
-
-        {/* Payment Status */}
-        {canPay() && (
-          <div className="mt-4 p-3 bg-orange-400/10 text-orange-400 rounded-lg border border-orange-400/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <CreditCard className="w-4 h-4" />
-                <span className="text-sm font-medium">Payment Required</span>
-              </div>
-              <button
-                onClick={handleStartPayment}
-                disabled={startPaymentMutation.isPending}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-              >
-                {startPaymentMutation.isPending ? (
-                  <>
-                    <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-4 h-4" />
-                    <span>Pay Now</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </>
-                )}
-              </button>
-            </div>
-            <p className="text-xs mt-2 text-orange-300">
-              Click "Pay Now" to complete your booking payment securely through Stripe.
-            </p>
-          </div>
-        )}
-
-        {/* Payment Success */}
-        {isPaid() && (
-          <div className="mt-4 p-3 bg-green-400/10 text-green-400 rounded-lg border border-green-400/30">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-green-400 rounded-full flex items-center justify-center">
-                <span className="text-dark text-xs font-bold">✓</span>
-              </div>
-              <span className="text-sm font-medium">Payment Completed</span>
-            </div>
-            <p className="text-xs mt-2 text-green-300">
-              Your payment has been processed successfully.
-            </p>
-          </div>
-        )}
 
         {/* Cancel Status */}
         {cancelBookingMutation.isPending && (

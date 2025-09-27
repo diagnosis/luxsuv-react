@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { Search, Mail, RefreshCw, AlertCircle, User, Key, Eye, ArrowRight } from 'lucide-react';
+import { Search, Mail, RefreshCw, CircleAlert as AlertCircle, User, Key, Eye, ArrowRight } from 'lucide-react';
 import { useSearch, useNavigate } from '@tanstack/react-router';
 import { useRequestAccess, useVerifyAccessCode, useViewBookings } from '../hooks/useBooking';
 import { queryClient } from '../lib/queryClient';
