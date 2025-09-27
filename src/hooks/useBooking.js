@@ -259,6 +259,29 @@ export const useCancelBooking = () => {
   });
 };
 
+// Hook for starting payment checkout
+export const useStartPayment = () => {
+  return useMutation({
+    mutationFn: (bookingId) => {
+      console.log('💳 useStartPayment:', { bookingId });
+      return bookingApi.startCheckout(bookingId);
+    },
+    onSuccess: (checkoutUrl, bookingId) => {
+      console.log('Payment checkout URL received:', { checkoutUrl, bookingId });
+      // Redirect to Stripe checkout
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      }
+    },
+    onError: (error) => {
+      console.error('Payment initiation failed:', error);
+      const statusCode = error?.status || error?.response?.status;
+      error.userFriendlyMessage = error?.message || 'Failed to start payment process. Please try again.';
+      error.statusCode = statusCode;
+    },
+  });
+};
+
 // Development hooks for email outbox
 export const useGetOutboxEmails = () => {
   return useQuery({

@@ -81,6 +81,11 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
         </div>
         <p className="text-light/80 text-sm">
           Your booking has been submitted successfully. Check your email for access code and booking details.
+          {bookingData.status === 'approved' && !bookingData.paid && (
+            <span className="block mt-2 text-orange-300 font-medium">
+              Once approved, you'll receive payment instructions to complete your booking.
+            </span>
+          )}
         </p>
       </div>
 
@@ -175,6 +180,14 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
             </div>
             <p className="text-light/90">
               Our team will review and confirm your reservation within 24 hours.
+            </p>
+          </div>
+          <div className="flex items-start space-x-3">
+            <div className="w-6 h-6 bg-yellow text-dark rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+              4
+            </div>
+            <p className="text-light/90">
+              Once approved, you'll receive a payment link to complete your booking securely.
             </p>
           </div>
         </div>

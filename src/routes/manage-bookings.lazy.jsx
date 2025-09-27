@@ -672,20 +672,37 @@ function ManageBookings() {
             {/* Status Filter - Show for all users in view mode */}
             {!tokenBookingsLoading && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-light mb-2">
-                  Filter by Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full max-w-xs px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
-                >
-                  <option value="">All Bookings</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  <div>
+                    <label className="block text-sm font-medium text-light mb-2">
+                      Filter by Status
+                    </label>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="w-full max-w-xs px-4 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors"
+                    >
+                      <option value="">All Bookings</option>
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  
+                  <div className="text-sm text-light/60">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
+                        <span>Payment Required</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                        <span>Paid</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -760,7 +777,11 @@ function ManageBookings() {
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-yellow mt-1">•</span>
-                <span>Use the guest token to cancel bookings if needed</span>
+                <span>Use your access to cancel bookings or make payments when required</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <span className="text-yellow mt-1">•</span>
+                <span>Once your booking is approved, you can pay securely through Stripe</span>
               </li>
             </ul>
           </div>
