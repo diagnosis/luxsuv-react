@@ -13,6 +13,7 @@ const API_CONFIG = {
       VIEW: '/api/v1/bookings/view',
       UPDATE: '/api/v1/bookings',
       CANCEL: '/api/v1/bookings/{id}/cancel',
+      PAY: '/api/v1/bookings/{id}/pay',
     },
     
     // Admin endpoints (for future admin app)
@@ -21,6 +22,7 @@ const API_CONFIG = {
       BOOKINGS: '/api/v1/admin/bookings',
       UPDATE_STATUS: '/api/v1/admin/bookings/{id}/status',
     },
+    //
     
     // Development endpoints
     DEV: {

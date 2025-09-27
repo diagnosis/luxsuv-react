@@ -64,7 +64,7 @@ const AddressAutocomplete = ({
     // Debounce the search
     debounceRef.current = setTimeout(() => {
       searchAddresses(newQuery);
-    }, 300);
+    }, 150);
   };
 
   // Handle suggestion selection

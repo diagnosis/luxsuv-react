@@ -287,5 +287,15 @@ export const bookingApi = {
     const result = await response.text(); // Email content is plain text
     console.log('✅ Email Content Retrieved');
     return result;
-  }
+  },
+  startCheckout: async (bookingId) => {
+    const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.PAY, { id: bookingId });
+    const res = await apiRequest(url, { method: 'POST', headers: getAuthHeaders() });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.message || `HTTP ${res.status}`);
+    }
+    const { url: checkoutUrl } = await res.json();
+    return checkoutUrl;
+  },
 };
