@@ -4,7 +4,7 @@ import {
   useStripe, 
   useElements 
 } from '@stripe/react-stripe-js';
-import { ArrowLeft, CreditCard, Shield, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Shield, CircleCheck as CheckCircle, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react';
 import { bookingApi } from '../api/bookingApi';
 
 const PaymentValidation = ({ booking, onComplete, onBack }) => {
@@ -14,6 +14,8 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
   const [error, setError] = useState('');
   const [setupIntent, setSetupIntent] = useState(null);
   const [validationComplete, setValidationComplete] = useState(false);
+  const [initializationError, setInitializationError] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
 
   useEffect(() => {
     initializePaymentValidation();
@@ -21,10 +23,14 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
 
   const initializePaymentValidation = async () => {
     try {
+      setInitializationError(false);
+      console.log('🔄 Initializing payment validation for booking:', booking.id);
       const result = await bookingApi.validatePayment(booking.id);
+      console.log('✅ Setup intent received:', result);
       setSetupIntent(result);
     } catch (error) {
-      console.error('Payment validation initialization failed:', error);
+      console.error('❌ Payment validation initialization failed:', error);
+      setInitializationError(true);
       setError('Failed to initialize payment validation. Please try again.');
     }
   };
@@ -33,6 +39,12 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
     e.preventDefault();
     
     if (!stripe || !elements || !setupIntent) {
+      setError('Payment system not ready. Please try again.');
+      return;
+    }
+
+    if (!cardComplete) {
+      setError('Please complete your card information.');
       return;
     }
 
@@ -40,6 +52,7 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
     setError('');
 
     try {
+      console.log('💳 Starting payment validation...');
       const cardElement = elements.getElement(CardElement);
 
       // Confirm the SetupIntent with the card
@@ -57,11 +70,16 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
       );
 
       if (error) {
+        console.error('❌ Stripe setup intent failed:', error);
         throw error;
       }
 
+      console.log('✅ Setup intent confirmed:', confirmedSetupIntent);
+
       // Confirm validation with backend
       await bookingApi.confirmValidation(confirmedSetupIntent.id);
+      console.log('✅ Validation confirmed with backend');
+      
       setValidationComplete(true);
       
       // Auto-complete after showing success
@@ -69,7 +87,7 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
         onComplete();
       }, 2000);
     } catch (error) {
-      console.error('Payment validation failed:', error);
+      console.error('❌ Payment validation failed:', error);
       
       // Handle specific Stripe errors
       const errorMessages = {
@@ -84,6 +102,22 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
       setError(errorMessages[error.code] || error.message || 'Payment validation failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetryValidation = () => {
+    setError('');
+    setValidationComplete(false);
+    setInitializationError(false);
+    initializePaymentValidation();
+  };
+
+  const handleCardChange = (event) => {
+    setCardComplete(event.complete);
+    if (event.error) {
+      setError(event.error.message);
+    } else {
+      setError('');
     }
   };
 
@@ -180,48 +214,95 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-light mb-2">
-            Card Details *
-          </label>
-          <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 focus-within:ring-2 focus-within:ring-yellow focus-within:border-yellow transition-colors">
-            <CardElement options={cardOptions} />
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-900/20 text-red-400 rounded-lg border border-red-400/30 flex items-start space-x-2">
+      {/* Initialization Error */}
+      {initializationError && (
+        <div className="mb-6 p-4 bg-red-900/20 text-red-400 rounded-lg border border-red-400/30">
+          <div className="flex items-start space-x-2 mb-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium mb-1">Payment Validation Failed</h4>
-              <p className="text-sm">{error}</p>
+              <h4 className="font-medium mb-1">Setup Failed</h4>
+              <p className="text-sm">Failed to initialize payment validation. Please try again.</p>
             </div>
           </div>
-        )}
+          <button
+            onClick={handleRetryValidation}
+            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Retry Setup</span>
+          </button>
+        </div>
+      )}
 
-        <button
-          type="submit"
-          disabled={!stripe || loading || validationComplete}
-          className="w-full bg-yellow hover:bg-yellow/90 text-dark font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-        >
-          {loading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></div>
-              <span>Validating Card...</span>
-            </>
-          ) : (
-            <>
-              <Shield className="w-4 h-4" />
-              <span>Validate Payment Method</span>
-            </>
+      {/* Payment Form */}
+      {setupIntent && !initializationError && (
+        <form onSubmit={handleSubmit}>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-light mb-2">
+              Card Details *
+            </label>
+            <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 focus-within:ring-2 focus-within:ring-yellow focus-within:border-yellow transition-colors">
+              <CardElement 
+                options={cardOptions}
+                onChange={handleCardChange}
+              />
+            </div>
+            <p className="text-xs text-light/60 mt-2">
+              Enter your card information to validate your payment method
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 text-red-400 rounded-lg border border-red-400/30">
+              <div className="flex items-start space-x-2 mb-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium mb-1">Payment Validation Failed</h4>
+                  <p className="text-sm">{error}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setError('')}
+                className="flex items-center space-x-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-2 rounded transition-colors text-sm"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Try Again</span>
+              </button>
+            </div>
           )}
-        </button>
 
-        <p className="text-xs text-light/60 mt-3 text-center">
-          Your card will be validated but not charged. Payment occurs after ride completion.
-        </p>
-      </form>
+          <button
+            type="submit"
+            disabled={!stripe || loading || validationComplete || !cardComplete || initializationError}
+            className="w-full bg-yellow hover:bg-yellow/90 text-dark font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></div>
+                <span>Validating Card...</span>
+              </>
+            ) : (
+              <>
+                <Shield className="w-4 h-4" />
+                <span>Validate Payment Method</span>
+              </>
+            )}
+          </button>
+
+          <p className="text-xs text-light/60 mt-3 text-center">
+            Your card will be validated but not charged. Payment occurs after ride completion.
+          </p>
+        </form>
+      )}
+
+      {/* Loading Setup */}
+      {!setupIntent && !initializationError && (
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-2 border-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-light/80">Setting up secure payment validation...</p>
+        </div>
+      )}
     </div>
   );
 };

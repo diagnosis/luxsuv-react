@@ -106,14 +106,17 @@ function RouteComponent() {
       // Combine API result with form data for complete booking info
       setBookingResult({
         ...result,
-        ...bookingFormData,
+        // Use result data, but ensure we have all needed fields
         id: result.id,
         status: 'pending', // Ensure status is pending
         scheduled_at: bookingData.scheduled_at,
         pickup: bookingData.pickup,
         dropoff: bookingData.dropoff,
         name: bookingData.name,
-        email: bookingData.email
+        email: bookingData.email,
+        phone: bookingData.phone,
+        passenger_count: bookingData.passenger_count || 1,
+        luggage_count: bookingData.luggage_count || 0
       });
 
       // Show payment validation instead of immediate success
@@ -130,13 +133,11 @@ function RouteComponent() {
 
   const handlePaymentComplete = () => {
     setBookingState('success');
-    // Now reset form data
-    setPickupLocation('');
-    setDropoffLocation('');
   };
 
   const handlePaymentBack = () => {
     setBookingState('form');
+    // Don't clear the booking result so user can retry payment
   };
 
   const handleRetry = () => {

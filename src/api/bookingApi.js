@@ -303,7 +303,7 @@ export const bookingApi = {
   validatePayment: async (bookingId) => {
     console.log('💳 Validating Payment for Booking:', bookingId);
     
-    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}/validate-payment`);
+    const url = buildUrl(`/api/v1/bookings/${bookingId}/validate-payment`);
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
