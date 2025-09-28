@@ -5,7 +5,7 @@ import BookingForm from '../components/BookingForm';
 import PaymentValidation from '../components/PaymentValidation';
 import BookingSuccess from '../components/BookingSuccess';
 import BookingError from '../components/BookingError';
-import { useBooking } from '../hooks/useBooking';
+import { useCreateGuestBooking } from '../hooks/useBooking';
 
 export const Route = {
   component: Book,
@@ -17,7 +17,7 @@ function Book() {
   const [error, setError] = useState(null);
   const [preservedFormData, setPreservedFormData] = useState(null);
   
-  const { createBooking, loading } = useBooking();
+  const { mutateAsync: createBooking, isPending: loading } = useCreateGuestBooking();
 
   const handleBookingSubmit = async (formData) => {
     try {
