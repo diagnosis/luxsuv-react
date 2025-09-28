@@ -103,11 +103,16 @@ function RouteComponent() {
 
       console.log('✅ Booking submission successful:', result);
       
+      // Ensure we have a valid booking ID
+      if (!result.id && !result.booking?.id) {
+        throw new Error('Booking was created but no ID was returned');
+      }
+      
       // Combine API result with form data for complete booking info
       setBookingResult({
         ...result,
         // Use result data, but ensure we have all needed fields
-        id: result.id,
+        id: result.id || result.booking?.id, // Handle both response formats
         status: 'pending', // Ensure status is pending
         scheduled_at: bookingData.scheduled_at,
         pickup: bookingData.pickup,
@@ -117,6 +122,12 @@ function RouteComponent() {
         phone: bookingData.phone,
         passenger_count: bookingData.passenger_count || 1,
         luggage_count: bookingData.luggage_count || 0
+      });
+
+      console.log('📋 Final booking result for payment:', {
+        id: result.id || result.booking?.id,
+        hasId: !!(result.id || result.booking?.id),
+        fullResult: result
       });
 
       // Show payment validation instead of immediate success

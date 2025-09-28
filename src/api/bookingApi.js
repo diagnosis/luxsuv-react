@@ -46,6 +46,7 @@ export const bookingApi = {
 
     const result = await response.json();
     console.log('✅ Booking Created:', result);
+    console.log('✅ Booking ID in result:', result.id || result.booking?.id);
     return result;
   },
 

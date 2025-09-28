@@ -18,10 +18,30 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
   const [cardComplete, setCardComplete] = useState(false);
 
   useEffect(() => {
+    console.log('PaymentValidation - Received booking:', {
+      bookingId: booking?.id,
+      hasBooking: !!booking,
+      bookingKeys: booking ? Object.keys(booking) : [],
+      fullBooking: booking
+    });
+    
+    if (!booking?.id) {
+      console.error('❌ PaymentValidation - No booking ID provided:', booking);
+      setInitializationError(true);
+      setError('Invalid booking data. Please try booking again.');
+      return;
+    }
+    
     initializePaymentValidation();
-  }, []);
+  }, [booking]);
 
   const initializePaymentValidation = async () => {
+    if (!booking?.id) {
+      setInitializationError(true);
+      setError('Invalid booking ID. Please try booking again.');
+      return;
+    }
+    
     try {
       setInitializationError(false);
       console.log('🔄 Initializing payment validation for booking:', booking.id);
@@ -106,6 +126,11 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
   };
 
   const handleRetryValidation = () => {
+    if (!booking?.id) {
+      setError('Invalid booking data. Please go back and try booking again.');
+      return;
+    }
+    
     setError('');
     setValidationComplete(false);
     setInitializationError(false);
