@@ -17,20 +17,26 @@ function Book() {
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState(null);
   const [preservedFormData, setPreservedFormData] = useState(null);
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [dropoffLocation, setDropoffLocation] = useState('');
   
   const { mutateAsync: createBooking, isPending: loading } = useCreateGuestBooking();
 
   const handleBookingSubmit = async (formData) => {
     try {
       // Store form data in case we need to restore it
-      setPreservedFormData(formData);
+      setPreservedFormData({
+        ...formData,
+        pickup: pickupLocation,
+        dropoff: dropoffLocation
+      });
       
       const result = await createBooking({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        pickup: formData.pickup,
-        dropoff: formData.dropoff,
+        pickup: pickupLocation,
+        dropoff: dropoffLocation,
         scheduled_at: formData.scheduledAt,
         luggage_count: parseInt(formData.luggageCount) || 0,
         passenger_count: parseInt(formData.passengerCount) || 1,
@@ -89,7 +95,17 @@ function Book() {
     setBooking(null);
     setError(null);
     setPreservedFormData(null);
+    setPickupLocation('');
+    setDropoffLocation('');
   };
+
+  // Restore location data when preserving form data
+  useState(() => {
+    if (preservedFormData) {
+      if (preservedFormData.pickup) setPickupLocation(preservedFormData.pickup);
+      if (preservedFormData.dropoff) setDropoffLocation(preservedFormData.dropoff);
+    }
+  }, [preservedFormData]);
 
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -97,8 +113,12 @@ function Book() {
         return (
           <BookingForm 
             onSubmit={handleBookingSubmit}
-            loading={loading}
-            initialFormData={preservedFormData}
+            isSubmitting={loading}
+            initialData={preservedFormData}
+            pickupLocation={pickupLocation}
+            setPickupLocation={setPickupLocation}
+            dropoffLocation={dropoffLocation}
+            setDropoffLocation={setDropoffLocation}
           />
         );
         
@@ -135,15 +155,29 @@ function Book() {
         return (
           <BookingForm 
             onSubmit={handleBookingSubmit}
-            loading={loading}
+            isSubmitting={loading}
+            pickupLocation={pickupLocation}
+            setPickupLocation={setPickupLocation}
+            dropoffLocation={dropoffLocation}
+            setDropoffLocation={setDropoffLocation}
           />
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+    <div 
+      className="w-full h-full bg-cover bg-center bg-no-repeat text-light overflow-y-auto relative"
+      style={{
+        backgroundImage: 'url("../public/images/hero.jpg")',
+        minHeight: '100%',
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-dark/60"></div>
+      
+      {/* Content */}
+      <div className="relative max-w-screen-xl mx-auto px-4 py-4 md:py-8">
         {renderCurrentStep()}
       </div>
     </div>
