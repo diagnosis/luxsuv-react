@@ -37,7 +37,7 @@ function Book() {
         phone: formData.phone,
         pickup: pickupLocation,
         dropoff: dropoffLocation,
-        scheduled_at: formData.scheduledAt,
+        scheduled_at: formData.scheduled_at,
         luggage_count: parseInt(formData.luggageCount) || 0,
         passenger_count: parseInt(formData.passengerCount) || 1,
         trip_type: formData.tripType || 'per_ride',
