@@ -178,7 +178,7 @@ function Book() {
       case 'success':
         return (
           <BookingSuccess 
-            booking={booking}
+            bookingResult={booking}
             onNewBooking={handleCompletelyNewBooking}
           />
         );
