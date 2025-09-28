@@ -4,7 +4,7 @@ import {
   useStripe, 
   useElements 
 } from '@stripe/react-stripe-js';
-import { ArrowLeft, CreditCard, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Shield, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react';
 import { bookingApi } from '../api/bookingApi';
 
 const PaymentValidation = ({ booking, onComplete, onBack }) => {
