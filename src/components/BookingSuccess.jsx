@@ -31,7 +31,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
   };
 
   // Get booking data from the result or use stored form data
-  const bookingData = bookingResult?.booking || bookingResult || {};
+  const bookingData = bookingResult || {};
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
