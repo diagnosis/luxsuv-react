@@ -16,7 +16,7 @@ function Book() {
   const [currentStep, setCurrentStep] = useState('form'); // 'form', 'payment', 'success', 'error'
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState(null);
-  const [preservedFormData, setPreservedFormData] = useState(null);
+  const [preservedFormData, setPreservedFormData] = useState({});
   const [pickupLocation, setPickupLocation] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState('');
   
