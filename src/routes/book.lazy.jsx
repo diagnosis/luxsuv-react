@@ -166,3 +166,6 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
     return (
       <div className="max-w-lg mx-auto text-center">
         <div className="bg-green-900/20 border border-green-400/
+    )
+  }
+}
