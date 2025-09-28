@@ -25,11 +25,12 @@ function Book() {
   const handleBookingSubmit = async (formData) => {
     try {
       // Store form data in case we need to restore it
-      setPreservedFormData({
+      const completeFormData = {
         ...formData,
         pickup: pickupLocation,
         dropoff: dropoffLocation
-      });
+      };
+      setPreservedFormData(completeFormData);
       
       const result = await createBooking({
         name: formData.name,
@@ -56,7 +57,15 @@ function Book() {
       }
 
       if (bookingData && bookingData.id) {
-        setBooking(bookingData);
+        // Combine API response with form data for complete booking info
+        setBooking({
+          ...bookingData,
+          ...completeFormData,
+          // Ensure API response takes precedence for any overlapping fields
+          id: bookingData.id,
+          status: bookingData.status,
+          payment_status: bookingData.payment_status
+        });
         setCurrentStep('payment');
         setError(null);
       } else {
@@ -71,7 +80,7 @@ function Book() {
 
   const handlePaymentComplete = () => {
     setCurrentStep('success');
-    setPreservedFormData(null); // Clear preserved data on success
+    // Don't clear preserved data yet - BookingSuccess needs it
   };
 
   const handlePaymentError = (errorMsg) => {
@@ -94,7 +103,7 @@ function Book() {
     setCurrentStep('form');
     setBooking(null);
     setError(null);
-    setPreservedFormData(null);
+    setPreservedFormData({});
     setPickupLocation('');
     setDropoffLocation('');
   };
