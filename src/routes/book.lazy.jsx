@@ -115,13 +115,6 @@ function Book() {
     setDropoffLocation('');
   };
 
-  // Restore location data when preserving form data
-  useState(() => {
-    if (preservedFormData) {
-      if (preservedFormData.pickup) setPickupLocation(preservedFormData.pickup);
-      if (preservedFormData.dropoff) setDropoffLocation(preservedFormData.dropoff);
-    }
-  }, [preservedFormData]);
 
   const renderCurrentStep = () => {
     switch (currentStep) {
