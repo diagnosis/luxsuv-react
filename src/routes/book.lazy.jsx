@@ -39,9 +39,9 @@ function Book() {
         pickup: pickupLocation,
         dropoff: dropoffLocation,
         scheduled_at: formData.scheduled_at,
-        luggage_count: parseInt(formData.luggageCount) || 0,
-        passenger_count: parseInt(formData.passengerCount) || 1,
-        trip_type: formData.tripType || 'per_ride',
+        luggage_count: parseInt(formData.luggage_count) || 0,
+        passenger_count: parseInt(formData.passenger_count) || 1,
+        trip_type: formData.trip_type || 'per_ride',
       });
 
       console.log('📋 Booking created:', result);
@@ -93,9 +93,16 @@ function Book() {
   };
 
   const handleStartOver = () => {
-    // Keep preserved form data for fixing errors
+    // Keep preserved form data for fixing errors but reset locations if they're in preserved data
     setCurrentStep('form');
     setError(null);
+    // Restore location data from preserved form data
+    if (preservedFormData.pickup) {
+      setPickupLocation(preservedFormData.pickup);
+    }
+    if (preservedFormData.dropoff) {
+      setDropoffLocation(preservedFormData.dropoff);
+    }
   };
 
   const handleCompletelyNewBooking = () => {

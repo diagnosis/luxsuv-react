@@ -138,6 +138,25 @@ const BookingForm = ({
       return;
     }
 
+    // Validate that booking time is at least 1 hour in the future
+    const bookingDateTime = new Date(data.scheduled_at);
+    const now = new Date();
+    const oneHourFromNow = new Date(now.getTime() + (60 * 60 * 1000)); // Add 1 hour
+    
+    if (bookingDateTime <= oneHourFromNow) {
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Invalid Booking Time',
+        message: 'Bookings must be scheduled at least 1 hour in advance.',
+        details: [
+          'Please select a date and time at least 1 hour from now',
+          'This ensures we have enough time to prepare your luxury SUV'
+        ]
+      });
+      return;
+    }
+
     console.log('📋 Submitting guest booking:', data);
     onSubmit(data);
   };
