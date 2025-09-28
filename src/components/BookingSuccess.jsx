@@ -2,6 +2,8 @@ import { CircleCheck as CheckCircle, Calendar, MapPin, Users, Clock, Car, ArrowR
 import { Link } from '@tanstack/react-router';
 
 const BookingSuccess = ({ bookingResult, onNewBooking }) => {
+  console.log('📋 BookingSuccess received:', bookingResult);
+  
   const formatDate = (dateString) => {
     try {
       return new Date(dateString).toLocaleDateString('en-US', {

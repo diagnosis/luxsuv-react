@@ -57,15 +57,46 @@ function Book() {
       }
 
       if (bookingData && bookingData.id) {
-        // Combine API response with form data for complete booking info
+        // Combine form data with API response, prioritizing form data for display
+        console.log('📋 Complete form data:', completeFormData);
+        console.log('📋 API response data:', bookingData);
+        
         setBooking({
-          ...bookingData,
           ...completeFormData,
+          ...bookingData,
           // Ensure API response takes precedence for any overlapping fields
           id: bookingData.id,
           status: bookingData.status,
-          payment_status: bookingData.payment_status
+          payment_status: bookingData.payment_status,
+          // But keep form data for display
+          name: completeFormData.name,
+          email: completeFormData.email,
+          phone: completeFormData.phone,
+          pickup: completeFormData.pickup,
+          dropoff: completeFormData.dropoff,
+          scheduled_at: completeFormData.scheduled_at,
+          passenger_count: completeFormData.passenger_count,
+          luggage_count: completeFormData.luggage_count,
+          trip_type: completeFormData.trip_type
         });
+        
+        console.log('📋 Final booking object set:', {
+          ...completeFormData,
+          ...bookingData,
+          id: bookingData.id,
+          status: bookingData.status,
+          payment_status: bookingData.payment_status,
+          name: completeFormData.name,
+          email: completeFormData.email,
+          phone: completeFormData.phone,
+          pickup: completeFormData.pickup,
+          dropoff: completeFormData.dropoff,
+          scheduled_at: completeFormData.scheduled_at,
+          passenger_count: completeFormData.passenger_count,
+          luggage_count: completeFormData.luggage_count,
+          trip_type: completeFormData.trip_type
+        });
+        
         setCurrentStep('payment');
         setError(null);
       } else {
