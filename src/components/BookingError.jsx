@@ -120,14 +120,14 @@ const BookingError = ({ error, onRetry, onNewBooking }) => {
           className="inline-flex items-center justify-center bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
-          Try Again
+          Fix & Try Again
         </button>
         <button
           onClick={onNewBooking}
           className="inline-flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Start Over
+          Completely New Booking
         </button>
       </div>
 

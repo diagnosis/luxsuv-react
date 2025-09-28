@@ -215,7 +215,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
           onClick={onNewBooking}
           className="inline-flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
         >
-          Book Another Ride
+          New Booking
         </button>
       </div>
 

@@ -155,9 +155,16 @@ const BookingForm = ({
         </div>
       )}
       
-      <h1 className="text-2xl font-bold mb-4 md:text-4xl md:mb-6">
-        {isUpdate ? 'Update Your Booking' : 'Book Your Luxury SUV'}
-      </h1>
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-2xl font-bold mb-2 md:text-4xl">
+          {isUpdate ? 'Update Your Booking' : 'Book Your Luxury SUV'}
+        </h1>
+        {initialData && !isUpdate && (
+          <p className="text-yellow/80 text-sm">
+            📝 Your previous information has been restored. Please correct any issues and resubmit.
+          </p>
+        )}
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         {/* Contact Information */}

@@ -283,16 +283,16 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
             <div>
               <h4 className="font-medium mb-1">Missing Booking Information</h4>
               <p className="text-sm">
-                Booking ID is required for payment validation. Please return to the booking form.
+                Booking ID is required for payment validation. Your form data will be preserved.
               </p>
             </div>
           </div>
           <button
-            onClick={handleRetryValidation}
+            onClick={onBack}
             className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Booking</span>
+            <span>Fix Booking Form</span>
           </button>
         </div>
       )}
