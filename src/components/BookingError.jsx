@@ -1,4 +1,4 @@
-import { AlertCircle, RefreshCw, ArrowLeft, Phone, Mail } from 'lucide-react';
+import { CircleAlert as AlertCircle, RefreshCw, ArrowLeft, Phone, Mail } from 'lucide-react';
 
 const BookingError = ({ error, onRetry, onNewBooking }) => {
   const getErrorType = (errorMessage) => {
@@ -120,14 +120,14 @@ const BookingError = ({ error, onRetry, onNewBooking }) => {
           className="inline-flex items-center justify-center bg-yellow hover:bg-yellow/90 text-dark font-semibold px-6 py-3 rounded-lg transition-colors"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
-          Fix & Try Again
+          Try Again
         </button>
         <button
           onClick={onNewBooking}
           className="inline-flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-light font-semibold px-6 py-3 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Completely New Booking
+          Start Over
         </button>
       </div>
 
