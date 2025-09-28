@@ -2,7 +2,12 @@ import { CircleCheck as CheckCircle, Calendar, MapPin, Users, Clock, Car, ArrowR
 import { Link } from '@tanstack/react-router';
 
 const BookingSuccess = ({ bookingResult, onNewBooking }) => {
-  console.log('📋 BookingSuccess received:', bookingResult);
+  console.log('📋 BookingSuccess received bookingResult:', bookingResult);
+  console.log('📋 BookingSuccess bookingResult keys:', bookingResult ? Object.keys(bookingResult) : 'null');
+  console.log('📋 BookingSuccess pickup location:', bookingResult?.pickup);
+  console.log('📋 BookingSuccess dropoff location:', bookingResult?.dropoff);
+  console.log('📋 BookingSuccess name:', bookingResult?.name);
+  console.log('📋 BookingSuccess email:', bookingResult?.email);
   
   const formatDate = (dateString) => {
     try {

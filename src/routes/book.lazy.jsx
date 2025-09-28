@@ -110,6 +110,7 @@ function Book() {
   };
 
   const handlePaymentComplete = () => {
+    console.log('🎯 Payment completed, booking data being passed to success:', booking);
     setCurrentStep('success');
     // Don't clear preserved data yet - BookingSuccess needs it
   };
