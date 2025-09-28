@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createLazyFileRoute } from '@tanstack/react-router';
 import { Elements } from '@stripe/react-stripe-js';
 import stripePromise from '../config/stripe';
 import BookingForm from '../components/BookingForm';
@@ -7,9 +8,9 @@ import BookingSuccess from '../components/BookingSuccess';
 import BookingError from '../components/BookingError';
 import { useCreateGuestBooking } from '../hooks/useBooking';
 
-export const Route = {
+export const Route = createLazyFileRoute('/book')({
   component: Book,
-};
+});
 
 function Book() {
   const [currentStep, setCurrentStep] = useState('form'); // 'form', 'payment', 'success', 'error'
