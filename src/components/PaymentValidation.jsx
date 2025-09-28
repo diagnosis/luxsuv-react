@@ -246,15 +246,53 @@ const PaymentValidation = ({ booking, onComplete, onBack }) => {
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-medium mb-1">Setup Failed</h4>
-              <p className="text-sm">Failed to initialize payment validation. Please try again.</p>
+              <p className="text-sm">{error}</p>
+              {!booking?.id && (
+                <p className="text-sm mt-2 text-red-300">
+                  Booking ID is missing. Please go back and complete your booking again.
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={onBack}
+              className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Booking</span>
+            </button>
+            {booking?.id && (
+              <button
+                onClick={handleRetryValidation}
+                className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Retry Setup</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Missing Booking ID Error */}
+      {!booking?.id && !initializationError && (
+        <div className="mb-6 p-4 bg-orange-900/20 text-orange-400 rounded-lg border border-orange-400/30">
+          <div className="flex items-start space-x-2 mb-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-medium mb-1">Missing Booking Information</h4>
+              <p className="text-sm">
+                Booking ID is required for payment validation. Please return to the booking form.
+              </p>
             </div>
           </div>
           <button
             onClick={handleRetryValidation}
-            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
-            <span>Retry Setup</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Booking</span>
           </button>
         </div>
       )}

@@ -304,17 +304,26 @@ export const bookingApi = {
   validatePayment: async (bookingId) => {
     console.log('💳 Validating Payment for Booking:', bookingId);
     
+    if (!bookingId) {
+      console.error('❌ validatePayment - No booking ID provided');
+      throw new Error('Booking ID is required for payment validation');
+    }
+    
     const url = buildUrl(`/api/v1/bookings/${bookingId}/validate-payment`);
+    console.log('📡 Payment validation URL:', url);
+    
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
     });
 
     console.log('📡 Validate Payment Response Status:', response.status);
+    console.log('📡 Validate Payment Response Headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Validate Payment Error:', errorData);
+      console.error('❌ Response Status:', response.status, response.statusText);
       const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
       error.status = response.status;
       error.response = { status: response.status };
