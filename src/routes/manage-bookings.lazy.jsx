@@ -697,6 +697,10 @@ function ManageBookings() {
                         <span>Payment Required</span>
                       </div>
                       <div className="flex items-center space-x-1">
+                        <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                        <span>Payment Validated</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
                         <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                         <span>Paid</span>
                       </div>

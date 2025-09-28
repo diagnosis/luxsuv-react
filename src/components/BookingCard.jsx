@@ -108,6 +108,60 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
     }
   };
 
+  const getPaymentStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'validated':
+        return 'text-blue-400 bg-blue-400/20 border border-blue-400/30';
+      case 'paid':
+        return 'text-green-400 bg-green-400/20 border border-green-400/30';
+      case 'failed':
+        return 'text-red-400 bg-red-400/20 border border-red-400/30';
+      case 'pending':
+      default:
+        return 'text-orange-400 bg-orange-400/20 border border-orange-400/30';
+    }
+  };
+
+  // Check if booking is paid
+  const isPaid = () => {
+    return booking.paid === true || 
+           booking.payment_status === 'paid' ||
+           booking.status === 'completed';
+  };
+
+  // Check if payment is validated
+  const isPaymentValidated = () => {
+    return booking.payment_status === 'validated';
+  };
+
+  // Check if user can pay this booking
+  const canPay = () => {
+    // Can pay if booking is approved and payment is validated but not paid
+    return booking.status?.toLowerCase() === 'approved' && 
+           isPaymentValidated() && 
+           !isPaid();
+  };
+
+  const handleStartPayment = async () => {
+    try {
+      setShowPaymentModal(true);
+      const checkoutUrl = await startPaymentMutation.mutateAsync(booking.id);
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Failed to start payment:', error);
+      setShowPaymentModal(false);
+      setAlertModal({
+        isOpen: true,
+        type: 'error',
+        title: 'Payment Failed',
+        message: error.userFriendlyMessage || 'Failed to start payment process. Please try again.',
+        details: ['Please check your internet connection', 'Contact support if the problem persists']
+      });
+    }
+  };
+
   // Format created date as "Month Day" format
   const formatBookingTitle = (dateString, pickupLocation, dropoffLocation) => {
     try {
@@ -341,11 +395,23 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                 </h3>
               );
             })()}
-            {booking.status && (
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}>
-                {booking.status}
-              </span>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {booking.status && (
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}>
+                  {booking.status}
+                </span>
+              )}
+              {booking.payment_status && (
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getPaymentStatusColor(booking.payment_status)}`}>
+                  Payment: {booking.payment_status}
+                </span>
+              )}
+              {isPaid() && (
+                <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold text-green-400 bg-green-400/20 border border-green-400/30">
+                  Paid
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex space-x-2">
             {canEdit() && (
@@ -382,6 +448,38 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
             )}
           </div>
         </div>
+
+        {/* Payment Required Notice */}
+        {canPay() && (
+          <div className="mb-4 p-4 bg-orange-900/20 border border-orange-400/30 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <CreditCard className="w-5 h-5 text-orange-400" />
+                <div>
+                  <h4 className="text-orange-400 font-semibold">Payment Required</h4>
+                  <p className="text-orange-300 text-sm">Your ride has been approved. Complete payment to confirm.</p>
+                </div>
+              </div>
+              <button
+                onClick={handleStartPayment}
+                disabled={startPaymentMutation.isPending}
+                className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {startPaymentMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-dark border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    <span>Pay Now</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="space-y-3">

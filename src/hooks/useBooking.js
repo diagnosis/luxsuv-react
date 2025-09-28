@@ -282,6 +282,44 @@ export const useStartPayment = () => {
   });
 };
 
+// Hook for payment validation (setup intent)
+export const useValidatePayment = () => {
+  return useMutation({
+    mutationFn: (bookingId) => {
+      console.log('🔐 useValidatePayment:', { bookingId });
+      return bookingApi.validatePayment(bookingId);
+    },
+    onSuccess: (data) => {
+      console.log('Payment validation setup successful:', data);
+    },
+    onError: (error) => {
+      console.error('Payment validation setup failed:', error);
+      const statusCode = error?.status || error?.response?.status;
+      error.userFriendlyMessage = error?.message || 'Failed to setup payment validation. Please try again.';
+      error.statusCode = statusCode;
+    },
+  });
+};
+
+// Hook for confirming payment validation
+export const useConfirmValidation = () => {
+  return useMutation({
+    mutationFn: (setupIntentId) => {
+      console.log('✅ useConfirmValidation:', { setupIntentId });
+      return bookingApi.confirmValidation(setupIntentId);
+    },
+    onSuccess: (data) => {
+      console.log('Payment validation confirmation successful:', data);
+    },
+    onError: (error) => {
+      console.error('Payment validation confirmation failed:', error);
+      const statusCode = error?.status || error?.response?.status;
+      error.userFriendlyMessage = error?.message || 'Failed to confirm payment validation. Please try again.';
+      error.statusCode = statusCode;
+    },
+  });
+};
+
 // Development hooks for email outbox
 export const useGetOutboxEmails = () => {
   return useQuery({

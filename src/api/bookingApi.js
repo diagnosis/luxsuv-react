@@ -298,4 +298,56 @@ export const bookingApi = {
     const { url: checkoutUrl } = await res.json();
     return checkoutUrl;
   },
+
+  // Payment validation (setup intent)
+  validatePayment: async (bookingId) => {
+    console.log('💳 Validating Payment for Booking:', bookingId);
+    
+    const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}/validate-payment`);
+    const response = await apiRequest(url, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+
+    console.log('📡 Validate Payment Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Validate Payment Error:', errorData);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
+    }
+
+    const result = await response.json();
+    console.log('✅ Payment Validation Setup:', result);
+    return result;
+  },
+
+  // Confirm payment validation
+  confirmValidation: async (setupIntentId) => {
+    console.log('✅ Confirming Payment Validation:', setupIntentId);
+    
+    const url = buildUrl('/api/v1/payments/confirm-validation');
+    const response = await apiRequest(url, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ setup_intent_id: setupIntentId }),
+    });
+    console.log('📡 Confirm Validation Response Status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Confirm Validation Error:', errorData);
+      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.response = { status: response.status };
+      throw error;
+    }
+
+    const result = await response.json();
+    console.log('✅ Validation Confirmed:', result);
+    return result;
+  },
 };

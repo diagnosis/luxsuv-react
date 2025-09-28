@@ -1,7 +1,10 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
+import { Elements } from '@stripe/react-stripe-js';
+import stripePromise from '../config/stripe';
 import { useCreateGuestBooking } from '../hooks/useBooking';
 import BookingForm from '../components/BookingForm';
+import PaymentValidation from '../components/PaymentValidation';
 import BookingSuccess from '../components/BookingSuccess';
 import BookingError from '../components/BookingError';
 import BookingLoading from '../components/BookingLoading';
@@ -11,7 +14,7 @@ export const Route = createLazyFileRoute('/book')({
 });
 
 function RouteComponent() {
-  const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'success', 'error'
+  const [bookingState, setBookingState] = useState('form'); // 'form', 'loading', 'payment', 'success', 'error'
   const [bookingResult, setBookingResult] = useState(null);
   const [bookingFormData, setBookingFormData] = useState(null); // Store form data for success screen
   const [error, setError] = useState(null);
@@ -105,19 +108,35 @@ function RouteComponent() {
         ...result,
         ...bookingFormData,
         id: result.id,
-        status: 'pending' // Ensure status is pending
+        status: 'pending', // Ensure status is pending
+        scheduled_at: bookingData.scheduled_at,
+        pickup: bookingData.pickup,
+        dropoff: bookingData.dropoff,
+        name: bookingData.name,
+        email: bookingData.email
       });
 
-      setBookingState('success');
+      // Show payment validation instead of immediate success
+      setBookingState('payment');
 
       // Reset form data
-      setPickupLocation('');
-      setDropoffLocation('');
+      // Don't reset form data yet - keep for payment validation
     } catch (err) {
       console.error('❌ Booking submission failed:', err);
       setError(err.message);
       setBookingState('error');
     }
+  };
+
+  const handlePaymentComplete = () => {
+    setBookingState('success');
+    // Now reset form data
+    setPickupLocation('');
+    setDropoffLocation('');
+  };
+
+  const handlePaymentBack = () => {
+    setBookingState('form');
   };
 
   const handleRetry = () => {
@@ -139,6 +158,17 @@ function RouteComponent() {
     switch (bookingState) {
       case 'loading':
         return <BookingLoading />;
+
+      case 'payment':
+        return (
+          <Elements stripe={stripePromise}>
+            <PaymentValidation 
+              booking={bookingResult}
+              onComplete={handlePaymentComplete}
+              onBack={handlePaymentBack}
+            />
+          </Elements>
+        );
 
       case 'success':
         return (

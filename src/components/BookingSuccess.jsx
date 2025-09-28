@@ -63,7 +63,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
           Booking Submitted!
         </h1>
         <p className="text-xl text-light/80 mb-2">
-          Your luxury SUV booking request has been received
+          Your luxury SUV booking has been received and payment method validated
         </p>
         <p className="text-yellow font-semibold text-lg">
           Booking ID: #{bookingResult?.id || 'Pending'}
@@ -71,21 +71,30 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
       </div>
 
       {/* Status Notice */}
-      <div className="bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-400/30">
+      <div className="bg-green-900/20 rounded-lg p-4 mb-6 border border-green-400/30">
         <div className="flex items-center justify-center space-x-2 mb-2">
+          <CheckCircle className="w-5 h-5 text-green-400" />
+          <span className="text-green-400 font-semibold">Payment Method Validated</span>
+        </div>
+        <p className="text-light/80 text-sm mb-2">
+          Your payment method has been successfully validated and secured.
+        </p>
+        <div className="flex items-center justify-center space-x-2">
           {bookingData.status && (
             <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(bookingData.status)}`}>
               {bookingData.status.charAt(0).toUpperCase() + bookingData.status.slice(1)}
             </span>
           )}
+          <span className="inline-block px-3 py-1 rounded-full text-sm font-medium text-blue-400 bg-blue-400/20">
+            Payment: Validated
+          </span>
         </div>
+      </div>
+
+      {/* Payment Notice */}
+      <div className="bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-400/30">
         <p className="text-light/80 text-sm">
-          Your booking has been submitted successfully. Check your email for access code and booking details.
-          {bookingData.status === 'approved' && !bookingData.paid && (
-            <span className="block mt-2 text-orange-300 font-medium">
-              Once approved, you'll receive payment instructions to complete your booking.
-            </span>
-          )}
+          Your booking is confirmed and payment method is secured. You will only be charged after your ride is completed.
         </p>
       </div>
 
@@ -163,7 +172,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               1
             </div>
             <p className="text-light/90">
-              Check your email for a 6-digit access code and magic link to manage your booking.
+              Your payment method has been validated and secured for post-ride payment.
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -171,7 +180,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               2
             </div>
             <p className="text-light/90">
-              Use either the access code or magic link to view and manage your booking anytime.
+              Check your email for a 6-digit access code and magic link to manage your booking.
             </p>
           </div>
           <div className="flex items-start space-x-3">
@@ -187,7 +196,7 @@ const BookingSuccess = ({ bookingResult, onNewBooking }) => {
               4
             </div>
             <p className="text-light/90">
-              Once approved, you'll receive a payment link to complete your booking securely.
+              Payment will be automatically processed after your ride is completed.
             </p>
           </div>
         </div>
