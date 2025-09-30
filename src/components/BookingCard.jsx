@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Luggage, LocationEdit as Edit3, X, Trash2, TriangleAlert as AlertTriangle, Car, User, CreditCard } from 'lucide-react';
 import { useCancelBooking, useUpdateBooking, useStartPayment } from '../hooks/useBooking';
 import BookingForm from './BookingForm';
@@ -25,6 +25,17 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
   const cancelBookingMutation = useCancelBooking();
   const updateBookingMutation = useUpdateBooking();
   const startPaymentMutation = useStartPayment();
+
+  useEffect(() => {
+    if (showCancelModal || showPaymentModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showCancelModal, showPaymentModal]);
 
   const handleCancelBooking = async () => {
     if (!guestToken) {
@@ -427,7 +438,10 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
 
       {/* Cancel Booking Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+        >
           <div className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-600">
             <div className="flex items-center justify-between p-6 border-b border-gray-600">
               <h2 className="text-xl font-semibold text-light flex items-center">

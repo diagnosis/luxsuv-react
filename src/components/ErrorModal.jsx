@@ -1,4 +1,5 @@
-import { X, AlertTriangle, AlertCircle, XCircle, Mail } from 'lucide-react';
+import { useEffect } from 'react';
+import { X, TriangleAlert as AlertTriangle, CircleAlert as AlertCircle, Circle as XCircle, Mail } from 'lucide-react';
 
 const ErrorModal = ({ 
   isOpen, 
@@ -10,6 +11,17 @@ const ErrorModal = ({
   onRetry = null,
   retryButtonText = 'Try Again'
 }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const getModalStyles = () => {
@@ -55,9 +67,10 @@ const ErrorModal = ({
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
       onClick={handleBackdropClick}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-600 animate-in fade-in zoom-in duration-200">
         {/* Header */}
