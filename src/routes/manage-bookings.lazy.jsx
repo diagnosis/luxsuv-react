@@ -23,6 +23,7 @@ function ManageBookings() {
   const [viewMode, setViewMode] = useState('request'); // 'request', 'verify', 'direct-code', or 'view'
   const [accessMethod, setAccessMethod] = useState('request'); // 'request' or 'direct-code'
   const [currentBookings, setCurrentBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
   const [guestToken, setGuestToken] = useState(null);
   const [requestError, setRequestError] = useState(null);
   const [verifyError, setVerifyError] = useState(null);
@@ -55,13 +56,24 @@ function ManageBookings() {
   useEffect(() => {
     if (tokenBookings) {
       // Filter bookings client-side for magic link access to avoid re-fetching with consumed token
-      const allBookings = tokenBookings.bookings || [];
-      const filteredBookings = statusFilter 
+      const allBookingsData = tokenBookings.bookings || [];
+      setAllBookings(allBookingsData);
+      const filteredBookings = statusFilter
+        ? allBookingsData.filter(booking => booking.status?.toLowerCase() === statusFilter.toLowerCase())
+        : allBookingsData;
+      setCurrentBookings(filteredBookings);
+    }
+  }, [tokenBookings, statusFilter]);
+
+  useEffect(() => {
+    // Filter bookings client-side for access code authenticated sessions
+    if (viewMode === 'view' && !search.token && allBookings.length > 0) {
+      const filteredBookings = statusFilter
         ? allBookings.filter(booking => booking.status?.toLowerCase() === statusFilter.toLowerCase())
         : allBookings;
       setCurrentBookings(filteredBookings);
     }
-  }, [tokenBookings, statusFilter]);
+  }, [statusFilter, allBookings, viewMode, search.token]);
 
   const handleRequestAccess = async (e) => {
     e.preventDefault();
@@ -148,10 +160,15 @@ function ManageBookings() {
       const result = await verifyCodeMutation.mutateAsync({
         email: email.trim(),
         code: accessCode.trim(),
-        status: statusFilter || undefined
+        status: undefined
       });
-      
-      setCurrentBookings(result.bookings || []);
+
+      const bookingsData = result.bookings || [];
+      setAllBookings(bookingsData);
+      const filteredBookings = statusFilter
+        ? bookingsData.filter(booking => booking.status?.toLowerCase() === statusFilter.toLowerCase())
+        : bookingsData;
+      setCurrentBookings(filteredBookings);
       setGuestToken(result.token);
       setViewMode('view');
     } catch (error) {
@@ -193,6 +210,7 @@ function ManageBookings() {
     setStatusFilter('');
     setAccessMethod('request');
     setCurrentBookings([]);
+    setAllBookings([]);
     setGuestToken(null);
     setViewMode('request');
     setRequestError(null);
@@ -240,16 +258,21 @@ function ManageBookings() {
       const result = await verifyCodeMutation.mutateAsync({
         email: email.trim(),
         code: accessCode.trim(),
-        status: statusFilter || undefined
+        status: undefined
       });
-      
+
       console.log('✅ Direct verification successful:', {
         bookingsCount: result.bookings?.length || 0,
         hasToken: !!result.token,
         result
       });
-      
-      setCurrentBookings(result.bookings || []);
+
+      const bookingsData = result.bookings || [];
+      setAllBookings(bookingsData);
+      const filteredBookings = statusFilter
+        ? bookingsData.filter(booking => booking.status?.toLowerCase() === statusFilter.toLowerCase())
+        : bookingsData;
+      setCurrentBookings(filteredBookings);
       setGuestToken(result.token);
       setViewMode('view');
     } catch (error) {
@@ -280,14 +303,14 @@ function ManageBookings() {
   };
 
   const handleBookingUpdated = async (updatedBooking) => {
-    // Update the local bookings state with the updated booking
-    setCurrentBookings(prevBookings => 
-      prevBookings.map(booking => 
-        booking.id === updatedBooking.booking?.id 
-          ? { ...booking, ...updatedBooking.booking }
-          : booking
-      )
-    );
+    // Update both allBookings and currentBookings state with the updated booking
+    const updateBooking = (booking) =>
+      booking.id === updatedBooking.booking?.id
+        ? { ...booking, ...updatedBooking.booking }
+        : booking;
+
+    setAllBookings(prevBookings => prevBookings.map(updateBooking));
+    setCurrentBookings(prevBookings => prevBookings.map(updateBooking));
   };
 
   const renderMagicLinkNotice = () => {
