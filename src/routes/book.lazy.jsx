@@ -151,18 +151,15 @@ function Book() {
   };
 
   return (
-    <div 
-      className="w-full h-full bg-cover bg-center bg-no-repeat text-light overflow-y-auto relative"
+    <div
+      className="w-full h-full bg-cover bg-center bg-no-repeat text-light overflow-y-auto"
       style={{
-        backgroundImage: 'url("../public/images/hero.jpg")',
+        backgroundImage: 'linear-gradient(rgba(31, 41, 55, 0.6), rgba(31, 41, 55, 0.6)), url("../public/images/hero.jpg")',
         minHeight: '100%',
       }}
     >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-dark/60"></div>
-      
       {/* Content */}
-      <div className="relative max-w-screen-xl mx-auto px-4 py-4 md:py-8">
+      <div className="max-w-screen-xl mx-auto px-4 py-4 md:py-8">
         {renderCurrentStep()}
       </div>
     </div>
