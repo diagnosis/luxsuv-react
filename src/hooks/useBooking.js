@@ -111,6 +111,33 @@ export const useCreateGuestBooking = () => {
   });
 };
 
+// Hook for atomic booking creation with payment validation
+export const useCreateGuestBookingWithPayment = () => {
+  return useMutation({
+    mutationFn: ({ bookingData, paymentMethodId }) => {
+      console.log('🔐 useCreateGuestBookingWithPayment - Data:', { bookingData, hasPaymentMethod: !!paymentMethodId });
+      return bookingApi.createGuestBookingWithPayment(bookingData, paymentMethodId);
+    },
+    onSuccess: (data) => {
+      console.log('Atomic booking with payment successful:', data);
+    },
+    onError: (error) => {
+      console.error('Atomic booking with payment failed:', error);
+      // Add specific error handling for payment failures
+      const statusCode = error?.status || error?.response?.status;
+      error.statusCode = statusCode;
+      
+      if (error.isPaymentError) {
+        error.userFriendlyMessage = 'Payment validation failed. Please check your card information and try again.';
+      } else if (error.isPaymentMethodError) {
+        error.userFriendlyMessage = 'Invalid payment method. Please check your card details.';
+      } else {
+        error.userFriendlyMessage = error.message || 'Failed to create booking. Please try again.';
+      }
+    },
+  });
+};
+
 // Hook for updating booking
 export const useUpdateBooking = () => {
   return useMutation({

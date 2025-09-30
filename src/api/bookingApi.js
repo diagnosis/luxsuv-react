@@ -50,6 +50,70 @@ export const bookingApi = {
     return result;
   },
 
+  // Create guest booking with atomic payment validation
+  createGuestBookingWithPayment: async (bookingData, paymentMethodId) => {
+    console.log('📋 Creating Guest Booking with Payment:', {
+      name: bookingData.name,
+      email: bookingData.email,
+      pickup: bookingData.pickup,
+      dropoff: bookingData.dropoff,
+      scheduled_at: bookingData.scheduled_at,
+      payment_method_id: paymentMethodId
+    });
+    
+    const requestBody = {
+      name: bookingData.name,
+      email: bookingData.email,
+      phone: bookingData.phone,
+      pickup: bookingData.pickup,
+      dropoff: bookingData.dropoff,
+      scheduled_at: bookingData.scheduled_at,
+      luggage_count: bookingData.luggage_count || 0,
+      passenger_count: bookingData.passenger_count || 1,
+      trip_type: bookingData.trip_type || 'per_ride',
+      payment_method_id: paymentMethodId,
+    };
+
+    console.log('📦 Request Body:', requestBody);
+    
+    const url = buildUrl('/api/v1/bookings/guest-with-payment');
+    const response = await apiRequest(url, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log('📡 Response Status:', response.status);
+    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Create Booking with Payment Error:', errorData);
+      
+      // Handle specific error cases
+      if (response.status === 422) {
+        const error = new Error(errorData.error || 'Payment validation failed. Please check your card information and try again.');
+        error.status = response.status;
+        error.isPaymentError = true;
+        throw error;
+      } else if (response.status === 400) {
+        const error = new Error(errorData.error || 'Invalid payment method. Please try again.');
+        error.status = response.status;
+        error.isPaymentMethodError = true;
+        throw error;
+      } else {
+        const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+        error.status = response.status;
+        error.response = { status: response.status };
+        throw error;
+      }
+    }
+
+    const result = await response.json();
+    console.log('✅ Booking Created with Payment:', result);
+    return result;
+  },
+
   // Update booking with guest JWT token
   updateBooking: async (bookingId, bookingData, guestToken) => {
     console.log('📝 Updating Booking:', {

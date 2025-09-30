@@ -2,133 +2,85 @@ import { useState } from 'react';
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { Elements } from '@stripe/react-stripe-js';
 import stripePromise from '../config/stripe';
-import BookingForm from '../components/BookingForm';
-import PaymentValidation from '../components/PaymentValidation';
+import AtomicBookingForm from '../components/AtomicBookingForm';
 import BookingSuccess from '../components/BookingSuccess';
 import BookingError from '../components/BookingError';
-import { useCreateGuestBooking } from '../hooks/useBooking';
+import { useCreateGuestBookingWithPayment } from '../hooks/useBooking';
 
 export const Route = createLazyFileRoute('/book')({
   component: Book,
 });
 
 function Book() {
-  const [currentStep, setCurrentStep] = useState('form'); // 'form', 'payment', 'success', 'error'
+  const [currentStep, setCurrentStep] = useState('form'); // 'form', 'success', 'error'
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState(null);
   const [preservedFormData, setPreservedFormData] = useState({});
   const [pickupLocation, setPickupLocation] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState('');
   
-  const { mutateAsync: createBooking, isPending: loading } = useCreateGuestBooking();
+  const { mutateAsync: createBookingWithPayment, isPending: loading } = useCreateGuestBookingWithPayment();
 
-  const handleBookingSubmit = async (formData) => {
+  const handleAtomicBookingSubmit = async (bookingData, paymentMethodId) => {
     try {
-      // Store form data in case we need to restore it
-      const completeFormData = {
-        ...formData,
-        pickup: pickupLocation,
-        dropoff: dropoffLocation
-      };
+      const completeFormData = bookingData;
       setPreservedFormData(completeFormData);
       
-      const result = await createBooking({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        pickup: pickupLocation,
-        dropoff: dropoffLocation,
-        scheduled_at: formData.scheduled_at,
-        luggage_count: parseInt(formData.luggage_count) || 0,
-        passenger_count: parseInt(formData.passenger_count) || 1,
-        trip_type: formData.trip_type || 'per_ride',
+      const result = await createBookingWithPayment({
+        bookingData,
+        paymentMethodId
       });
 
-      console.log('📋 Booking created:', result);
+      console.log('📋 Atomic booking created:', result);
       
-      // Extract booking ID from various possible response formats
-      let bookingData = null;
-      if (result?.id) {
-        bookingData = result;
-      } else if (result?.booking?.id) {
-        bookingData = result.booking;
-      } else if (result?.data?.id) {
-        bookingData = result.data;
+      // Extract booking data from the atomic response
+      let finalBookingData = null;
+      if (result?.booking?.id) {
+        finalBookingData = result.booking;
+      } else if (result?.id) {
+        finalBookingData = result;
       }
 
-      if (bookingData && bookingData.id) {
-        // Combine form data with API response, prioritizing form data for display
+      if (finalBookingData && finalBookingData.id) {
         console.log('📋 Complete form data:', completeFormData);
-        console.log('📋 API response data:', bookingData);
+        console.log('📋 API response data:', finalBookingData);
         
+        // Merge form data with API response
         setBooking({
           ...completeFormData,
-          ...bookingData,
-          // Ensure API response takes precedence for any overlapping fields
-          id: bookingData.id,
-          status: bookingData.status,
-          payment_status: bookingData.payment_status,
-          // But keep form data for display
-          name: completeFormData.name,
-          email: completeFormData.email,
-          phone: completeFormData.phone,
-          pickup: completeFormData.pickup,
-          dropoff: completeFormData.dropoff,
-          scheduled_at: completeFormData.scheduled_at,
-          passenger_count: completeFormData.passenger_count,
-          luggage_count: completeFormData.luggage_count,
-          trip_type: completeFormData.trip_type
+          ...finalBookingData,
+          // Keep form data for proper display
+          name: bookingData.name,
+          email: bookingData.email,
+          phone: bookingData.phone,
+          pickup: bookingData.pickup,
+          dropoff: bookingData.dropoff,
+          scheduled_at: bookingData.scheduled_at,
+          passenger_count: bookingData.passenger_count,
+          luggage_count: bookingData.luggage_count,
+          trip_type: bookingData.trip_type,
+          // Keep API response data for status
+          id: finalBookingData.id,
+          status: finalBookingData.status || 'pending',
+          payment_status: 'validated', // Atomic operation means payment is validated
         });
         
-        console.log('📋 Final booking object set:', {
-          ...completeFormData,
-          ...bookingData,
-          id: bookingData.id,
-          status: bookingData.status,
-          payment_status: bookingData.payment_status,
-          name: completeFormData.name,
-          email: completeFormData.email,
-          phone: completeFormData.phone,
-          pickup: completeFormData.pickup,
-          dropoff: completeFormData.dropoff,
-          scheduled_at: completeFormData.scheduled_at,
-          passenger_count: completeFormData.passenger_count,
-          luggage_count: completeFormData.luggage_count,
-          trip_type: completeFormData.trip_type
-        });
-        
-        setCurrentStep('payment');
+        // Go directly to success - no separate payment validation step
+        setCurrentStep('success');
         setError(null);
       } else {
-        throw new Error('Invalid booking response - missing booking ID');
+        throw new Error('Invalid atomic booking response - missing booking ID');
       }
     } catch (error) {
-      console.error('❌ Booking creation failed:', error);
-      setError(error.message || 'Failed to create booking');
+      console.error('❌ Atomic booking creation failed:', error);
+      setError(error.userFriendlyMessage || error.message || 'Failed to create booking with payment validation');
       setCurrentStep('error');
     }
   };
 
-  const handlePaymentComplete = () => {
-    console.log('🎯 Payment completed, booking data being passed to success:', booking);
-    setCurrentStep('success');
-    // Don't clear preserved data yet - BookingSuccess needs it
-  };
-
-  const handlePaymentError = (errorMsg) => {
-    setError(errorMsg);
-    setCurrentStep('error');
-  };
-
-  const handleBackToBooking = () => {
-    setCurrentStep('form');
-  };
-
   const handleStartOver = () => {
-    // Keep preserved form data for fixing errors but reset locations if they're in preserved data
     setCurrentStep('form');
     setError(null);
-    // Restore location data from preserved form data
     if (preservedFormData.pickup) {
       setPickupLocation(preservedFormData.pickup);
     }
@@ -152,25 +104,15 @@ function Book() {
     switch (currentStep) {
       case 'form':
         return (
-          <BookingForm 
-            onSubmit={handleBookingSubmit}
-            isSubmitting={loading}
-            initialData={preservedFormData}
-            pickupLocation={pickupLocation}
-            setPickupLocation={setPickupLocation}
-            dropoffLocation={dropoffLocation}
-            setDropoffLocation={setDropoffLocation}
-          />
-        );
-        
-      case 'payment':
-        return (
           <Elements stripe={stripePromise}>
-            <PaymentValidation 
-              booking={booking}
-              onComplete={handlePaymentComplete}
-              onBack={handleBackToBooking}
-              onError={handlePaymentError}
+            <AtomicBookingForm 
+              onSubmit={handleAtomicBookingSubmit}
+              initialData={preservedFormData}
+              pickupLocation={pickupLocation}
+              setPickupLocation={setPickupLocation}
+              dropoffLocation={dropoffLocation}
+              setDropoffLocation={setDropoffLocation}
+              isSubmitting={loading}
             />
           </Elements>
         );
@@ -178,7 +120,7 @@ function Book() {
       case 'success':
         return (
           <BookingSuccess 
-            bookingResult={booking}
+            booking={booking}
             onNewBooking={handleCompletelyNewBooking}
           />
         );
@@ -194,14 +136,16 @@ function Book() {
         
       default:
         return (
-          <BookingForm 
-            onSubmit={handleBookingSubmit}
+          <Elements stripe={stripePromise}>
+            <AtomicBookingForm 
+            onSubmit={handleAtomicBookingSubmit}
             isSubmitting={loading}
             pickupLocation={pickupLocation}
             setPickupLocation={setPickupLocation}
             dropoffLocation={dropoffLocation}
             setDropoffLocation={setDropoffLocation}
-          />
+            />
+          </Elements>
         );
     }
   };
