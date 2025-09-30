@@ -1,96 +1,77 @@
 import API_CONFIG, { buildUrl, getAuthHeaders, apiRequest } from '../config/api.js';
 
-export const bookingApi = {
-  // Create a guest booking
-  createGuestBooking: async (bookingData) => {
-    console.log('📋 Creating Guest Booking:', {
-      name: bookingData.name,
-      email: bookingData.email,
-      pickup: bookingData.pickup,
-      dropoff: bookingData.dropoff,
-      scheduled_at: bookingData.scheduled_at
-    });
-    
-    const requestBody = {
-      name: bookingData.name,
-      email: bookingData.email,
-      phone: bookingData.phone,
-      pickup: bookingData.pickup,
-      dropoff: bookingData.dropoff,
-      scheduled_at: bookingData.scheduled_at, // ISO 8601 format
-      luggage_count: bookingData.luggage_count || 0,
-      passenger_count: bookingData.passenger_count || 1,
-      trip_type: bookingData.trip_type || 'per_ride',
-    };
+const isDev = import.meta.env.DEV;
 
-    console.log('📦 Request Body:', requestBody);
-    
+const logRequest = (method, endpoint, data = null) => {
+  if (isDev) {
+    console.log(`🔵 API ${method}: ${endpoint}`, data ? { preview: data } : '');
+  }
+};
+
+const logSuccess = (method, endpoint) => {
+  if (isDev) {
+    console.log(`✅ API ${method} Success: ${endpoint}`);
+  }
+};
+
+const logError = (method, endpoint, error) => {
+  console.error(`❌ API ${method} Error: ${endpoint}`, error);
+};
+
+const handleResponse = async (response, method, endpoint) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    logError(method, endpoint, errorData);
+    const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+    error.status = response.status;
+    error.response = { status: response.status };
+    throw error;
+  }
+
+  logSuccess(method, endpoint);
+  return response.json();
+};
+
+export const bookingApi = {
+  createGuestBooking: async (bookingData) => {
+    logRequest('POST', 'Create Guest Booking', {
+      name: bookingData.name,
+      email: bookingData.email,
+      pickup: bookingData.pickup,
+      dropoff: bookingData.dropoff
+    });
+
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.CREATE_GUEST);
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(bookingData),
     });
 
-    console.log('📡 Response Status:', response.status);
-    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Create Booking Error:', errorData);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Booking Created:', result);
-    console.log('✅ Booking ID in result:', result.id || result.booking?.id);
-    return result;
+    return handleResponse(response, 'POST', 'Create Guest Booking');
   },
 
-  // Create guest booking with atomic payment validation
   createGuestBookingWithPayment: async (bookingData, paymentMethodId) => {
-    console.log('📋 Creating Guest Booking with Payment:', {
+    logRequest('POST', 'Create Booking with Payment', {
       name: bookingData.name,
       email: bookingData.email,
-      pickup: bookingData.pickup,
-      dropoff: bookingData.dropoff,
-      scheduled_at: bookingData.scheduled_at,
-      payment_method_id: paymentMethodId
+      hasPaymentMethod: !!paymentMethodId
     });
-    
-    const requestBody = {
-      name: bookingData.name,
-      email: bookingData.email,
-      phone: bookingData.phone,
-      pickup: bookingData.pickup,
-      dropoff: bookingData.dropoff,
-      scheduled_at: bookingData.scheduled_at,
-      luggage_count: bookingData.luggage_count || 0,
-      passenger_count: bookingData.passenger_count || 1,
-      trip_type: bookingData.trip_type || 'per_ride',
-      payment_method_id: paymentMethodId,
-    };
 
-    console.log('📦 Request Body:', requestBody);
-    
     const url = buildUrl('/api/v1/bookings/guest-with-payment');
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        ...bookingData,
+        payment_method_id: paymentMethodId,
+      }),
     });
 
-    console.log('📡 Response Status:', response.status);
-    console.log('📋 Response Headers:', Object.fromEntries(response.headers.entries()));
-    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Create Booking with Payment Error:', errorData);
-      
-      // Handle specific error cases
+      logError('POST', 'Create Booking with Payment', errorData);
+
       if (response.status === 422) {
         const error = new Error(errorData.error || 'Payment validation failed. Please check your card information and try again.');
         error.status = response.status;
@@ -109,151 +90,68 @@ export const bookingApi = {
       }
     }
 
-    const result = await response.json();
-    console.log('✅ Booking Created with Payment:', result);
-    return result;
+    logSuccess('POST', 'Create Booking with Payment');
+    return response.json();
   },
 
-  // Update booking with guest JWT token
   updateBooking: async (bookingId, bookingData, guestToken) => {
-    console.log('📝 Updating Booking:', {
-      bookingId,
-      name: bookingData.name,
-      phone: bookingData.phone,
-      pickup: bookingData.pickup,
-      dropoff: bookingData.dropoff,
-      scheduled_at: bookingData.scheduled_at,
-      luggage_count: bookingData.luggage_count,
-      passenger_count: bookingData.passenger_count,
-      trip_type: bookingData.trip_type,
-      hasToken: !!guestToken
-    });
-    
     if (!guestToken) {
       throw new Error('Guest token required for booking updates');
     }
 
-    const requestBody = {
-      name: bookingData.name,
-      phone: bookingData.phone,
-      pickup: bookingData.pickup,
-      dropoff: bookingData.dropoff,
-      scheduled_at: bookingData.scheduled_at,
-      luggage_count: bookingData.luggage_count || 0,
-      passenger_count: bookingData.passenger_count || 1,
-      trip_type: bookingData.trip_type || 'per_ride',
-    };
+    logRequest('PATCH', `Update Booking ${bookingId}`);
 
-    console.log('📦 Update Request Body:', requestBody);
-    
     const url = buildUrl(`${API_CONFIG.ENDPOINTS.BOOKING.UPDATE}/${bookingId}`);
     const response = await apiRequest(url, {
       method: 'PATCH',
       headers: getAuthHeaders(guestToken),
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(bookingData),
     });
 
-    console.log('📡 Update Response Status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Update Booking Error:', errorData);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Booking Updated:', result);
-    return result;
+    return handleResponse(response, 'PATCH', `Update Booking ${bookingId}`);
   },
 
-  // Request access tokens for an existing booking
   requestAccess: async (email) => {
-    console.log('🔑 Requesting Access:', { email });
-    
-    const requestBody = {
-      email: email
-    };
+    logRequest('POST', 'Request Access', { email });
 
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.ACCESS_REQUEST);
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({ email }),
     });
 
-    console.log('📡 Request Access Response Status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Request Access Error:', errorData);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Access Requested:', result);
-    return result;
+    return handleResponse(response, 'POST', 'Request Access');
   },
 
-  // Verify 6-digit access code
   verifyAccessCode: async (email, code, status = null) => {
-    console.log('🔍 Verifying Access Code:', { email, code, status });
-    
-    const requestBody = {
-      email: email,
-      code: code
-    };
+    logRequest('POST', 'Verify Access Code', { email, hasStatus: !!status });
 
-    // Add status filter if provided
+    const requestBody = { email, code };
     if (status) {
       requestBody.status = status;
     }
 
-    console.log('📦 Verify Code Request Body:', requestBody);
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.ACCESS_VERIFY);
-    console.log('📡 Verify Code URL:', url);
-    
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(requestBody),
     });
 
-    console.log('📡 Verify Code Response Status:', response.status);
-    console.log('📋 Verify Code Response Headers:', Object.fromEntries(response.headers.entries()));
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Verify Code Error:', errorData);
-      console.error('❌ Response Status:', response.status, response.statusText);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Code Verified:', result);
-    return result;
+    return handleResponse(response, 'POST', 'Verify Access Code');
   },
 
-  // View booking via magic link token
   viewBookings: async (token, status = null) => {
-    console.log('👀 Viewing Bookings with Token:', token ? `${token.substring(0, 20)}...` : 'No token', 'Status:', status);
-    
     if (!token) {
       throw new Error('Token is required');
     }
 
+    logRequest('GET', 'View Bookings', { hasToken: true, hasStatus: !!status });
+
     let url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.VIEW);
     const params = new URLSearchParams({ token });
-    
-    // Add status filter if provided
+
     if (status) {
       params.append('status', status);
     }
@@ -263,33 +161,15 @@ export const bookingApi = {
       headers: getAuthHeaders(),
     });
 
-    console.log('📡 View Booking Response Status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ View Booking Error:', errorData);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Bookings Retrieved:', result);
-    return result;
+    return handleResponse(response, 'GET', 'View Bookings');
   },
 
-  // Cancel booking with guest JWT token
   cancelBooking: async (bookingId, guestToken) => {
-    console.log('❌ Cancelling Booking:', {
-      bookingId,
-      hasToken: !!guestToken,
-      tokenPreview: guestToken ? `${guestToken.substring(0, 20)}...` : 'No token'
-    });
-
     if (!guestToken) {
       throw new Error('Guest token required for cancellation');
     }
+
+    logRequest('PATCH', `Cancel Booking ${bookingId}`);
 
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.CANCEL, { id: bookingId });
     const response = await apiRequest(url, {
@@ -297,47 +177,20 @@ export const bookingApi = {
       headers: getAuthHeaders(guestToken),
     });
 
-    console.log('📡 Cancel Booking Response Status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Cancel Booking Error:', errorData);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Booking Cancelled:', result);
-    return result;
+    return handleResponse(response, 'PATCH', `Cancel Booking ${bookingId}`);
   },
 
-  // Development: List outbox emails
   getOutboxEmails: async () => {
-    console.log('📧 Getting Outbox Emails');
-    
     const url = buildUrl(API_CONFIG.ENDPOINTS.DEV.OUTBOX);
     const response = await apiRequest(url, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Get Outbox Error:', errorData);
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    console.log('✅ Outbox Emails:', result);
-    return result;
+    return handleResponse(response, 'GET', 'Get Outbox Emails');
   },
 
-  // Development: Get specific email content
   getEmailContent: async (filename) => {
-    console.log('📧 Getting Email Content:', filename);
-    
     const url = buildUrl(API_CONFIG.ENDPOINTS.DEV.EMAIL);
     const response = await apiRequest(`${url}?file=${encodeURIComponent(filename)}`, {
       method: 'GET',
@@ -345,83 +198,60 @@ export const bookingApi = {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Get Email Error:', errorText);
+      logError('GET', 'Get Email Content', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const result = await response.text(); // Email content is plain text
-    console.log('✅ Email Content Retrieved');
-    return result;
+    logSuccess('GET', 'Get Email Content');
+    return response.text();
   },
+
   startCheckout: async (bookingId) => {
+    logRequest('POST', `Start Checkout ${bookingId}`);
+
     const url = buildUrl(API_CONFIG.ENDPOINTS.BOOKING.PAY, { id: bookingId });
-    const res = await apiRequest(url, { method: 'POST', headers: getAuthHeaders() });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || err.message || `HTTP ${res.status}`);
+    const response = await apiRequest(url, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      logError('POST', `Start Checkout ${bookingId}`, err);
+      throw new Error(err.error || err.message || `HTTP ${response.status}`);
     }
-    const { url: checkoutUrl } = await res.json();
+
+    logSuccess('POST', `Start Checkout ${bookingId}`);
+    const { url: checkoutUrl } = await response.json();
     return checkoutUrl;
   },
 
-  // Payment validation (setup intent)
   validatePayment: async (bookingId) => {
-    console.log('💳 Validating Payment for Booking:', bookingId);
-    
     if (!bookingId) {
-      console.error('❌ validatePayment - No booking ID provided');
       throw new Error('Booking ID is required for payment validation');
     }
-    
+
+    logRequest('POST', `Validate Payment ${bookingId}`);
+
     const url = buildUrl(`/api/v1/bookings/${bookingId}/validate-payment`);
-    console.log('📡 Payment validation URL:', url);
-    
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
     });
 
-    console.log('📡 Validate Payment Response Status:', response.status);
-    console.log('📡 Validate Payment Response Headers:', Object.fromEntries(response.headers.entries()));
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Validate Payment Error:', errorData);
-      console.error('❌ Response Status:', response.status, response.statusText);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
-
-    const result = await response.json();
-    console.log('✅ Payment Validation Setup:', result);
-    return result;
+    return handleResponse(response, 'POST', `Validate Payment ${bookingId}`);
   },
 
-  // Confirm payment validation
   confirmValidation: async (setupIntentId) => {
-    console.log('✅ Confirming Payment Validation:', setupIntentId);
-    
+    logRequest('POST', 'Confirm Validation', { setupIntentId });
+
     const url = buildUrl('/api/v1/payments/confirm-validation');
     const response = await apiRequest(url, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({ setup_intent_id: setupIntentId }),
     });
-    console.log('📡 Confirm Validation Response Status:', response.status);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Confirm Validation Error:', errorData);
-      const error = new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
-      error.status = response.status;
-      error.response = { status: response.status };
-      throw error;
-    }
 
-    const result = await response.json();
-    console.log('✅ Validation Confirmed:', result);
-    return result;
+    return handleResponse(response, 'POST', 'Confirm Validation');
   },
 };

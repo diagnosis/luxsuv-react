@@ -1,132 +1,25 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { bookingApi } from '../api/bookingApi';
+import { enrichError, getEmailErrorMessage } from '../utils/errorHandling';
 
-// Helper function to detect expired/used token errors
-const isTokenExpiredError = (error, statusCode) => {
-  // Check for 410 Gone status (expired or already used)
-  if (statusCode === 410) return true;
-  
-  const message = error?.message?.toLowerCase() || '';
-  return (
-    message.includes('expired') ||
-    message.includes('already been used') ||
-    message.includes('token_expired') ||
-    message.includes('token expired') ||
-    message.includes('access token has expired')
-  );
-};
-
-// Helper function to detect invalid token format
-const isTokenInvalidError = (error, statusCode) => {
-  // Check for 400 Bad Request status
-  if (statusCode === 400) return true;
-  
-  const message = error?.message?.toLowerCase() || '';
-  return (
-    message.includes('invalid access') ||
-    message.includes('check your code') ||
-    message.includes('invalid token') ||
-    message.includes('malformed')
-  );
-};
-
-// Helper function to detect rate limiting
-const isRateLimitError = (error, statusCode) => {
-  return statusCode === 429;
-};
-
-// Helper function to detect not found
-const isNotFoundError = (error, statusCode) => {
-  return statusCode === 404;
-};
-
-// Helper function to detect email not found specifically
-const isEmailNotFoundError = (error, statusCode) => {
-  if (statusCode !== 404) return false;
-  
-  const message = error?.message?.toLowerCase() || '';
-  return (
-    message.includes('not found') ||
-    message.includes('email not found') ||
-    message.includes('no bookings found') ||
-    statusCode === 404
-  );
-};
-
-// Helper function to get user-friendly error message with status context
-const getTokenErrorMessage = (error, statusCode) => {
-  if (isTokenExpiredError(error, statusCode)) {
-    const message = error?.message || '';
-    if (message.includes('already been used')) {
-      return 'This access link or code has already been used. Please request a new one.';
-    }
-    return 'Your access has expired. Please request a new access code to view your bookings.';
-  }
-  
-  if (isTokenInvalidError(error, statusCode)) {
-    const message = error?.message || '';
-    if (message.includes('access code')) {
-      return 'Invalid access code format. Please check your 6-digit code and try again.';
-    }
-    return 'Invalid access link. Please check the link or request a new one.';
-  }
-  
-  if (isRateLimitError(error, statusCode)) {
-    return 'Too many failed attempts. Please wait a moment and request a new access code.';
-  }
-  
-  if (isNotFoundError(error, statusCode)) {
-    return 'Access link not found. Please request a new one.';
-  }
-  
-  return error?.message || 'An unexpected error occurred';
-};
-
-// Helper function for email-specific errors
-const getEmailErrorMessage = (error, statusCode) => {
-  if (isEmailNotFoundError(error, statusCode)) {
-    return 'No bookings found for this email address. Please double-check your email and try again, or contact support if you believe this is an error.';
-  }
-  
-  if (isRateLimitError(error, statusCode)) {
-    return 'Too many requests. Please wait a moment before trying again.';
-  }
-  
-  return error?.message || 'An unexpected error occurred while requesting access codes.';
-};
-
-// Hook for creating guest booking
 export const useCreateGuestBooking = () => {
   return useMutation({
-    mutationFn: (bookingData) => {
-      console.log('🔐 useCreateGuestBooking - Data:', bookingData);
-      return bookingApi.createGuestBooking(bookingData);
-    },
-    onSuccess: (data) => {
-      console.log('Guest booking successful:', data);
-    },
+    mutationFn: (bookingData) => bookingApi.createGuestBooking(bookingData),
     onError: (error) => {
       console.error('Guest booking failed:', error);
     },
   });
 };
 
-// Hook for atomic booking creation with payment validation
 export const useCreateGuestBookingWithPayment = () => {
   return useMutation({
-    mutationFn: ({ bookingData, paymentMethodId }) => {
-      console.log('🔐 useCreateGuestBookingWithPayment - Data:', { bookingData, hasPaymentMethod: !!paymentMethodId });
-      return bookingApi.createGuestBookingWithPayment(bookingData, paymentMethodId);
-    },
-    onSuccess: (data) => {
-      console.log('Atomic booking with payment successful:', data);
-    },
+    mutationFn: ({ bookingData, paymentMethodId }) =>
+      bookingApi.createGuestBookingWithPayment(bookingData, paymentMethodId),
     onError: (error) => {
       console.error('Atomic booking with payment failed:', error);
-      // Add specific error handling for payment failures
       const statusCode = error?.status || error?.response?.status;
       error.statusCode = statusCode;
-      
+
       if (error.isPaymentError) {
         error.userFriendlyMessage = 'Payment validation failed. Please check your card information and try again.';
       } else if (error.isPaymentMethodError) {
@@ -138,164 +31,81 @@ export const useCreateGuestBookingWithPayment = () => {
   });
 };
 
-// Hook for updating booking
 export const useUpdateBooking = () => {
   return useMutation({
-    mutationFn: ({ bookingId, bookingData, guestToken }) => {
-      console.log('📝 useUpdateBooking:', { bookingId, hasToken: !!guestToken });
-      return bookingApi.updateBooking(bookingId, bookingData, guestToken);
-    },
-    onSuccess: (data) => {
-      console.log('Booking update successful:', data);
-    },
+    mutationFn: ({ bookingId, bookingData, guestToken }) =>
+      bookingApi.updateBooking(bookingId, bookingData, guestToken),
     onError: (error) => {
       console.error('Booking update failed:', error);
-      // Add specific handling for different error types
       const statusCode = error?.status || error?.response?.status;
-      
-      // Handle magic link token being used for updates
+
       if (statusCode === 404 && error?.message?.includes('not found')) {
         error.isMagicLinkToken = true;
         error.userFriendlyMessage = 'Magic links are for viewing only. To update bookings, please use your 6-digit access code.';
         return;
       }
-      
-      error.isTokenExpired = isTokenExpiredError(error, statusCode);
-      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
-      error.isRateLimit = isRateLimitError(error, statusCode);
-      error.isNotFound = isNotFoundError(error, statusCode);
-      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
-      error.statusCode = statusCode;
+
+      Object.assign(error, enrichError(error));
     },
   });
 };
 
-// Hook for requesting access tokens
 export const useRequestAccess = () => {
   return useMutation({
-    mutationFn: ({ email }) => {
-      console.log('🔑 useRequestAccess:', { email });
-      return bookingApi.requestAccess(email);
-    },
-    onSuccess: (data) => {
-      console.log('Access request successful:', data);
-    },
+    mutationFn: ({ email }) => bookingApi.requestAccess(email),
     onError: (error) => {
       console.error('Access request failed:', error);
-      // Add specific handling for different error types
       const statusCode = error?.status || error?.response?.status;
-      error.isEmailNotFound = isEmailNotFoundError(error, statusCode);
-      error.isRateLimit = isRateLimitError(error, statusCode);
+      const enriched = enrichError(error);
+
+      error.isEmailNotFound = enriched.isEmailNotFound;
+      error.isRateLimit = enriched.isRateLimit;
       error.userFriendlyMessage = getEmailErrorMessage(error, statusCode);
       error.statusCode = statusCode;
     },
   });
 };
 
-// Hook for verifying access code
 export const useVerifyAccessCode = () => {
   return useMutation({
-    mutationFn: ({ email, code, status }) => {
-      console.log('🔍 useVerifyAccessCode:', { email, code, status });
-      return bookingApi.verifyAccessCode(email, code, status);
-    },
-    onSuccess: (data) => {
-      console.log('Code verification successful:', data);
-      console.log('Success data details:', {
-        hasBookings: !!data.bookings,
-        bookingsCount: data.bookings?.length || 0,
-        hasToken: !!data.token,
-        tokenPreview: data.token ? `${data.token.substring(0, 20)}...` : 'No token'
-      });
-    },
+    mutationFn: ({ email, code, status }) =>
+      bookingApi.verifyAccessCode(email, code, status),
     onError: (error) => {
       console.error('Code verification failed:', error);
-      console.error('Full error object:', {
-        name: error.name,
-        message: error.message,
-        status: error.status,
-        response: error.response,
-        stack: error.stack
-      });
-      // Add specific handling for different error types
-      const statusCode = error?.status || error?.response?.status;
-      error.isTokenExpired = isTokenExpiredError(error, statusCode);
-      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
-      error.isRateLimit = isRateLimitError(error, statusCode);
-      error.isNotFound = isNotFoundError(error, statusCode);
-      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
-      error.statusCode = statusCode;
-      console.error('Error categorization:', {
-        isTokenExpired: error.isTokenExpired,
-        isTokenInvalid: error.isTokenInvalid,
-        isRateLimit: error.isRateLimit,
-        isNotFound: error.isNotFound,
-        userFriendlyMessage: error.userFriendlyMessage,
-        statusCode: error.statusCode
-      });
+      Object.assign(error, enrichError(error));
     },
   });
 };
 
-// Hook for viewing booking via token
 export const useViewBookings = (token, status = null) => {
   return useQuery({
     queryKey: ['bookings', 'view', token, status],
     queryFn: () => bookingApi.viewBookings(token, status),
     enabled: !!token,
-    staleTime: 0, // Don't cache since tokens are single-use
-    retry: false, // Don't retry since tokens are single-use
-    onSuccess: (data) => {
-      console.log('View bookings successful:', data);
-    },
+    staleTime: 0,
+    retry: false,
     onError: (error) => {
       console.error('View bookings failed:', error);
-      // Add specific handling for different error types
-      const statusCode = error?.status || error?.response?.status;
-      error.isTokenExpired = isTokenExpiredError(error, statusCode);
-      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
-      error.isRateLimit = isRateLimitError(error, statusCode);
-      error.isNotFound = isNotFoundError(error, statusCode);
-      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
-      error.statusCode = statusCode;
+      Object.assign(error, enrichError(error));
     },
   });
 };
 
-// Hook for cancelling booking
 export const useCancelBooking = () => {
   return useMutation({
-    mutationFn: ({ bookingId, guestToken }) => {
-      console.log('❌ useCancelBooking:', { bookingId, hasToken: !!guestToken });
-      return bookingApi.cancelBooking(bookingId, guestToken);
-    },
-    onSuccess: (data) => {
-      console.log('Booking cancellation successful:', data);
-    },
+    mutationFn: ({ bookingId, guestToken }) =>
+      bookingApi.cancelBooking(bookingId, guestToken),
     onError: (error) => {
       console.error('Booking cancellation failed:', error);
-      // Add specific handling for different error types
-      const statusCode = error?.status || error?.response?.status;
-      error.isTokenExpired = isTokenExpiredError(error, statusCode);
-      error.isTokenInvalid = isTokenInvalidError(error, statusCode);
-      error.isRateLimit = isRateLimitError(error, statusCode);
-      error.isNotFound = isNotFoundError(error, statusCode);
-      error.userFriendlyMessage = getTokenErrorMessage(error, statusCode);
-      error.statusCode = statusCode;
+      Object.assign(error, enrichError(error));
     },
   });
 };
 
-// Hook for starting payment checkout
 export const useStartPayment = () => {
   return useMutation({
-    mutationFn: (bookingId) => {
-      console.log('💳 useStartPayment:', { bookingId });
-      return bookingApi.startCheckout(bookingId);
-    },
-    onSuccess: (checkoutUrl, bookingId) => {
-      console.log('Payment checkout URL received:', { checkoutUrl, bookingId });
-      // Redirect to Stripe checkout
+    mutationFn: (bookingId) => bookingApi.startCheckout(bookingId),
+    onSuccess: (checkoutUrl) => {
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
       }
@@ -309,16 +119,9 @@ export const useStartPayment = () => {
   });
 };
 
-// Hook for payment validation (setup intent)
 export const useValidatePayment = () => {
   return useMutation({
-    mutationFn: (bookingId) => {
-      console.log('🔐 useValidatePayment:', { bookingId });
-      return bookingApi.validatePayment(bookingId);
-    },
-    onSuccess: (data) => {
-      console.log('Payment validation setup successful:', data);
-    },
+    mutationFn: (bookingId) => bookingApi.validatePayment(bookingId),
     onError: (error) => {
       console.error('Payment validation setup failed:', error);
       const statusCode = error?.status || error?.response?.status;
@@ -328,16 +131,9 @@ export const useValidatePayment = () => {
   });
 };
 
-// Hook for confirming payment validation
 export const useConfirmValidation = () => {
   return useMutation({
-    mutationFn: (setupIntentId) => {
-      console.log('✅ useConfirmValidation:', { setupIntentId });
-      return bookingApi.confirmValidation(setupIntentId);
-    },
-    onSuccess: (data) => {
-      console.log('Payment validation confirmation successful:', data);
-    },
+    mutationFn: (setupIntentId) => bookingApi.confirmValidation(setupIntentId),
     onError: (error) => {
       console.error('Payment validation confirmation failed:', error);
       const statusCode = error?.status || error?.response?.status;
@@ -347,12 +143,11 @@ export const useConfirmValidation = () => {
   });
 };
 
-// Development hooks for email outbox
 export const useGetOutboxEmails = () => {
   return useQuery({
     queryKey: ['outbox', 'emails'],
     queryFn: bookingApi.getOutboxEmails,
-    staleTime: 1000 * 60 * 1, // 1 minute
+    staleTime: 1000 * 60,
     retry: 1,
   });
 };
@@ -362,36 +157,7 @@ export const useGetEmailContent = (filename) => {
     queryKey: ['outbox', 'email', filename],
     queryFn: () => bookingApi.getEmailContent(filename),
     enabled: !!filename,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 1,
   });
-};
-
-// Legacy hooks for backward compatibility (will need to be updated in components using them)
-export const useBookRide = () => {
-  console.warn('useBookRide is deprecated, use useCreateGuestBooking instead');
-  return useCreateGuestBooking();
-};
-
-export const useGetUserBookings = () => {
-  console.warn('useGetUserBookings is not available in guest-only mode');
-  return {
-    data: null,
-    isLoading: false,
-    error: new Error('User authentication not available in guest-only mode'),
-  };
-};
-
-export const useGetBookingsByEmail = () => {
-  console.warn('useGetBookingsByEmail is not available - use access code verification instead');
-  return {
-    data: null,
-    isLoading: false,
-    error: new Error('Direct email lookup not available - use access code verification'),
-  };
-};
-
-export const useGenerateUpdateLink = () => {
-  console.warn('useGenerateUpdateLink is not available - use access request instead');
-  return useRequestAccess();
 };

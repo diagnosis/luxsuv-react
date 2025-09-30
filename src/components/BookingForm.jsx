@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import AddressAutocomplete from './AddressAutocomplete';
 import AlertModal from './AlertModal';
-
-const formatDateTimeForAPI = (date, time) => {
-  // Convert form date/time to ISO 8601 format for API
-  const dateTime = new Date(`${date}T${time}`);
-  return dateTime.toISOString();
-};
+import { formatDateTimeForAPI } from '../utils/dateFormatters';
+import { validateBookingTime, validatePassengerCount, validateLuggageCount } from '../utils/bookingHelpers';
 
 const BookingForm = ({ 
   onSubmit, 
@@ -116,7 +112,7 @@ const BookingForm = ({
       return;
     }
     
-    if (data.passenger_count < 1 || data.passenger_count > 8) {
+    if (!validatePassengerCount(data.passenger_count)) {
       setAlertModal({
         isOpen: true,
         type: 'warning',
@@ -126,8 +122,8 @@ const BookingForm = ({
       });
       return;
     }
-    
-    if (data.luggage_count < 0 || data.luggage_count > 20) {
+
+    if (!validateLuggageCount(data.luggage_count)) {
       setAlertModal({
         isOpen: true,
         type: 'warning',
@@ -138,12 +134,7 @@ const BookingForm = ({
       return;
     }
 
-    // Validate that booking time is at least 1 hour in the future
-    const bookingDateTime = new Date(data.scheduled_at);
-    const now = new Date();
-    const oneHourFromNow = new Date(now.getTime() + (60 * 60 * 1000)); // Add 1 hour
-    
-    if (bookingDateTime <= oneHourFromNow) {
+    if (!validateBookingTime(data.scheduled_at)) {
       setAlertModal({
         isOpen: true,
         type: 'warning',
@@ -366,7 +357,7 @@ const BookingForm = ({
               name="date"
               defaultValue={initialData.date || ''}
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-              min="2025-05-31"
+              min={new Date().toISOString().split('T')[0]}
               required
               disabled={isSubmitting}
             />

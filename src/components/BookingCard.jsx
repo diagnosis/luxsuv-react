@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Luggage, LocationEdit as Edit3, Save, X, Trash2, Mail, TriangleAlert as AlertTriangle, Car, User, CreditCard, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Luggage, LocationEdit as Edit3, X, Trash2, TriangleAlert as AlertTriangle, Car, User, CreditCard } from 'lucide-react';
 import { useCancelBooking, useUpdateBooking, useStartPayment } from '../hooks/useBooking';
 import BookingForm from './BookingForm';
 import AlertModal from './AlertModal';
-import AddressAutocomplete from './AddressAutocomplete';
+import { getStatusColor, getPaymentStatusColor, isPaid, isPaymentValidated, canPay, canCancel, canActuallyCancel, canEdit } from '../utils/bookingHelpers';
+import { formatDateForInput, formatTimeForInput, formatBookingTitle, formatDateTime } from '../utils/dateFormatters';
 
 const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onBookingUpdated = null }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -85,62 +86,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
     }
   };
 
-  const formatDate = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return dateString;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'approved':
-        return 'text-green-400 bg-green-400/20 border border-green-400/30';
-      case 'pending':
-        return 'text-yellow-300 bg-yellow-400/20 border border-yellow-400/40';
-      case 'cancelled':
-        return 'text-red-400 bg-red-400/20 border border-red-400/30';
-      case 'completed':
-        return 'text-blue-400 bg-blue-400/20 border border-blue-400/30';
-      default:
-        return 'text-gray-400 bg-gray-400/20 border border-gray-400/30';
-    }
-  };
-
-  const getPaymentStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'validated':
-        return 'text-blue-400 bg-blue-400/20 border border-blue-400/30';
-      case 'paid':
-        return 'text-green-400 bg-green-400/20 border border-green-400/30';
-      case 'failed':
-        return 'text-red-400 bg-red-400/20 border border-red-400/30';
-      case 'pending':
-      default:
-        return 'text-orange-400 bg-orange-400/20 border border-orange-400/30';
-    }
-  };
-
-  // Check if booking is paid
-  const isPaid = () => {
-    return booking.paid === true || 
-           booking.payment_status === 'paid' ||
-           booking.status === 'completed';
-  };
-
-  // Check if payment is validated
-  const isPaymentValidated = () => {
-    return booking.payment_status === 'validated';
-  };
-
-  // Check if user can pay this booking
-  const canPay = () => {
-    // Can pay if booking is approved and payment is validated but not paid
-    return booking.status?.toLowerCase() === 'approved' && 
-           isPaymentValidated() && 
-           !isPaid();
-  };
 
   const handleStartPayment = async () => {
     try {
@@ -162,73 +107,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
     }
   };
 
-  // Format created date as "Month Day" format
-  const formatBookingTitle = (dateString, pickupLocation, dropoffLocation) => {
-    try {
-      const date = new Date(dateString);
-      const dateStr = date.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric'
-      });
-      
-      // Extract pickup and destination names
-      const pickup = extractDestinationName(pickupLocation);
-      const destination = extractDestinationName(dropoffLocation);
-      
-      if (pickup && destination) {
-        return { dateStr, pickup, destination, hasFullTrip: true };
-      } else if (destination) {
-        return { dateStr, destination, hasFullTrip: false };
-      } else {
-        return { dateStr, hasFullTrip: false };
-      }
-    } catch {
-      return { dateStr: 'Recent Booking', hasFullTrip: false };
-    }
-  };
-
-  // Helper function to extract destination name from full address
-  const extractDestinationName = (fullAddress) => {
-    if (!fullAddress) return '';
-    
-    // Split by comma and take the first meaningful part
-    const parts = fullAddress.split(',');
-    let destination = parts[0].trim();
-    
-    // If first part is just a number/street address, try second part
-    if (/^\d+/.test(destination) && parts[1]) {
-      destination = parts[1].trim();
-    }
-    
-    // Limit length to keep title readable
-    if (destination.length > 25) {
-      destination = destination.substring(0, 25) + '...';
-    }
-    
-    return destination;
-  };
-
-  // Check if user can cancel this booking
-  const canCancel = () => {
-    // Can't cancel if already cancelled
-    if (booking.status?.toLowerCase() === 'cancelled') return false;
-    if (booking.status?.toLowerCase() === 'completed') return false;
-    
-    // Show cancel option if cancellation is enabled
-    return showCancelOption;
-  };
-  
-  // Check if cancellation is actually available
-  const canActuallyCancel = () => {
-    return canCancel() && !!guestToken;
-  };
-
-  // Check if user can edit this booking
-  const canEdit = () => {
-    if (booking.status?.toLowerCase() === 'cancelled') return false;
-    if (booking.status?.toLowerCase() === 'completed') return false;
-    return true; // Always show edit button, handle limitations in click handler
-  };
 
   const handleStartEdit = () => {
     setIsEditing(true);
@@ -304,25 +182,6 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
     }
   };
 
-  // Helper function to format date for input
-  const formatDateForInput = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return date.toISOString().split('T')[0]; // YYYY-MM-DD
-    } catch {
-      return '';
-    }
-  };
-
-  // Helper function to format time for input
-  const formatTimeForInput = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return date.toTimeString().slice(0, 5); // HH:MM
-    } catch {
-      return '';
-    }
-  };
 
   // Prepare initial data for edit form
   const getEditFormData = () => {
@@ -406,7 +265,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                   Payment: {booking.payment_status}
                 </span>
               )}
-              {isPaid() && (
+              {isPaid(booking) && (
                 <span className="inline-block px-3 py-1 rounded-full text-sm font-semibold text-green-400 bg-green-400/20 border border-green-400/30">
                   Paid
                 </span>
@@ -414,7 +273,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
             </div>
           </div>
           <div className="flex space-x-2">
-            {canEdit() && (
+            {canEdit(booking) && (
               <button
                 onClick={handleStartEdit}
                 className="p-2 rounded-lg transition-colors bg-yellow/10 hover:bg-yellow/20 border border-yellow/30 text-yellow hover:text-yellow/80"
@@ -424,10 +283,10 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
                 <Edit3 className="w-5 h-5" />
               </button>
             )}
-            {canCancel() && (
+            {canCancel(booking, showCancelOption) && (
               <button
                 onClick={() => {
-                  if (canActuallyCancel()) {
+                  if (canActuallyCancel(booking, showCancelOption, guestToken)) {
                     setShowCancelModal(true);
                   } else {
                     setAlertModal({
@@ -450,7 +309,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
         </div>
 
         {/* Payment Required Notice */}
-        {canPay() && (
+        {canPay(booking) && (
           <div className="mb-4 p-4 bg-orange-900/20 border border-orange-400/30 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -544,7 +403,7 @@ const BookingCard = ({ booking, guestToken = null, showCancelOption = false, onB
             <div>
               <label className="block text-sm text-gray-400 mb-1">Scheduled Time</label>
               <p className="text-light">
-                {booking.scheduled_at ? new Date(booking.scheduled_at).toLocaleString() : 'Not specified'}
+                {formatDateTime(booking.scheduled_at)}
               </p>
             </div>
           </div>

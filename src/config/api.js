@@ -81,7 +81,7 @@ export const apiRequest = async (url, options = {}, retryCount = 0) => {
     clearTimeout(timeoutId);
     return response;
   } catch (error) {
-    if (retryCount < API_CONFIG.RETRY_ATTEMPTS && !error.name === 'AbortError') {
+    if (retryCount < API_CONFIG.RETRY_ATTEMPTS && error.name !== 'AbortError') {
       console.warn(`API request failed, retrying... (${retryCount + 1}/${API_CONFIG.RETRY_ATTEMPTS})`);
       await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY));
       return apiRequest(url, options, retryCount + 1);
