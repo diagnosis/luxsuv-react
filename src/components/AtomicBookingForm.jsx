@@ -339,7 +339,7 @@ const AtomicBookingForm = ({
               required
               disabled={isSubmitting}
             >
-              {[1,2,3,4,5,6,7,8].map(count => (
+              {[1,2,3,4,5,6].map(count => (
                 <option key={count} value={count}>{count} passenger{count > 1 ? 's' : ''}</option>
               ))}
             </select>
@@ -355,7 +355,7 @@ const AtomicBookingForm = ({
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               disabled={isSubmitting}
             >
-              {Array.from({length: 21}, (_, i) => i).map(count => (
+              {Array.from({length: 9}, (_, i) => i).map(count => (
                 <option key={count} value={count}>{count} bag{count !== 1 ? 's' : ''}</option>
               ))}
             </select>
