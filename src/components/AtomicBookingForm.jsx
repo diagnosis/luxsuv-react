@@ -257,8 +257,11 @@ const AtomicBookingForm = ({
         <h1 className="text-2xl font-bold mb-2 md:text-4xl">
           Book Your Luxury SUV
         </h1>
-        <p className="text-light/80 text-sm mb-4">
+        <p className="text-light/80 text-sm mb-2">
           Complete booking and payment validation in one step
+        </p>
+        <p className="text-yellow/80 text-xs">
+          Fields marked with * are required
         </p>
       </div>
 
@@ -291,6 +294,7 @@ const AtomicBookingForm = ({
               placeholder="Enter your full name"
               required
               disabled={isSubmitting}
+              title="Please enter your full name"
             />
           </div>
           <div>
@@ -306,6 +310,7 @@ const AtomicBookingForm = ({
               placeholder="Enter your email"
               required
               disabled={isSubmitting}
+              title="Please enter a valid email address"
             />
           </div>
           <div>
@@ -321,6 +326,7 @@ const AtomicBookingForm = ({
               placeholder="Enter your phone number"
               required
               disabled={isSubmitting}
+              title="Please enter your phone number"
             />
           </div>
         </div>
@@ -427,6 +433,7 @@ const AtomicBookingForm = ({
               min="2025-05-31"
               required
               disabled={isSubmitting}
+              title="Please select a date for your ride"
             />
           </div>
           <div>
@@ -441,6 +448,7 @@ const AtomicBookingForm = ({
               className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
               required
               disabled={isSubmitting}
+              title="Please select a time for your ride"
             />
           </div>
         </div>
@@ -473,6 +481,13 @@ const AtomicBookingForm = ({
 
         {/* Submit Button */}
         <div className="text-center pt-4">
+          {(!stripe || !cardComplete) && !isSubmitting && (
+            <div className="mb-4 p-3 bg-yellow/10 border border-yellow/30 rounded-lg">
+              <p className="text-sm text-yellow">
+                {!stripe ? '⏳ Loading payment system...' : !cardComplete ? '💳 Please complete your card information to continue' : ''}
+              </p>
+            </div>
+          )}
           <button
             type="submit"
             className="bg-yellow hover:bg-yellow/90 text-dark font-semibold px-8 py-4 rounded-lg transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mx-auto"
