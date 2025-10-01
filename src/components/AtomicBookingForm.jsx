@@ -15,9 +15,13 @@ import dayjs from 'dayjs';
 import AddressAutocomplete from './AddressAutocomplete';
 import AlertModal from './AlertModal';
 
-const formatDateTimeForAPI = (date, time) => {
-  const dateTime = new Date(`${date}T${time}`);
-  return dateTime.toISOString();
+const formatDateTimeForAPI = (dateValue, timeValue) => {
+  if (!dateValue || !timeValue) return null;
+
+  const datePart = typeof dateValue === 'string' ? dateValue : dayjs(dateValue).format('YYYY-MM-DD');
+  const timePart = typeof timeValue === 'string' ? timeValue : dayjs(timeValue).format('HH:mm:ss');
+
+  return dayjs(`${datePart} ${timePart}`).toISOString();
 };
 
 const AtomicBookingForm = ({ 
@@ -125,13 +129,18 @@ const AtomicBookingForm = ({
 
     const formData = new FormData(e.target);
 
-    const formattedDate = selectedDate
-      ? selectedDate.format('YYYY-MM-DD')
-      : '';
+    if (!selectedDate || !selectedTime) {
+      setAlertModal({
+        isOpen: true,
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Please select both date and time for your booking.'
+      });
+      return;
+    }
 
-    const formattedTime = selectedTime
-      ? selectedTime.format('h:mm A')
-      : '';
+    const formattedDate = selectedDate.format('YYYY-MM-DD');
+    const formattedTime = selectedTime.format('h:mm A');
 
     const bookingData = {
       name: formData.get('name'),
