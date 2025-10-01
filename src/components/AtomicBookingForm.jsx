@@ -4,9 +4,14 @@ import {
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
-import { ArrowLeft, CreditCard, Shield, Calendar, Clock } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { ArrowLeft, CreditCard, Shield } from 'lucide-react';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { TextField } from '@mui/material';
+import dayjs from 'dayjs';
 import AddressAutocomplete from './AddressAutocomplete';
 import AlertModal from './AlertModal';
 
@@ -37,20 +42,54 @@ const AtomicBookingForm = ({
     details: null
   });
   const [selectedDate, setSelectedDate] = useState(
-    initialData.date ? new Date(initialData.date) : null
+    initialData.date ? dayjs(initialData.date) : null
   );
   const [selectedTime, setSelectedTime] = useState(
     initialData.time ? (() => {
       const [time, period] = initialData.time.split(' ');
       const [hours, minutes] = time.split(':');
-      const date = new Date();
       let hour = parseInt(hours);
       if (period === 'PM' && hour !== 12) hour += 12;
       if (period === 'AM' && hour === 12) hour = 0;
-      date.setHours(hour, parseInt(minutes));
-      return date;
+      return dayjs().hour(hour).minute(parseInt(minutes));
     })() : null
   );
+
+  const darkTheme = createTheme({
+    palette: {
+      mode: 'dark',
+      primary: {
+        main: '#F59E0B',
+      },
+      background: {
+        paper: '#374151',
+        default: '#1F2937',
+      },
+      text: {
+        primary: '#EEEEEE',
+        secondary: '#9CA3AF',
+      },
+    },
+    components: {
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: '#4B5563',
+              },
+              '&:hover fieldset': {
+                borderColor: '#6B7280',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#F59E0B',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 
   const handleCardChange = (event) => {
     setCardComplete(event.complete);
@@ -87,11 +126,11 @@ const AtomicBookingForm = ({
     const formData = new FormData(e.target);
 
     const formattedDate = selectedDate
-      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      ? selectedDate.format('YYYY-MM-DD')
       : '';
 
     const formattedTime = selectedTime
-      ? selectedTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      ? selectedTime.format('h:mm A')
       : '';
 
     const bookingData = {
@@ -451,53 +490,61 @@ const AtomicBookingForm = ({
         </div>
 
         {/* Date and Time */}
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium mb-1 md:text-base">
-              Date *
-            </label>
-            <div className="relative">
-              <DatePicker
-                id="date"
-                name="date"
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-                minDate={new Date('2025-05-31')}
-                dateFormat="MM/dd/yyyy"
-                placeholderText="Select date"
-                className="w-full px-3 py-2 pl-10 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-                disabled={isSubmitting}
-                required
-                wrapperClassName="w-full"
-              />
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        <ThemeProvider theme={darkTheme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
+              <div>
+                <label htmlFor="date" className="block text-sm font-medium mb-1 md:text-base">
+                  Date *
+                </label>
+                <DatePicker
+                  value={selectedDate}
+                  onChange={(newValue) => setSelectedDate(newValue)}
+                  minDate={dayjs('2025-05-31')}
+                  disabled={isSubmitting}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      placeholder: 'Select date',
+                      sx: {
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#374151',
+                          borderRadius: '0.5rem',
+                          fontSize: { xs: '0.875rem', md: '1rem' },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+              <div>
+                <label htmlFor="time" className="block text-sm font-medium mb-1 md:text-base">
+                  Time *
+                </label>
+                <TimePicker
+                  value={selectedTime}
+                  onChange={(newValue) => setSelectedTime(newValue)}
+                  disabled={isSubmitting}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      placeholder: 'Select time',
+                      sx: {
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#374151',
+                          borderRadius: '0.5rem',
+                          fontSize: { xs: '0.875rem', md: '1rem' },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
             </div>
-          </div>
-          <div>
-            <label htmlFor="time" className="block text-sm font-medium mb-1 md:text-base">
-              Time *
-            </label>
-            <div className="relative">
-              <DatePicker
-                id="time"
-                name="time"
-                selected={selectedTime}
-                onChange={(time) => setSelectedTime(time)}
-                showTimeSelect
-                showTimeSelectOnly
-                timeIntervals={15}
-                timeCaption="Time"
-                dateFormat="h:mm aa"
-                placeholderText="Select time"
-                className="w-full px-3 py-2 pl-10 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-                disabled={isSubmitting}
-                required
-                wrapperClassName="w-full"
-              />
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
+          </LocalizationProvider>
+        </ThemeProvider>
 
         {/* Payment Information */}
         <div className="space-y-4">
