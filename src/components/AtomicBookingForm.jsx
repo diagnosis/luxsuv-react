@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { 
-  CardElement, 
-  useStripe, 
-  useElements 
+import {
+  CardElement,
+  useStripe,
+  useElements
 } from '@stripe/react-stripe-js';
-import { ArrowLeft, CreditCard, Shield } from 'lucide-react';
+import { ArrowLeft, CreditCard, Shield, Calendar, Clock } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import AddressAutocomplete from './AddressAutocomplete';
 import AlertModal from './AlertModal';
 
@@ -34,6 +36,12 @@ const AtomicBookingForm = ({
     message: '',
     details: null
   });
+  const [selectedDate, setSelectedDate] = useState(
+    initialData.date ? new Date(initialData.date) : null
+  );
+  const [selectedTime, setSelectedTime] = useState(
+    initialData.time ? initialData.time : ''
+  );
 
   const handleCardChange = (event) => {
     setCardComplete(event.complete);
@@ -68,19 +76,23 @@ const AtomicBookingForm = ({
     }
 
     const formData = new FormData(e.target);
-    
+
+    const formattedDate = selectedDate
+      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      : '';
+
     const bookingData = {
       name: formData.get('name'),
       email: formData.get('email'),
       phone: formData.get('phone'),
-      date: formData.get('date'),
-      time: formData.get('time'),
+      date: formattedDate,
+      time: selectedTime,
       pickup: pickupLocation,
       dropoff: dropoffLocation,
       luggage_count: parseInt(formData.get('luggage_count')) || 0,
       passenger_count: parseInt(formData.get('passenger_count')) || 1,
       trip_type: formData.get('trip_type') || 'per_ride',
-      scheduled_at: formatDateTimeForAPI(formData.get('date'), formData.get('time')),
+      scheduled_at: formatDateTimeForAPI(formattedDate, selectedTime),
     };
 
     // Validate required fields
@@ -431,32 +443,43 @@ const AtomicBookingForm = ({
             <label htmlFor="date" className="block text-sm font-medium mb-1 md:text-base">
               Date *
             </label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              defaultValue={initialData.date || ''}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-              min="2025-05-31"
-              required
-              disabled={isSubmitting}
-              title="Please select a date for your ride"
-            />
+            <div className="relative">
+              <DatePicker
+                id="date"
+                name="date"
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                minDate={new Date('2025-05-31')}
+                dateFormat="MM/dd/yyyy"
+                placeholderText="Select date"
+                className="w-full px-3 py-2 pl-10 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+                disabled={isSubmitting}
+                required
+                wrapperClassName="w-full"
+              />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
           <div>
             <label htmlFor="time" className="block text-sm font-medium mb-1 md:text-base">
               Time *
             </label>
-            <input
-              type="time"
-              id="time"
-              name="time"
-              defaultValue={initialData.time || ''}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-              required
-              disabled={isSubmitting}
-              title="Please select a time for your ride"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                id="time"
+                name="time"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                placeholder="--:-- --"
+                className="w-full px-3 py-2 pl-10 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
+                required
+                disabled={isSubmitting}
+                pattern="^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM|am|pm)$"
+                title="Please enter time in format: HH:MM AM/PM (e.g., 09:30 AM)"
+              />
+              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
