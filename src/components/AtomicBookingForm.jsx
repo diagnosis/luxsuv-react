@@ -352,54 +352,73 @@ const AtomicBookingForm = ({
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         {/* Contact Information */}
         <div className="space-y-3 md:space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1 md:text-base">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              defaultValue={initialData.name || ''}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-              placeholder="Enter your full name"
-              required
-              disabled={isSubmitting}
-              title="Please enter your full name"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1 md:text-base">
-              Email Address *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              defaultValue={initialData.email || ''}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-              placeholder="Enter your email"
-              required
-              disabled={isSubmitting}
-              title="Please enter a valid email address"
-            />
-          </div>
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium mb-1 md:text-base">
-              Phone Number *
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              defaultValue={initialData.phone || ''}
-              className="w-full px-3 py-2 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-              placeholder="Enter your phone number"
-              required
-              disabled={isSubmitting}
-              title="Please enter your phone number"
-            />
-          </div>
+          <ThemeProvider theme={darkTheme}>
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium mb-1 md:text-base">
+                Full Name *
+              </label>
+              <TextField
+                id="name"
+                name="name"
+                defaultValue={initialData.name || ''}
+                placeholder="Enter your full name"
+                required
+                disabled={isSubmitting}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#374151',
+                    borderRadius: '0.5rem',
+                    fontSize: { xs: '0.875rem', md: '1rem' },
+                  },
+                }}
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-1 md:text-base">
+                Email Address *
+              </label>
+              <TextField
+                type="email"
+                id="email"
+                name="email"
+                defaultValue={initialData.email || ''}
+                placeholder="Enter your email"
+                required
+                disabled={isSubmitting}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#374151',
+                    borderRadius: '0.5rem',
+                    fontSize: { xs: '0.875rem', md: '1rem' },
+                  },
+                }}
+              />
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium mb-1 md:text-base">
+                Phone Number *
+              </label>
+              <TextField
+                type="tel"
+                id="phone"
+                name="phone"
+                defaultValue={initialData.phone || ''}
+                placeholder="Enter your phone number"
+                required
+                disabled={isSubmitting}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#374151',
+                    borderRadius: '0.5rem',
+                    fontSize: { xs: '0.875rem', md: '1rem' },
+                  },
+                }}
+              />
+            </div>
+          </ThemeProvider>
         </div>
 
         {/* Trip Details */}
