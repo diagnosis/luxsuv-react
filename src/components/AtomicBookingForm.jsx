@@ -228,14 +228,21 @@ const AtomicBookingForm = ({
     style: {
       base: {
         fontSize: '16px',
-        color: '#EEEEEE',
-        backgroundColor: 'transparent',
+        color: '#FFFFFF',
+        fontWeight: '400',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         '::placeholder': {
-          color: '#9CA3AF',
+          color: '#D1D5DB',
         },
+        iconColor: '#FFFFFF',
       },
       invalid: {
         color: '#EF4444',
+        iconColor: '#EF4444',
+      },
+      complete: {
+        color: '#FFFFFF',
+        iconColor: '#10B981',
       },
     },
   };
@@ -464,8 +471,8 @@ const AtomicBookingForm = ({
             <label className="block text-sm font-medium text-light mb-2">
               Card Details *
             </label>
-            <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 focus-within:ring-2 focus-within:ring-yellow focus-within:border-yellow transition-colors">
-              <CardElement 
+            <div className="bg-gray-800 border border-gray-500 rounded-lg p-4 focus-within:ring-2 focus-within:ring-yellow focus-within:border-yellow transition-colors">
+              <CardElement
                 options={cardOptions}
                 onChange={handleCardChange}
               />
