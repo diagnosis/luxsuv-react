@@ -14,13 +14,17 @@ input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.9;
   transition: opacity 0.2s;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="time"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
+  transform: scale(1.1);
 }
 
 /* Firefox date/time input styling */
@@ -28,7 +32,9 @@ input[type="date"]::-moz-calendar-picker-indicator,
 input[type="time"]::-moz-calendar-picker-indicator {
   filter: invert(1);
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.9;
+  width: 24px;
+  height: 24px;
 }
 
 /* Ensure text is visible */
