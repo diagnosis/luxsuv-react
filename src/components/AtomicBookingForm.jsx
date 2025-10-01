@@ -40,7 +40,16 @@ const AtomicBookingForm = ({
     initialData.date ? new Date(initialData.date) : null
   );
   const [selectedTime, setSelectedTime] = useState(
-    initialData.time ? initialData.time : ''
+    initialData.time ? (() => {
+      const [time, period] = initialData.time.split(' ');
+      const [hours, minutes] = time.split(':');
+      const date = new Date();
+      let hour = parseInt(hours);
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      date.setHours(hour, parseInt(minutes));
+      return date;
+    })() : null
   );
 
   const handleCardChange = (event) => {
@@ -81,18 +90,22 @@ const AtomicBookingForm = ({
       ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
       : '';
 
+    const formattedTime = selectedTime
+      ? selectedTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      : '';
+
     const bookingData = {
       name: formData.get('name'),
       email: formData.get('email'),
       phone: formData.get('phone'),
       date: formattedDate,
-      time: selectedTime,
+      time: formattedTime,
       pickup: pickupLocation,
       dropoff: dropoffLocation,
       luggage_count: parseInt(formData.get('luggage_count')) || 0,
       passenger_count: parseInt(formData.get('passenger_count')) || 1,
       trip_type: formData.get('trip_type') || 'per_ride',
-      scheduled_at: formatDateTimeForAPI(formattedDate, selectedTime),
+      scheduled_at: formatDateTimeForAPI(formattedDate, formattedTime),
     };
 
     // Validate required fields
@@ -465,18 +478,21 @@ const AtomicBookingForm = ({
               Time *
             </label>
             <div className="relative">
-              <input
-                type="text"
+              <DatePicker
                 id="time"
                 name="time"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                placeholder="--:-- --"
+                selected={selectedTime}
+                onChange={(time) => setSelectedTime(time)}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="h:mm aa"
+                placeholderText="Select time"
                 className="w-full px-3 py-2 pl-10 bg-gray-700 text-light border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow transition-colors text-sm md:text-base md:px-4"
-                required
                 disabled={isSubmitting}
-                pattern="^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM|am|pm)$"
-                title="Please enter time in format: HH:MM AM/PM (e.g., 09:30 AM)"
+                required
+                wrapperClassName="w-full"
               />
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
             </div>
